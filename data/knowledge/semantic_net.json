@@ -1,0 +1,9 @@
+{
+  "_note": "Semantic network for the report (Chapter 2) and for query expansion. Add one edge per fact from data/sources/ and set verified to true once checked. Seed edges below are only the basics.",
+  "relations": ["is_a", "part_of", "originates_from", "played_by", "played_at", "made_of", "worn_by", "symbolises"],
+  "edges": [
+    {"s": "Gendang Beleq", "r": "is_a", "o": "drum ensemble", "source": "TODO", "verified": false},
+    {"s": "Gendang Beleq", "r": "originates_from", "o": "Lombok", "source": "TODO", "verified": false},
+    {"s": "Gendang Beleq", "r": "played_by", "o": "Sasak people", "source": "TODO", "verified": false}
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "_note": "STARTER CONTENT written from general knowledge. Every topic has verified=false and source=TODO. Check each fact against data/sources/, correct it, add the citation in 'source', then set verified to true.",
+  "topics": [
+    {
+      "id": "overview",
+      "title": "What is the Gendang Beleq?",
+      "keywords": ["overview", "introduction", "basics", "ensemble", "island"],
+      "summary": "The Gendang Beleq is a traditional drum ensemble from the island of Lombok in Indonesia.",
+      "facts": [
+        "The Gendang Beleq is a traditional percussion ensemble of the Sasak people, the main ethnic group of Lombok island in West Nusa Tenggara, Indonesia.",
+        "The ensemble is built around very large drums and is played by a group of musicians who perform together, often in a procession."
+      ],
+      "lesson": [
+        {
+          "teach": "The Gendang Beleq is a traditional drum ensemble. It belongs to the Sasak people, who live on the island of Lombok in Indonesia, just east of Bali.",
+          "question": "Which people does the Gendang Beleq belong to, and on which island do they live?",
+          "answer": [["sasak"], ["lombok"]],
+          "hint": "The people share their name with a word that starts with 'Sa', and their island is east of Bali.",
+          "explain": "The Gendang Beleq is the Sasak people's ensemble, from the island of Lombok."
+        },
+        {
+          "teach": "It is a percussion ensemble, so rhythm is the heart of the music. Many musicians play together, which makes teamwork very important.",
+          "question": "In your own words, what kind of music group is the Gendang Beleq?",
+          "answer": [["percussion", "drum", "drums", "drumming", "rhythm"]],
+          "hint": "Think about what the musicians hit to make sound.",
+          "explain": "It is a percussion (drum) ensemble."
+        }
+      ],
+      "quiz": [
+        {
+          "level": 2,
+          "question": "Which province of Indonesia is Lombok part of?",
+          "answer": [["west nusa tenggara", "ntb", "nusa tenggara"]],
+          "hint": "The abbreviation is NTB.",
+          "explain": "Lombok is part of West Nusa Tenggara (NTB)."
+        }
+      ],
+      "related": ["name", "history"],
+      "source": "TODO",
+      "verified": false
+    },
+    {
+      "id": "name",
+      "title": "What does the name mean?",
+      "keywords": ["name", "meaning", "translate", "translation", "spelled", "spelling", "belek"],
+      "summary": "Gendang Beleq means 'big drum' in the Sasak language.",
+      "facts": [
+        "'Gendang' means drum, and 'beleq' means big in the Sasak language, so Gendang Beleq means 'big drum'.",
+        "The name is also written Gendang Belek."
+      ],
+      "lesson": [
+        {
+          "teach": "The name has two words. 'Gendang' means drum. 'Beleq' means big in the Sasak language.",
+          "question": "So what does 'Gendang Beleq' mean in English?",
+          "answer": [["big", "large", "giant"], ["drum", "drums"]],
+          "hint": "Gendang is the drum; beleq describes its size.",
+          "explain": "Gendang Beleq means 'big drum'."
+        },
+        {
+          "teach": "You will see the name spelled two ways in books and websites. Both refer to the same ensemble.",
+          "question": "Can you tell me the other common spelling of 'Beleq'?",
+          "answer": [["belek"]],
+          "hint": "It ends with a k instead of a q.",
+          "explain": "The other spelling is 'Belek', as in Gendang Belek."
+        }
+      ],
+      "quiz": [
+        {
+          "level": 1,
+          "question": "What does the word 'beleq' mean?",
+          "answer": [["big", "large", "giant"]],
+          "hint": "It describes the size of the drums.",
+          "explain": "'Beleq' means big."
+        }
+      ],
+      "related": ["overview", "instruments"],
+      "source": "TODO",
+      "verified": false
+    },
+    {
+      "id": "instruments",
+      "title": "The instruments",
+      "keywords": ["instrument", "drum", "gong", "reyong", "petuk", "oncer", "cymbal", "flute", "suling", "mama", "nina"],
+      "summary": "Two large drums lead the ensemble, supported by gongs and other percussion.",
+      "facts": [
+        "Two large drums form the heart of the ensemble. They are traditionally described as a male drum, gendang mama, and a female drum, gendang nina.",
+        "Other instruments commonly named in the ensemble include gongs, the reyong, the petuk, cymbal-type oncer and sometimes a bamboo flute called suling."
+      ],
+      "lesson": [
+        {
+          "teach": "Two big drums lead the ensemble. By tradition one is called the male drum, gendang mama, and the other the female drum, gendang nina.",
+          "question": "What are the two big drums called?",
+          "answer": [["mama"], ["nina"]],
+          "hint": "One name sounds like 'mother' and both end in 'a'. They are gendang mama and gendang ...?",
+          "explain": "They are gendang mama (male) and gendang nina (female)."
+        },
+        {
+          "teach": "The drums are joined by other instruments such as gongs, the reyong, the petuk, cymbal-type oncer and sometimes a bamboo flute called suling.",
+          "question": "Name one instrument in the ensemble besides the big drums.",
+          "answer": [["gong", "gongs", "reyong", "petuk", "oncer", "cymbal", "cymbals", "flute", "suling"]],
+          "hint": "Think of a large metal disc that is struck, or the bamboo flute.",
+          "explain": "Gongs, the reyong, petuk, oncer and the suling flute all join the drums."
+        }
+      ],
+      "quiz": [],
+      "related": ["players", "occasions"],
+      "source": "TODO",
+      "verified": false
+    },
+    {
+      "id": "occasions",
+      "title": "When it is played",
+      "keywords": ["ceremony", "wedding", "festival", "occasion", "nyongkolan", "event", "welcome", "guests", "celebration"],
+      "summary": "It is played at weddings, to welcome guests and at cultural events.",
+      "facts": [
+        "The Gendang Beleq is performed at celebrations such as Sasak weddings, where it can accompany the wedding procession called nyongkolan.",
+        "It is also played to welcome honoured guests and at festivals and official cultural events."
+      ],
+      "lesson": [
+        {
+          "teach": "At a Sasak wedding the Gendang Beleq can lead the procession called nyongkolan, the parade that brings the couple and their families through the village.",
+          "question": "At what kind of family celebration might the ensemble accompany a procession?",
+          "answer": [["wedding", "weddings", "marriage", "nyongkolan"]],
+          "hint": "Think of a celebration where two people get married.",
+          "explain": "It accompanies wedding processions called nyongkolan."
+        },
+        {
+          "teach": "Weddings are not the only time. The ensemble also welcomes honoured guests and performs at festivals and cultural events.",
+          "question": "Besides weddings, name another occasion when it is played.",
+          "answer": [["guest", "guests", "welcome", "welcoming", "festival", "festivals", "event", "events", "cultural"]],
+          "hint": "Think about how a village might greet an important visitor, or a big public celebration.",
+          "explain": "It is also played to welcome guests and at festivals and cultural events."
+        }
+      ],
+      "quiz": [],
+      "related": ["history", "players"],
+      "source": "TODO",
+      "verified": false
+    },
+    {
+      "id": "history",
+      "title": "History and origins",
+      "keywords": ["history", "origin", "war", "warrior", "kingdom", "royal", "past", "battle", "today"],
+      "summary": "It was once linked to warriors and kingdoms, and is now mainly cultural.",
+      "facts": [
+        "In its origins the ensemble is linked to the Sasak kingdoms of Lombok, where it was played to accompany warriors going to war.",
+        "Over its history it has become mainly a ceremonial and cultural performance rather than a battle tradition."
+      ],
+      "lesson": [
+        {
+          "teach": "In the past the ensemble is linked to the Sasak kingdoms. Its loud, powerful sound was played to accompany warriors going to war.",
+          "question": "What was the ensemble traditionally played for in the old kingdoms?",
+          "answer": [["war", "warrior", "warriors", "battle", "fighting"]],
+          "hint": "Think of what soldiers prepare for.",
+          "explain": "It accompanied warriors going to war."
+        },
+        {
+          "teach": "Times have changed. Today the Gendang Beleq is mainly a ceremonial and cultural performance that keeps Sasak heritage alive.",
+          "question": "How is the ensemble mostly used today?",
+          "answer": [["ceremony", "ceremonies", "ceremonial", "celebration", "celebrations", "cultural", "culture", "performance", "performances", "festival", "festivals", "weddings", "heritage"]],
+          "hint": "It is no longer for battle. Think of celebrations and heritage.",
+          "explain": "Today it is a ceremonial and cultural performance."
+        }
+      ],
+      "quiz": [],
+      "related": ["occasions", "overview"],
+      "source": "TODO",
+      "verified": false
+    },
+    {
+      "id": "players",
+      "title": "The players and their costume",
+      "keywords": ["costume", "dress", "clothing", "players", "musicians", "wear", "parade", "dance", "procession"],
+      "summary": "Musicians in traditional Sasak dress often play while walking in procession.",
+      "facts": [
+        "Performers wear traditional Sasak dress, including a headcloth, and the ensemble often performs on the move in a procession rather than seated.",
+        "Because the musicians usually walk while they play, the large drums are carried on the body."
+      ],
+      "lesson": [
+        {
+          "teach": "The musicians often play while walking together in a procession rather than sitting still. The big drums are carried on the body.",
+          "question": "How does the ensemble often perform at a wedding: in what kind of formation?",
+          "answer": [["procession", "parade", "walk", "walking", "moving", "move", "march", "marching"]],
+          "hint": "They do not stay seated. Think of a moving line of people.",
+          "explain": "The players often walk in a procession while they perform."
+        },
+        {
+          "teach": "The performers dress in traditional Sasak clothing, including a headcloth, which makes the parade colourful and proud.",
+          "question": "What do the performers wear?",
+          "answer": [["traditional", "costume", "costumes", "sasak", "headcloth", "dress", "clothing", "attire"]],
+          "hint": "Think of the clothes that show their culture.",
+          "explain": "They wear traditional Sasak dress, including a headcloth."
+        }
+      ],
+      "quiz": [],
+      "related": ["instruments", "occasions"],
+      "source": "TODO",
+      "verified": false
+    }
+  ],
+  "glossary": {
+    "gendang": "drum",
+    "beleq": "big, in the Sasak language",
+    "belek": "an alternative spelling of beleq",
+    "sasak": "the main ethnic group of Lombok island",
+    "lombok": "an Indonesian island in West Nusa Tenggara, east of Bali",
+    "nyongkolan": "the Sasak wedding procession that the Gendang Beleq can accompany",
+    "suling": "a bamboo flute",
+    "gendang mama": "the male drum of the ensemble",
+    "gendang nina": "the female drum of the ensemble"
+  }
+}

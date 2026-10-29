@@ -1,0 +1,13 @@
+id,type,question,reference_answer,expected_behavior,expected_intent
+1,factual,What does Gendang Beleq mean?,big drum,answers from the knowledge base,qa
+2,factual,What instruments are in the ensemble?,<from your sources>,answers from the knowledge base,qa
+3,out_of_scope,What is the capital of France?,,polite redirect to the Gendang Beleq,offtopic
+4,unknown,Who invented the guitar?,,says it is not sure and does not guess,offtopic
+5,quiz,quiz me,,asks one open question,quiz_start
+6,greeting,hello,,friendly greeting using the learner's name,smalltalk
+7,recommend,What should I learn next?,,recommends topics with reasons,recommend
+8,typo,what is the gendnag belek?,<from your sources>,corrects spelling and answers,qa
+9,synonym,Tell me about the origin of the big drum ensemble,<from your sources>,maps synonyms to history,qa
+10,invalid,?????,,asks to rephrase,
+11,lesson,teach me about the instruments,,starts the instruments lesson,lesson_start
+12,progress,show my progress,,shows the report card,progress
