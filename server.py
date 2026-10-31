@@ -6,6 +6,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from eval import cuq
 from src import persona
 from src.graph import ask, build_graph, start, state_of
 from src.knowledge import topics
@@ -36,6 +37,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send(code, json.dumps(data).encode("utf-8"), "application/json; charset=utf-8")
 
     def do_GET(self):
+        if self.path == "/api/cuq":
+            return self._json({"items": cuq.ITEMS, "scale": cuq.SCALE})
         path = STATIC.get(self.path.split("?")[0])
         if path and path.exists():
             ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
@@ -49,11 +52,15 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/start":
                 tid = str(uuid.uuid4())
                 return self._json({"thread_id": tid, "reply": start(graph, tid), "progress": None})
+            if self.path == "/api/cuq":
+                answers = [int(a) for a in data["answers"]]
+                comments = str(data.get("comments", ""))[:1000]
+                return self._json({"score": round(cuq.save(answers, comments), 1)})
             if self.path == "/api/chat":
                 tid, text = str(data["thread_id"]), str(data.get("message", ""))
                 return self._json({"reply": ask(graph, text, tid), "progress": progress_of(tid)})
             self._json({"error": "not found"}, 404)
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             self._json({"error": "bad request"}, 400)
 
     def log_message(self, *args):
