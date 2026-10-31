@@ -1,10 +1,11 @@
 # Session Handoff Log
 
 ## Latest Status
-- **Last Updated By:** Claude Code
-- **Current Task:** Standalone web page and CUQ form (done); log sync
+- **Last Updated By:** Antigravity
+- **Current Task:** Added GitHub collaborators (`mightywound`, `amaninnit-hub`)
 
 ## Recent Changes
+- Invited `mightywound` and `amaninnit-hub` as collaborators (`write` permission) on `eaergfyl-maker/chatbot-guru-beleq`.
 - Initialized `GEMINI.md`, `CLAUDE.md`, and `SESSION_LOG.md` for cross-agent collaboration.
 - Replaced placeholder `assets/avatar.svg` with generated 512×512 PNG mascot (`assets/avatar.png`) and completed `assets/AVATAR_LOG.md`.
 - Fixed false-positive partial-match disclaimer on synonym queries in `src/nodes.py` (`answer()`), added regression assertion in `tests/test_bot.py`, and scored `eval/results.csv`.
