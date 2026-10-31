@@ -11,7 +11,7 @@ from .state import State
 log = logging.getLogger(__name__)
 
 
-def safe(fn):
+def safe(fn, **on_error):
     """Exception handling: if a node raises, log it and apologise so the chat carries on."""
 
     @functools.wraps(fn)
@@ -20,7 +20,7 @@ def safe(fn):
             return fn(state)
         except Exception:
             log.exception("node %s failed", fn.__name__)
-            return {"messages": [AIMessage(content=nodes.ERROR_MESSAGE)]}
+            return {"messages": [AIMessage(content=nodes.ERROR_MESSAGE)], **on_error}
 
     return wrapper
 
@@ -28,7 +28,7 @@ def safe(fn):
 # intent -> node that handles it
 INTENT_NODES = {
     "qa": "answer", "menu": "menu", "leave": "leave", "invite": "invite", "help": "help", "smalltalk": "smalltalk",
-    "offtopic": "offtopic", "bye": "bye", "progress": "progress", "recommend": "recommend",
+    "offtopic": "offtopic", "bye": "bye", "progress": "progress", "recommend": "recommend", "sources": "sources",
     "lesson_start": "lesson_start", "lesson_reply": "lesson_reply", "quiz_start": "quiz_start", "quiz_reply": "quiz_reply",
 }
 
@@ -42,11 +42,12 @@ def build_graph():
     g.add_node("route_stage", lambda state: {})  # junction: decides between name capture and normal handling
     g.add_node("take_name", safe(nodes.take_name))
     g.add_node("normalize", safe(nodes.normalize))
-    g.add_node("classify", safe(nodes.classify))
+    g.add_node("classify", safe(nodes.classify, intent="error"))  # already apologised, so the turn ends there
     for node_name, fn in (
         ("answer", nodes.answer), ("menu", nodes.menu), ("leave", nodes.leave), ("invite", nodes.invite),
         ("help", nodes.help_node), ("smalltalk", nodes.smalltalk), ("offtopic", nodes.offtopic), ("bye", nodes.bye),
-        ("progress", nodes.progress_node), ("recommend", nodes.recommend), ("lesson_start", nodes.lesson_start),
+        ("progress", nodes.progress_node), ("recommend", nodes.recommend), ("sources", nodes.sources),
+        ("lesson_start", nodes.lesson_start),
         ("lesson_reply", nodes.lesson_reply), ("quiz_start", nodes.quiz_start), ("quiz_reply", nodes.quiz_reply),
     ):
         g.add_node(node_name, safe(fn))
@@ -56,7 +57,7 @@ def build_graph():
     g.add_conditional_edges("validate", nodes.route_valid, {"reject": "reject", "route_stage": "route_stage"})
     g.add_conditional_edges("route_stage", nodes.route_stage, {"take_name": "take_name", "normalize": "normalize"})
     g.add_edge("normalize", "classify")
-    g.add_conditional_edges("classify", nodes.route_intent, INTENT_NODES)
+    g.add_conditional_edges("classify", nodes.route_intent, {**INTENT_NODES, "error": END})
     for end_node in ["greet", "reject", "take_name", *INTENT_NODES.values()]:
         g.add_edge(end_node, END)
 

@@ -1,9 +1,30 @@
 {
-  "_note": "Semantic network for the report (Chapter 2) and for query expansion. Add one edge per fact from data/sources/ and set verified to true once checked. Seed edges below are only the basics.",
-  "relations": ["is_a", "part_of", "originates_from", "played_by", "played_at", "made_of", "worn_by", "symbolises"],
+  "_note": "Semantic network for the report (Chapter 2) and for search expansion. Each edge cites a key from 'references' in topics.json.",
+  "relations": ["is_a", "part_of", "originates_from", "played_by", "played_at", "made_of", "worn_by", "keeps", "plays"],
   "edges": [
-    {"s": "Gendang Beleq", "r": "is_a", "o": "drum ensemble", "source": "TODO", "verified": false},
-    {"s": "Gendang Beleq", "r": "originates_from", "o": "Lombok", "source": "TODO", "verified": false},
-    {"s": "Gendang Beleq", "r": "played_by", "o": "Sasak people", "source": "TODO", "verified": false}
+    {"s": "Gendang Beleq", "r": "is_a", "o": "drum ensemble", "sources": ["saputra2019"]},
+    {"s": "Gendang Beleq", "r": "originates_from", "o": "Lombok", "sources": ["saputra2019"]},
+    {"s": "Gendang Beleq", "r": "played_by", "o": "Sasak people", "sources": ["saputra2019"]},
+    {"s": "Lombok", "r": "part_of", "o": "West Nusa Tenggara", "sources": ["saputra2019"]},
+    {"s": "gendang mame", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "gendang nine", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "reyong", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "suling", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "gong beleq", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "kempur", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "petuq", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "rincik", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "kenceng", "r": "part_of", "o": "Gendang Beleq", "sources": ["saputra2019"]},
+    {"s": "petuq", "r": "keeps", "o": "tempo", "sources": ["saputra2019"]},
+    {"s": "suling", "r": "plays", "o": "melody", "sources": ["saputra2019"]},
+    {"s": "reyong", "r": "plays", "o": "melody", "sources": ["saputra2019"]},
+    {"s": "reyong", "r": "made_of", "o": "bronze", "sources": ["saputra2019"]},
+    {"s": "gendang mame", "r": "made_of", "o": "wood", "sources": ["saputra2019"]},
+    {"s": "gendang nine", "r": "made_of", "o": "wood", "sources": ["saputra2019"]},
+    {"s": "Gendang Beleq", "r": "played_at", "o": "wedding", "sources": ["saputra2019", "keen2015"]},
+    {"s": "Gendang Beleq", "r": "played_at", "o": "circumcision", "sources": ["fazalani2020"]},
+    {"s": "Gendang Beleq", "r": "played_at", "o": "festival", "sources": ["fazalani2020", "indonesiatravel"]},
+    {"s": "nyongkolan", "r": "part_of", "o": "wedding", "sources": ["saputra2019"]},
+    {"s": "sapuk", "r": "worn_by", "o": "players", "sources": ["fazalani2020"]}
   ]
 }

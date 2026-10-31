@@ -12,8 +12,10 @@ class State(TypedDict, total=False):
     clean_text: str      # user text after spelling correction
     heard: str           # corrected text, shown back to the user when it differs from what they typed
     search_query: str    # clean text + synonyms + semantic-net neighbours (+ previous turn for follow-ups)
+    cued: bool           # the question type was recognised (how many, when, where...)
     mood: str            # "struggling" | "happy" | ""
     intent: str          # which branch of the graph handled the message
     lesson: dict         # {"topic": id, "step": n, "attempts": n} while a lesson is running
     quiz: dict           # {"n", "right", "asked", "current", "attempts"} while a quiz is running
     progress: dict       # see profiles.new_progress()
+    told: list           # facts already given in this conversation, so "tell me more" moves on

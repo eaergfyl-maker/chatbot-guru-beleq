@@ -22,18 +22,38 @@ SYNONYMS = {
     "lombok": ["west nusa tenggara", "ntb"],
 }
 
+# what kind of question is it? Each pattern adds the words that answers to that kind of question use.
+QUESTION_CUES = [
+    (r"^\s*what(\s+is|'s)\s+(the\s+|a\s+)?gendang beleq\b\W*$", "traditional art sasak lombok identity"),
+    (r"\bdrums?\b.*\b(called|named|names?)\b", "mame nine male female"),
+    (r"\bwhat does (a |an |the )?\w+ do\b|\b(purpose|role|job) of\b", "closes keeps fills plays"),
+    (r"\bhow many\b|\bnumber of\b", "dozen thirty musicians group"),
+    (r"\bhow (big|long|large|heavy|tall)\b", "long drums carry"),
+    (r"\bhow\b.*\bplay", "mallet drummer slaps"),
+    (r"\bmade (of|from)\b|\bmaterials?\b", "wood skin body"),
+    (r"\bwhen\b(?!.*\b(start|began|begin|invent|creat))|\boccasions?\b", "weddings procession accompanies village ceremony festival"),
+    (r"\bwhere\b.*\b(see|watch|visit|find)\b|\bcan i (see|watch)\b", "visitors villages cultural centres see"),
+    (r"\bwhere\b.*\b(from|come|originate)", "lombok regencies sasak"),
+    (r"\bwho\b.*\b(play|perform)", "players group sasak"),
+    (r"\b(invent|creat|found|start|began|begin|how old)", "origins history uncertain kingdom"),
+    (r"\b(dying|disappear|declin|extinct|losing|surviv|popular|future)", "decline kecimol dangdut"),
+    (r"\bwhy\b.*\b(big|large|name|called)", "named large drums"),
+]
+_REFERS_TO_SUBJECT = re.compile(r"\b(it|its|they|them|their|these|those|this)\b", re.I)
+
 STOPWORDS = {
     "the", "a", "an", "is", "are", "was", "were", "do", "does", "did", "of", "to", "in", "on", "at", "and", "or",
     "what", "who", "when", "where", "why", "how", "which", "can", "could", "would", "should", "me", "i", "you",
     "tell", "about", "please", "it", "its", "this", "that", "these", "those", "for", "with", "be", "have", "has",
-    "my", "your", "some", "any", "there", "they", "them", "their", "from", "also",
+    "my", "your", "some", "any", "there", "they", "them", "their", "from", "also", "more", "else", "another",
+    "other", "further",
 }
 
 # names users are most likely to mistype; matched loosely
 _BASE_VOCAB = {
     "gendang", "beleq", "belek", "sasak", "lombok", "indonesia", "drum", "drums", "gong", "ensemble",
     "ceremony", "instrument", "instruments", "history", "performance", "traditional", "culture", "quiz",
-    "lesson", "nyongkolan", "wedding", "costume",
+    "lesson", "nyongkolan", "wedding", "costume", "reyong", "petuq", "kempur", "suling", "kenceng", "rincik", "oncer",
 }
 
 
@@ -75,9 +95,13 @@ def correct_spelling(text: str) -> str:
         # looser match against the short core list, stricter and only for longer words against the full vocabulary,
         # so ordinary words such as 'long' or 'mean' are left alone
         close = difflib.get_close_matches(low, core, n=1, cutoff=0.79 if n <= 5 else 0.72)
+        if close and n <= 5 and abs(len(close[0]) - n) > 1:  # 'look' is not a typo of 'lombok'
+            close = []
         if not close and n >= 6:
             close = difflib.get_close_matches(low, candidates, n=1, cutoff=0.84)
-        return close[0] if close else word
+        if not close:
+            return word
+        return close[0].capitalize() if word[0].isupper() else close[0]
 
     return re.sub(r"[A-Za-z]+", fix, text)
 
@@ -94,8 +118,25 @@ def expand_synonyms(text: str) -> list[str]:
     return found
 
 
+def question_cues(text: str, about_subject: bool) -> list[str]:
+    """Extra search words for the kind of question asked. Only applies to questions about this subject,
+    so 'who invented the guitar?' stays off-topic while 'who invented it?' does not."""
+    if not (about_subject or _REFERS_TO_SUBJECT.search(text)):
+        return []
+    return [words for pattern, words in QUESTION_CUES if re.search(pattern, text, re.I)]
+
+
 def stem(word: str) -> str:
-    return word[:-1] if len(word) > 3 and word.endswith("s") and not word.endswith("ss") else word
+    """Crude suffix stripping so plays, played and playing all match."""
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
+        word = word[:-1]
+    if len(word) > 5 and word.endswith("ing"):
+        return word[:-3]
+    if len(word) > 5 and word.endswith("ed"):
+        return word[:-2]
+    return word
 
 
 def extract_keywords(text: str) -> list[str]:

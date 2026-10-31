@@ -1,4 +1,4 @@
-"""Knowledge base: lessons, quiz questions, facts and glossary stored in data/knowledge/topics.json.
+"""Knowledge base: lessons, quiz questions, cited facts, glossary and references in data/knowledge/topics.json.
 
 Check it with:  python -m src.knowledge
 """
@@ -28,6 +28,23 @@ def glossary() -> dict:
     return load_kb().get("glossary", {})
 
 
+def references() -> dict:
+    return load_kb().get("references", {})
+
+
+def topic_sources(topic: dict) -> list[str]:
+    """Every source cited by a topic's facts, in first-cited order."""
+    keys = []
+    for fact in topic["facts"]:
+        keys += [k for k in fact["sources"] if k not in keys]
+    return keys
+
+
+def cite(keys: list[str]) -> str:
+    """In-text Harvard citation, e.g. '(Saputra, 2019; Keen, 2015)'."""
+    return "(" + "; ".join(references()[k]["short"] for k in keys) + ")"
+
+
 def quiz_items() -> list[dict]:
     """Every lesson check question plus the extra quiz questions, in one pool."""
     items = []
@@ -45,32 +62,43 @@ def vocabulary() -> set[str]:
     """Words in the knowledge base, used by the spelling corrector."""
     text = []
     for t in topics():
-        text += [t["title"], t["summary"], *t["keywords"], *t.get("facts", [])]
-    for term, meaning in glossary().items():
-        text += [term, meaning]
+        text += [t["title"], t["summary"], *t["keywords"], *(f["text"] for f in t["facts"])]
+    for term, entry in glossary().items():
+        text += [term, entry["meaning"]]
     return {w for w in re.findall(r"[a-z]{4,}", " ".join(text).lower())}
 
 
 def validate() -> list[str]:
     problems = []
     ids = {t["id"] for t in topics()}
+    refs = references()
     for t in topics():
-        for field in ("id", "title", "keywords", "summary", "facts", "lesson", "source"):
+        for field in ("id", "title", "keywords", "summary", "facts", "lesson"):
             if not t.get(field):
                 problems.append(f"{t.get('id', '?')}: missing {field}")
         for r in t.get("related", []):
             if r not in ids:
                 problems.append(f"{t['id']}: related topic '{r}' does not exist")
-        for s in t.get("lesson", []):
-            for field in ("teach", "question", "answer", "hint", "explain"):
+        for fact in t.get("facts", []):
+            if not fact.get("sources"):
+                problems.append(f"{t['id']}: fact has no source: {fact.get('text', '')[:40]}")
+            problems += [f"{t['id']}: unknown source '{k}'" for k in fact.get("sources", []) if k not in refs]
+        for s in [*t.get("lesson", []), *t.get("quiz", [])]:
+            for field in ("question", "answer", "hint", "explain"):
                 if not s.get(field):
-                    problems.append(f"{t['id']}: lesson step missing {field}")
+                    problems.append(f"{t['id']}: question missing {field}")
+    for term, entry in glossary().items():
+        if not entry.get("sources"):
+            problems.append(f"glossary '{term}' has no source")
+        problems += [f"glossary '{term}': unknown source '{k}'" for k in entry.get("sources", []) if k not in refs]
     return problems
 
 
 if __name__ == "__main__":
-    print(f"{len(topics())} topics, {len(quiz_items())} quiz questions, {len(glossary())} glossary terms")
-    unverified = [t["id"] for t in topics() if not t.get("verified")]
-    print("Not yet verified against sources:", ", ".join(unverified) or "none")
-    for p in validate():
+    facts = sum(len(t["facts"]) for t in topics())
+    print(f"{len(topics())} topics, {facts} cited facts, {len(quiz_items())} quiz questions, "
+          f"{len(glossary())} glossary terms, {len(references())} references")
+    problems = validate()
+    for p in problems:
         print("PROBLEM:", p)
+    print("Problems:", len(problems))

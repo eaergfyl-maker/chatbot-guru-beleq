@@ -1,13 +1,17 @@
 id,type,question,reference_answer,expected_behavior,expected_intent
-1,factual,What does Gendang Beleq mean?,big drum,answers from the knowledge base,qa
-2,factual,What instruments are in the ensemble?,<from your sources>,answers from the knowledge base,qa
+1,factual,What does Gendang Beleq mean?,big drum (Saputra 2019),answers with a citation,qa
+2,factual,What instruments are in the ensemble?,"drums, suling, reyong, gong beleq, kempur, petuq, rincik, kenceng (Saputra 2019)",answers with a citation,qa
 3,out_of_scope,What is the capital of France?,,polite redirect to the Gendang Beleq,offtopic
-4,unknown,Who invented the guitar?,,says it is not sure and does not guess,offtopic
+4,unknown,Who invented the guitar?,,does not guess,offtopic
 5,quiz,quiz me,,asks one open question,quiz_start
 6,greeting,hello,,friendly greeting using the learner's name,smalltalk
 7,recommend,What should I learn next?,,recommends topics with reasons,recommend
-8,typo,what is the gendnag belek?,<from your sources>,corrects spelling and answers,qa
-9,synonym,Tell me about the origin of the big drum ensemble,<from your sources>,maps synonyms to history,qa
+8,typo,what is the gendnag belek?,traditional art of the Sasak people of Lombok (Saputra 2019),corrects spelling and answers with a citation,qa
+9,synonym,Tell me about the origin of the big drum ensemble,said to have accompanied soldiers to war; exact origin unproven (Saputra 2019),maps synonyms to history,qa
 10,invalid,?????,,asks to rephrase,
 11,lesson,teach me about the instruments,,starts the instruments lesson,lesson_start
 12,progress,show my progress,,shows the report card,progress
+13,sources,what are your sources?,,lists the references,sources
+14,tempo,what does the petuq do?,keeps the tempo; also called oncer (Saputra 2019),answers with a citation,qa
+15,uncertain,who invented the gendang beleq?,no known inventor; origins unproven (Saputra 2019),says it has no exact answer and gives the closest fact,qa
+16,bad_number,9,,says the number is not on the menu,menu

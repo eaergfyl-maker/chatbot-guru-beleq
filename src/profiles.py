@@ -45,6 +45,8 @@ def save(name: str, progress: dict) -> None:
         data[name.lower()] = {"name": name, "progress": progress}
         f = _file()
         f.parent.mkdir(parents=True, exist_ok=True)
-        f.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        tmp = f.with_suffix(".tmp")
+        tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        tmp.replace(f)  # a crash mid-write can't corrupt the existing file
     except OSError:
         log.exception("could not save profile")

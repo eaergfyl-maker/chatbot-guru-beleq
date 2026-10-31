@@ -12,8 +12,10 @@ COMFORT = ["No worries, everyone learns at their own pace.", "That's okay, we'll
 
 _NAME_STOP = {
     "hi", "hello", "hey", "yes", "no", "ok", "okay", "what", "who", "why", "how", "when", "where", "menu",
-    "help", "quiz", "lesson", "bye", "thanks", "none", "nothing", "skip", "stop",
+    "help", "quiz", "lesson", "bye", "thanks", "none", "nothing", "skip", "stop", "good", "morning", "afternoon",
+    "evening", "fine", "here", "nice", "sorry", "ready", "not", "going", "confused", "tired", "the", "from",
 }
+_NAME = r"[^\W\d_][^\W\d_'\-]*(?:['\-][^\W\d_]+)*"  # letters in any alphabet, allowing O'Brien and Anne-Marie
 
 
 def now() -> datetime:
@@ -40,14 +42,16 @@ def pick(options: list[str]) -> str:
 def extract_name(text: str) -> str | None:
     """Pull a first name out of text like 'I'm Budi' or just 'Budi'. Returns None if it doesn't look like a name."""
     t = text.strip().rstrip(".!")
-    m = re.search(r"(?:my name is|my name's|i am|i'm|im|call me|this is|it's|its)\s+([A-Za-z][A-Za-z'\-]{1,24})\b", t, re.I)
+    m = re.search(rf"\b(?:my name is|my name's|i am|i'm|im|call me|this is|it's|its)\s+({_NAME})", t, re.I)
     if m:
         name = m.group(1)
-    elif re.fullmatch(r"[A-Za-z][A-Za-z'\-]{1,24}(?: [A-Za-z][A-Za-z'\-]{1,24})?", t):
+    elif re.fullmatch(rf"{_NAME}(?: {_NAME})?", t):
         name = t.split()[0]
     else:
         return None
-    return None if name.lower() in _NAME_STOP else name.capitalize()
+    if name.lower() in _NAME_STOP or len(name) > 25:
+        return None
+    return name[0].upper() + name[1:]
 
 
 def menu_text(name: str) -> str:
@@ -59,6 +63,7 @@ def menu_text(name: str) -> str:
         "  4. Get a recommendation on what to learn next\n"
         "  5. See your progress\n"
         "  6. Help\n"
+        "  7. See the sources behind what I teach\n"
         "  0. Say goodbye\n"
         "Type a number, or simply tell me in your own words what you would like."
     )

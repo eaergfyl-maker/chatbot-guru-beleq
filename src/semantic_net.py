@@ -19,11 +19,17 @@ def load_edges() -> tuple:
 
 
 def related_concepts(text: str, limit: int = 4) -> list[str]:
-    """Concepts one hop away from any node mentioned in the text."""
+    """Concepts one hop away from any node mentioned in the text.
+
+    Gendang Beleq itself is skipped as a starting point: every concept connects to it, so spreading from it
+    would pull the whole network into the search and drown out what was actually asked.
+    """
     low = text.lower()
     out: list[str] = []
     for e in load_edges():
         for here, other in ((e["s"], e["o"]), (e["o"], e["s"])):
+            if here.lower() == "gendang beleq":
+                continue
             if here.lower() in low and other.lower() not in low and other not in out:
                 out.append(other)
     return out[:limit]
