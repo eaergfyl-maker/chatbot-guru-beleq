@@ -29,7 +29,8 @@ def safe(fn, **on_error):
 INTENT_NODES = {
     "qa": "answer", "menu": "menu", "leave": "leave", "invite": "invite", "help": "help", "smalltalk": "smalltalk",
     "offtopic": "offtopic", "bye": "bye", "progress": "progress", "recommend": "recommend", "sources": "sources",
-    "lesson_start": "lesson_start", "lesson_reply": "lesson_reply", "quiz_start": "quiz_start", "quiz_reply": "quiz_reply",
+    "glossary": "glossary", "lesson_start": "lesson_start", "lesson_reply": "lesson_reply",
+    "quiz_start": "quiz_start", "quiz_reply": "quiz_reply",
 }
 
 
@@ -47,7 +48,7 @@ def build_graph():
         ("answer", nodes.answer), ("menu", nodes.menu), ("leave", nodes.leave), ("invite", nodes.invite),
         ("help", nodes.help_node), ("smalltalk", nodes.smalltalk), ("offtopic", nodes.offtopic), ("bye", nodes.bye),
         ("progress", nodes.progress_node), ("recommend", nodes.recommend), ("sources", nodes.sources),
-        ("lesson_start", nodes.lesson_start),
+        ("glossary", nodes.glossary_node), ("lesson_start", nodes.lesson_start),
         ("lesson_reply", nodes.lesson_reply), ("quiz_start", nodes.quiz_start), ("quiz_reply", nodes.quiz_reply),
     ):
         g.add_node(node_name, safe(fn))

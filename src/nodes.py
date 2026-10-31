@@ -6,7 +6,7 @@ import re
 from langchain_core.messages import AIMessage, HumanMessage
 
 from . import nlp, persona, profiles, search
-from .knowledge import cite, get_topic, quiz_items, references, topic_sources, topics
+from .knowledge import cite, get_topic, glossary, quiz_items, references, topic_sources, topics
 from .semantic_net import related_concepts
 from .state import State
 
@@ -30,6 +30,7 @@ _RECOMMEND = re.compile(r"\b(recommend|suggest|what should i|where (do|should) i
 _QUIZ = re.compile(r"\b(quiz|test me|test my|exam|question me)\b", re.I)
 _LESSON = re.compile(r"\b(lessons?|teach|tutorial|class|study)\b|\b(want|like|love|help me|let'?s|start|begin) (to )?learn\b|^\s*learn\b", re.I)
 _SOURCES = re.compile(r"\b(sources?|references?|citations?|bibliography|where did you (get|learn))\b", re.I)
+_GLOSSARY = re.compile(r"\b(glossary|dictionary|vocabulary|word list|all terms|sasak terms|musical terms)\b", re.I)
 _IDENTITY = re.compile(r"\b(who are you|what are you|your name|about you|are you a (bot|robot|person|human))\b", re.I)
 _CONTINUE = re.compile(r"^\s*(next|continue|yes|yeah|yep|sure|ok|okay|ready|go on|go ahead|let'?s go)\b", re.I)
 _DECLINE = re.compile(r"^\s*(no|nope|not now|not yet|nah|maybe later|later)\b", re.I)
@@ -44,7 +45,7 @@ _HAPPY = re.compile(r"\b(great|awesome|love|fun|cool|amazing|nice|interesting)\b
 _SUBJECT_NAMES = re.compile(r"\b(gendang bel(ek|aq|eg)|big drums?( ensemble)?|giant drums?|drum ensemble)\b", re.I)
 _MORE = re.compile(r"\b(more|else|another|other|further)\b", re.I)
 _MENU_NUMBERS = {"1": "lesson_start", "2": "invite", "3": "quiz_start", "4": "recommend", "5": "progress", "6": "help",
-                 "7": "sources", "0": "bye"}
+                 "7": "sources", "8": "glossary", "0": "bye"}
 
 
 # ---------- helpers ----------
@@ -196,7 +197,8 @@ def classify(state: State) -> dict:
         return {"intent": "smalltalk"}
     for pattern, intent in (
         (_BYE, "bye"), (_THANKS, "smalltalk"), (_IDENTITY, "smalltalk"), (_MENU, "menu"), (_PROGRESS, "progress"),
-        (_HELP, "help"), (_SOURCES, "sources"), (_RECOMMEND, "recommend"), (_QUIZ, "quiz_start"), (_LESSON, "lesson_start"),
+        (_HELP, "help"), (_SOURCES, "sources"), (_GLOSSARY, "glossary"), (_RECOMMEND, "recommend"),
+        (_QUIZ, "quiz_start"), (_LESSON, "lesson_start"),
     ):
         if pattern.search(low):
             return {"intent": intent}
@@ -228,6 +230,14 @@ def sources(state: State) -> dict:
     return _msg(f"Everything I teach comes from these sources, {_name(state)}:\n{lines}\n\nWhat would you like to explore?")
 
 
+def glossary_node(state: State) -> dict:
+    lines = "\n".join(
+        f"  - {term}: {entry['meaning']} {cite(entry['sources'])}"
+        for term, entry in sorted(glossary().items())
+    )
+    return _msg(f"Here is the Sasak and musical glossary, {_name(state)}:\n{lines}\n\nAsk me about any term or topic to learn more!")
+
+
 def invite(state: State) -> dict:
     return _msg(
         f"Ask away, {_name(state)}! You can ask about the name, the instruments, when it is played, its history "
@@ -239,7 +249,7 @@ def help_node(state: State) -> dict:
     return _msg(
         "Just talk to me like you would to a teacher. I understand small typos and different wordings. "
         "Say 'lesson' to learn step by step, 'quiz' to test yourself, 'progress' for your report card, "
-        "'sources' for my references, or ask any question. Inside a lesson or quiz you can say 'hint', 'skip', 'repeat' or 'stop'. "
+        "'sources' for my references, 'glossary' for Sasak terms, or ask any question. Inside a lesson or quiz you can say 'hint', 'skip', 'repeat' or 'stop'. "
         "Type 'menu' at any time to see the options."
     )
 

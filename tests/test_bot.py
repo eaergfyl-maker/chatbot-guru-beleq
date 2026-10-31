@@ -169,6 +169,8 @@ class Understanding(Chat):
         self.assertIn("Report card", self.say("show my progress"))
         self.assertIn("Report card", self.say("5"))
         self.assertIn("Saputra, G.A.M.", self.say("7"))
+        self.assertIn("Sasak and musical glossary", self.say("8"))
+        self.assertIn("nyongkolan", self.say("show me the glossary"))
         self.assertIn("isn't on the menu", self.say("9"))
 
     def test_identity_and_decline(self):

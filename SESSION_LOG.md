@@ -2,9 +2,12 @@
 
 ## Latest Status
 - **Last Updated By:** Antigravity
-- **Current Task:** Added GitHub collaborators (`mightywound`, `amaninnit-hub`)
+- **Current Task:** Added interactive menu, special features, and full project documentation (`docs/REPORT.md`)
 
 ## Recent Changes
+- Added menu option `8. Browse the Sasak glossary` (`glossary` intent & `glossary_node` in `src/nodes.py`, `src/persona.py`, `src/graph.py`) and unit tests in `tests/test_bot.py`.
+- Added interactive context-aware quick-action menu bars (`menu`, `lesson`, and `quiz` stage controls), **Explore Knowledge** modal (6-lesson browser with completion badges, searchable 17-term Sasak glossary with one-click queries, and 24-edge semantic network viewer), and **Export Chat** transcript download to both `web/index.html` (`server.py` `/api/meta`) and `app.py` (Streamlit).
+- Created full technical and academic report in `docs/REPORT.md` (Chapters 1–4, Mermaid architecture & semantic network diagrams, TF-IDF and CUQ formulas, and Harvard bibliography) and updated `README.md`.
 - Invited `mightywound` and `amaninnit-hub` as collaborators (`write` permission) on `eaergfyl-maker/chatbot-guru-beleq`.
 - Initialized `GEMINI.md`, `CLAUDE.md`, and `SESSION_LOG.md` for cross-agent collaboration.
 - Replaced placeholder `assets/avatar.svg` with generated 512×512 PNG mascot (`assets/avatar.png`) and completed `assets/AVATAR_LOG.md`.
@@ -27,5 +30,4 @@
 
 ## Next Steps / Open Items
 - [ ] Run the CUQ usability test with real testers (see `eval/CUQ_TEST_PLAN.md`) and report results (`python -m eval.cuq report`).
-- [ ] Complete final report documentation and submission formatting.
 - [ ] Optional: swap `MemorySaver` for `SqliteSaver` if persistent chat history across restarts is needed.

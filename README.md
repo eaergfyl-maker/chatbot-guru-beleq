@@ -22,16 +22,23 @@ python server.py
 
 **3. Open it:** go to http://localhost:8000 in your browser. Keep the terminal open while you chat; press `Ctrl+C` there to stop.
 
-Prefer to chat in the terminal instead? Run `python -m src.graph`.
+Prefer Streamlit or the terminal instead?
+- Streamlit UI (http://localhost:8501): `streamlit run app.py`
+- Terminal chat: `python -m src.graph`
 
 ## What it does
 
 - Speaks first, greets by the computer's time of day, and asks your name.
-- Menu by number or free text: lessons, questions, quiz, recommendation, progress, help.
-- Acts as a teacher: teaches a step, asks a question, gives hints, explains after two misses.
-- Understands small typos, alternative wording and the kind of question asked (spelling correction, synonyms, keywords, question cues).
+- Menu by number (`1–8`, `0`), clickable quick-action chips, or free text: lessons, questions, quiz, recommendation, progress, help, sources, and Sasak glossary.
+- Acts as a teacher: teaches a step, asks a question, gives hints, explains after two misses, and answers interrupting side questions before returning to the lesson or quiz.
+- Understands small typos, alternative wording and the kind of question asked (spelling correction, synonyms, keywords, question cues, one-hop semantic network expansion).
 - Cites its sources in Harvard style in every answer, and admits when it has no exact answer instead of guessing.
 - Remembers learners by name between sessions (`data/profiles.json`).
+- **Special Web & Streamlit UI Features**:
+  - **Context-Aware Quick-Action Menu Bar**: One-click pills for all menu options (`1–8`) and a direct lesson topic selector in menu mode; switches automatically to `Hint`, `Repeat step`, `Skip question`, and `Leave/Stop` buttons during a lesson or quiz.
+  - **Explore Knowledge Modal (`Explore knowledge`)**: Interactive 3-tab browser for all 6 lessons (with completion badges), a searchable 17-term Sasak & musical glossary with one-click *"Ask Guru"* buttons, and the 24-edge cited semantic network.
+  - **Export Learning Transcript (`Export chat`)**: Downloads the conversation transcript and learner progress summary as `guru-beleq-transcript.txt`.
+  - **Built-in CUQ Usability Modal (`Rate this chatbot`)**: 16-item Chatbot Usability Questionnaire dialog saving anonymous scores to `eval/cuq_responses.csv`.
 
 ## Flow
 
@@ -41,8 +48,8 @@ START -> boot? -> greet (time greeting, ask name)
                   -> stage? -> take_name
                             -> normalize (spelling, synonyms, semantic net) -> classify
                                   -> answer | lesson_start | lesson_reply | quiz_start | quiz_reply
-                                     recommend | progress | sources | menu | leave | invite | help
-                                     smalltalk | offtopic | bye
+                                     recommend | progress | sources | glossary | menu | leave
+                                     invite | help | smalltalk | offtopic | bye
 ```
 
 State (stage, user name, lesson, quiz, progress) is kept per conversation by the LangGraph `MemorySaver` checkpointer. Every node is wrapped by `safe()` so an error produces an apology instead of a crash.
@@ -57,11 +64,11 @@ pip install -r requirements.txt
 
 ```bash
 python -m src.graph                       # terminal chat
-python server.py                          # plain web page at http://localhost:8000 (no extra install)
-streamlit run app.py                      # web UI
+python server.py                          # standalone web page at http://localhost:8000
+streamlit run app.py                      # Streamlit web UI at http://localhost:8501
 python -m unittest discover tests         # 44 scripted conversation tests
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
-python -m eval.cuq collect                # one tester fills in the CUQ (also in the app sidebar)
+python -m eval.cuq collect                # one tester fills in the CUQ (also in the web UI)
 python -m eval.cuq report                 # CUQ score and item means from all responses
 python -m src.knowledge                   # checks the knowledge base and its citations
 python -m src.semantic_net                # prints the semantic network as a Mermaid diagram
@@ -72,7 +79,7 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | Path | Purpose |
 |---|---|
 | `src/graph.py` | graph wiring, `start()` and `ask()` helpers, terminal chat |
-| `src/nodes.py` | all nodes: greeting, name, intent rules, answers, lessons, quiz, recommender |
+| `src/nodes.py` | all nodes: greeting, name, intent rules, answers, lessons, quiz, recommender, glossary |
 | `src/state.py` | graph state |
 | `src/nlp.py` | validation, spelling correction, synonyms, keywords, answer matching |
 | `src/search.py` | TF-IDF keyword search over the knowledge base |
@@ -84,8 +91,9 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `data/knowledge/semantic_net.json` | semantic network edges, with citations |
 | `data/sources/` | notes on each source the knowledge base is written from |
 | `assets/` | GenAI avatar (`avatar.png`) and `AVATAR_LOG.md` (prompts and how it was made) |
-| `server.py`, `web/index.html` | standalone web chat page with the CUQ form (answers saved to `eval/cuq_responses.csv`) (standard-library server, no extra dependencies) |
-| `app.py` | Streamlit UI with progress sidebar |
+| `server.py`, `web/index.html` | standalone web chat page with interactive menu, knowledge explorer, transcript export, and CUQ modal |
+| `app.py`, `.streamlit/config.toml` | Streamlit UI with Sasak theme, quick-action bar, knowledge explorer, transcript export, and CUQ modal |
+| `docs/REPORT.md` | full technical and academic report (Chapters 1–4) |
 | `tests/` | scripted conversation tests |
 | `eval/` | question set and runner, CUQ questionnaire (`cuq.py`) and test plan (`CUQ_TEST_PLAN.md`) |
 
@@ -102,16 +110,16 @@ Answer groups: each inner list is one concept with accepted wordings, and a lear
 
 | Criterion | Where |
 |---|---|
-| Knowledge representation | semantic network, topic and lesson structure |
+| Knowledge representation | semantic network (`data/knowledge/semantic_net.json`), topic, lesson, and glossary structure (`data/knowledge/topics.json`) |
 | NLP (synonyms, spelling, keywords) | `src/nlp.py`, `src/search.py` |
-| Validation beyond menu options | `validate_input`, name check, `reject` node |
-| Expert modules | question answering, teacher lessons, quiz, recommender |
-| Exception handling | `safe()` wrapper, `ask()` guard, profile file recovery |
-| Testing | `tests/`, `eval/run_eval.py`, CUQ in `eval/cuq.py` and the app sidebar |
-| Harvard referencing | `references` in `topics.json`, in-text citations in answers, menu option 7 |
+| Validation beyond menu options | `validate_input`, `extract_name`, `reject` node |
+| Expert modules | question answering, teacher lessons, adaptive quiz, recommender, Sasak glossary explorer |
+| Exception handling | `safe()` wrapper, `ask()` guard, atomic profile file recovery |
+| Testing | `tests/`, `eval/run_eval.py`, CUQ in `eval/cuq.py` and web/Streamlit UI |
+| Harvard referencing | `references` in `topics.json`, in-text citations in answers & glossary, menu option 7 |
+| Report & documentation | `docs/REPORT.md`, `assets/AVATAR_LOG.md`, `eval/CUQ_TEST_PLAN.md` |
 
 ## Still to do
 
-- Run the CUQ with real testers (see `eval/CUQ_TEST_PLAN.md`) and report the results.
-- Report documentation and submission format.
-- Persistent chat history across restarts (swap `MemorySaver` for `SqliteSaver`) if needed.
+- Run the CUQ with real testers (see `eval/CUQ_TEST_PLAN.md`) and report the results (`python -m eval.cuq report`).
+- Optional: swap `MemorySaver` for `SqliteSaver` if persistent chat history across restarts is needed.

@@ -64,6 +64,7 @@ def menu_text(name: str) -> str:
         "  5. See your progress\n"
         "  6. Help\n"
         "  7. See the sources behind what I teach\n"
+        "  8. Browse the Sasak glossary\n"
         "  0. Say goodbye\n"
         "Type a number, or simply tell me in your own words what you would like."
     )

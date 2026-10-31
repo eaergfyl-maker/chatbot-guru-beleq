@@ -9,7 +9,8 @@ from pathlib import Path
 from eval import cuq
 from src import persona
 from src.graph import ask, build_graph, start, state_of
-from src.knowledge import topics
+from src.knowledge import cite, glossary, topics
+from src.semantic_net import load_edges
 
 ROOT = Path(__file__).parent
 STATIC = {"/": ROOT / "web" / "index.html", "/avatar.png": ROOT / "assets" / "avatar.png"}
@@ -21,8 +22,28 @@ def progress_of(tid: str) -> dict | None:
     p = state_of(graph, tid).get("progress")
     if not p:
         return None
-    return {"badge": persona.badge(p), "done": len(p["lessons_done"]), "total": len(topics()),
-            "quiz_right": p["quiz_right"], "quiz_total": p["quiz_total"]}
+    return {
+        "badge": persona.badge(p),
+        "done": len(p["lessons_done"]),
+        "lessons_done": p["lessons_done"],
+        "total": len(topics()),
+        "quiz_right": p["quiz_right"],
+        "quiz_total": p["quiz_total"],
+    }
+
+
+def meta_payload() -> dict:
+    return {
+        "topics": [{"id": t["id"], "title": t["title"], "summary": t["summary"]} for t in topics()],
+        "glossary": [
+            {"term": k, "meaning": v["meaning"], "cite": cite(v["sources"])}
+            for k, v in sorted(glossary().items())
+        ],
+        "edges": [
+            {"s": e["s"], "r": e["r"].replace("_", " "), "o": e["o"], "cite": cite(e["sources"])}
+            for e in load_edges()
+        ],
+    }
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -39,6 +60,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/cuq":
             return self._json({"items": cuq.ITEMS, "scale": cuq.SCALE})
+        if self.path == "/api/meta":
+            return self._json(meta_payload())
         path = STATIC.get(self.path.split("?")[0])
         if path and path.exists():
             ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
@@ -51,14 +74,18 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length) or b"{}")
             if self.path == "/api/start":
                 tid = str(uuid.uuid4())
-                return self._json({"thread_id": tid, "reply": start(graph, tid), "progress": None})
+                reply = start(graph, tid)
+                st = state_of(graph, tid)
+                return self._json({"thread_id": tid, "reply": reply, "progress": None, "stage": st.get("stage", "ask_name")})
             if self.path == "/api/cuq":
                 answers = [int(a) for a in data["answers"]]
                 comments = str(data.get("comments", ""))[:1000]
                 return self._json({"score": round(cuq.save(answers, comments), 1)})
             if self.path == "/api/chat":
                 tid, text = str(data["thread_id"]), str(data.get("message", ""))
-                return self._json({"reply": ask(graph, text, tid), "progress": progress_of(tid)})
+                reply = ask(graph, text, tid)
+                st = state_of(graph, tid)
+                return self._json({"reply": reply, "progress": progress_of(tid), "stage": st.get("stage", "menu")})
             self._json({"error": "not found"}, 404)
         except (ValueError, KeyError, TypeError):
             self._json({"error": "bad request"}, 400)
