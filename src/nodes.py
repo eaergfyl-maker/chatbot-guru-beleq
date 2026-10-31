@@ -326,8 +326,10 @@ def answer(state: State) -> dict:
             progress["topics_seen"].append(topic_id)
         related = [f"'{get_topic(r)['title']}'" for r in get_topic(topic_id).get("related", [])]
         follow = f"Related lessons: {', '.join(related)}. What would you like to explore next?" if related else follow
-    partial = (not state.get("cued") and len(nlp.extract_keywords(question)) >= 2
-               and search.coverage(question, " ".join(h["text"] for h in chosen)) <= 0.5)
+    canon_q = _SUBJECT_NAMES.sub("gendang beleq", question)
+    partial = (not state.get("cued") and not nlp.expand_synonyms(canon_q)
+               and len(nlp.extract_keywords(canon_q)) >= 2
+               and search.coverage(canon_q, " ".join(h["text"] for h in chosen)) <= 0.5)
     lead = "I don't have an exact answer to that, but this is the closest I can tell you: " if partial else ""
     return _msg(f"{note}{lead}{answer_text}\n\n{follow}{_reprompt(state)}", progress=progress,
                 told=told + [h["text"] for h in chosen])

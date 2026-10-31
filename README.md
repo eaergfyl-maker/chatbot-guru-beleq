@@ -36,7 +36,7 @@ pip install -r requirements.txt
 ```bash
 python -m src.graph                       # terminal chat
 streamlit run app.py                      # web UI
-python -m unittest discover tests         # scripted conversation tests
+python -m unittest discover tests         # 44 scripted conversation tests
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
 python -m eval.cuq collect                # one tester fills in the CUQ (also in the app sidebar)
 python -m eval.cuq report                 # CUQ score and item means from all responses
@@ -60,7 +60,7 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `data/knowledge/topics.json` | cited facts, lessons, quiz questions, glossary, references |
 | `data/knowledge/semantic_net.json` | semantic network edges, with citations |
 | `data/sources/` | notes on each source the knowledge base is written from |
-| `assets/` | avatar and `AVATAR_LOG.md` (how it was made) |
+| `assets/` | GenAI avatar (`avatar.png`) and `AVATAR_LOG.md` (prompts and how it was made) |
 | `app.py` | Streamlit UI with progress sidebar |
 | `tests/` | scripted conversation tests |
 | `eval/` | question set and runner, CUQ questionnaire (`cuq.py`) and test plan (`CUQ_TEST_PLAN.md`) |
@@ -89,6 +89,5 @@ Answer groups: each inner list is one concept with accepted wordings, and a lear
 ## Still to do
 
 - Run the CUQ with real testers (see `eval/CUQ_TEST_PLAN.md`) and report the results.
-- Generate the GenAI avatar and complete `assets/AVATAR_LOG.md`. `assets/avatar.svg` is a placeholder.
 - Report documentation and submission format.
 - Persistent chat history across restarts (swap `MemorySaver` for `SqliteSaver`) if needed.

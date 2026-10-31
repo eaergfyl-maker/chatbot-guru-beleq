@@ -106,7 +106,9 @@ class Understanding(Chat):
         reply = self.say("what is the gendnag belek?")
         self.assertIn("I read that as", reply)
         self.assertIn("Sasak", reply)
-        self.assertIn("war", self.say("tell me about the origin of the big drum ensemble"))
+        origin_reply = self.say("tell me about the origin of the big drum ensemble")
+        self.assertIn("war", origin_reply)
+        self.assertNotIn("don't have an exact answer", origin_reply)
 
     def test_corrected_facts(self):
         self.begin()
