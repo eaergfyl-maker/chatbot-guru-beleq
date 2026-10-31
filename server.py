@@ -1,6 +1,7 @@
 """Serves the Guru Beleq chat web page. Run: python server.py  then open http://localhost:8000"""
 import json
 import mimetypes
+import socket
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -12,6 +13,7 @@ from src.knowledge import topics
 ROOT = Path(__file__).parent
 STATIC = {"/": ROOT / "web" / "index.html", "/avatar.png": ROOT / "assets" / "avatar.png"}
 graph = build_graph()
+PORT = 8000
 
 
 def progress_of(tid: str) -> dict | None:
@@ -58,6 +60,23 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+class DualStackServer(ThreadingHTTPServer):
+    """Listens on IPv4 and IPv6, so http://localhost:8000 works however the browser resolves 'localhost'."""
+    address_family = socket.AF_INET6
+    allow_reuse_address = False  # on Windows this would let two servers share the port
+
+    def server_bind(self):
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        super().server_bind()
+
+
 if __name__ == "__main__":
-    print("Guru Beleq is running at http://localhost:8000  (Ctrl+C to stop)")
-    ThreadingHTTPServer(("127.0.0.1", 8000), Handler).serve_forever()
+    try:
+        httpd = DualStackServer(("::", PORT), Handler)
+    except OSError as err:
+        if err.errno in (98, 48) or getattr(err, "winerror", None) == 10048:  # port busy
+            raise SystemExit(f"Port {PORT} is already in use. Close the other copy of server.py and try again.")
+        ThreadingHTTPServer.allow_reuse_address = False
+        httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)  # no IPv6 on this machine
+    print(f"Guru Beleq is running. Open http://localhost:{PORT}  (Ctrl+C to stop)", flush=True)
+    httpd.serve_forever()
