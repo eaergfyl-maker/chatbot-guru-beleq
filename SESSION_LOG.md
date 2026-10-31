@@ -18,6 +18,8 @@
 - Committed Antigravity's uncommitted UI edits with this entry (`app.py` styling, `.streamlit/config.toml`, favicon and quiz score in the web badge, `GEMINI.md`). Not reviewed in depth beyond the tests passing.
 - Convention: per `CLAUDE.md`, commits carry no Claude/Anthropic attribution.
 
+- Added a copy-and-paste "Quick start" section to the top of `README.md` (clone, install, `python server.py`, open http://localhost:8000).
+
 ## Open items from this session
 - `eval/cuq_responses.csv` is not in `.gitignore`: real tester answers will appear as git changes and publish if pushed. Decide whether to ignore it.
 - The web page has not been checked visually in a browser by Claude; only via HTTP requests.

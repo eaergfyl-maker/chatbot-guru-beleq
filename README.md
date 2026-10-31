@@ -2,6 +2,28 @@
 
 Guru Beleq ("Big Teacher") is a rule-based chatbot that teaches about the Gendang Beleq (Gendang Belek), the traditional drum ensemble of the Sasak people of Lombok. English only. It uses no LLM and no API key: the flow is a LangGraph graph and all language handling is plain Python.
 
+## Quick start (copy and paste)
+
+You need [Python 3.10 or newer](https://www.python.org/downloads/) and [Git](https://git-scm.com/downloads). Open a terminal (PowerShell on Windows) and paste these lines one block at a time.
+
+**1. Get the code and install (once):**
+
+```
+git clone https://github.com/eaergfyl-maker/chatbot-guru-beleq.git
+cd chatbot-guru-beleq
+pip install -r requirements.txt
+```
+
+**2. Start the chatbot web page:**
+
+```
+python server.py
+```
+
+**3. Open it:** go to http://localhost:8000 in your browser. Keep the terminal open while you chat; press `Ctrl+C` there to stop.
+
+Prefer to chat in the terminal instead? Run `python -m src.graph`.
+
 ## What it does
 
 - Speaks first, greets by the computer's time of day, and asks your name.
