@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guru Beleq - Gendang Beleq Teacher</title>
+<style>
+  :root { --brown:#5b3a24; --red:#b3262d; --cream:#fbf4e6; --tan:#ecdcc0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, Segoe UI, sans-serif; background:var(--cream); color:#2b1d12;
+         height:100vh; display:flex; flex-direction:column; align-items:center; }
+  header { width:100%; background:var(--brown); color:#fff; padding:10px 16px; display:flex; align-items:center; gap:12px; }
+  header img { width:48px; height:48px; border-radius:50%; background:var(--cream); }
+  header h1 { font-size:1.15rem; margin:0; }
+  header small { opacity:.8; display:block; }
+  #status { margin-left:auto; text-align:right; font-size:.85rem; }
+  #bar { height:6px; width:120px; background:#ffffff40; border-radius:3px; margin-top:4px; margin-left:auto; overflow:hidden; }
+  #bar div { height:100%; width:0; background:var(--red); transition:width .3s; }
+  button.small { background:transparent; color:#fff; border:1px solid #fff8; border-radius:6px; padding:5px 10px; cursor:pointer; }
+  #chat { flex:1; width:100%; max-width:760px; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:85%; padding:10px 14px; border-radius:14px; white-space:pre-wrap; line-height:1.45; }
+  .bot { background:var(--tan); align-self:flex-start; border-bottom-left-radius:4px; }
+  .user { background:var(--red); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+  form { width:100%; max-width:760px; display:flex; gap:8px; padding:12px 16px 18px; }
+  input { flex:1; padding:12px 14px; border:2px solid var(--tan); border-radius:10px; font-size:1rem; }
+  input:focus { outline:none; border-color:var(--red); }
+  form button { padding:0 22px; border:0; border-radius:10px; background:var(--brown); color:#fff; font-size:1rem; cursor:pointer; }
+  form button:disabled { opacity:.5; }
+</style>
+</head>
+<body>
+<header>
+  <img src="/avatar.png" alt="Guru Beleq avatar">
+  <div><h1>Guru Beleq</h1><small>Your Gendang Beleq teacher</small></div>
+  <div id="status"><span id="badge"></span><div id="bar"><div></div></div></div>
+  <button class="small" id="restart">Start over</button>
+</header>
+<div id="chat" aria-live="polite"></div>
+<form id="form">
+  <input id="box" autocomplete="off" placeholder="Type here..." autofocus>
+  <button id="send">Send</button>
+</form>
+<script>
+const chat = document.getElementById('chat'), box = document.getElementById('box'), send = document.getElementById('send');
+let tid = null;
+
+function add(role, text) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.textContent = text;          // textContent: no HTML injection
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+function showProgress(p) {
+  document.getElementById('badge').textContent = p ? `${p.badge} · Lessons ${p.done}/${p.total}` : '';
+  document.querySelector('#bar div').style.width = p ? (100 * p.done / p.total) + '%' : '0';
+}
+async function post(url, body) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body || {})});
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+async function begin() {
+  chat.innerHTML = ''; showProgress(null);
+  try { const d = await post('/api/start'); tid = d.thread_id; add('bot', d.reply); }
+  catch { add('bot', 'Sorry, I could not reach the server. Is server.py running?'); }
+}
+document.getElementById('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const text = box.value.trim();
+  if (!text || !tid) return;
+  box.value = ''; add('user', text); send.disabled = true;
+  try { const d = await post('/api/chat', {thread_id: tid, message: text}); add('bot', d.reply); showProgress(d.progress); }
+  catch { add('bot', 'Sorry, something went wrong talking to the server.'); }
+  send.disabled = false; box.focus();
+});
+document.getElementById('restart').onclick = begin;
+begin();
+</script>
+</body>
+</html>

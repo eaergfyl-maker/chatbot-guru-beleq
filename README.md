@@ -35,6 +35,7 @@ pip install -r requirements.txt
 
 ```bash
 python -m src.graph                       # terminal chat
+python server.py                          # plain web page at http://localhost:8000 (no extra install)
 streamlit run app.py                      # web UI
 python -m unittest discover tests         # 44 scripted conversation tests
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
@@ -61,6 +62,7 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `data/knowledge/semantic_net.json` | semantic network edges, with citations |
 | `data/sources/` | notes on each source the knowledge base is written from |
 | `assets/` | GenAI avatar (`avatar.png`) and `AVATAR_LOG.md` (prompts and how it was made) |
+| `server.py`, `web/index.html` | standalone web chat page (standard-library server, no extra dependencies) |
 | `app.py` | Streamlit UI with progress sidebar |
 | `tests/` | scripted conversation tests |
 | `eval/` | question set and runner, CUQ questionnaire (`cuq.py`) and test plan (`CUQ_TEST_PLAN.md`) |
