@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guru Beleq - Gendang Beleq Teacher</title>
+<link rel="icon" href="/avatar.png">
 <style>
   :root { --brown:#5b3a24; --red:#b3262d; --cream:#fbf4e6; --tan:#ecdcc0; }
   * { box-sizing: border-box; }
@@ -74,7 +75,8 @@ function add(role, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 function showProgress(p) {
-  document.getElementById('badge').textContent = p ? `${p.badge} · Lessons ${p.done}/${p.total}` : '';
+  const quiz = p && p.quiz_total ? ` · Quiz ${p.quiz_right}/${p.quiz_total}` : '';
+  document.getElementById('badge').textContent = p ? `${p.badge} · Lessons ${p.done}/${p.total}${quiz}` : '';
   document.querySelector('#bar div').style.width = p ? (100 * p.done / p.total) + '%' : '0';
 }
 async function post(url, body) {
