@@ -394,6 +394,14 @@ class Hosting(unittest.TestCase):
             os.environ.pop("VERCEL", None)
             self.assertIsNone(persona.now().tzinfo)
 
+    def test_avatar_reactions_match_turn_outcomes(self):
+        self.assertEqual(persona.reaction_of({"stage": "ask_name"}, "Good morning!"), "greeting")
+        self.assertEqual(persona.reaction_of({"intent": "six_seven"}, "🤲 67"), "six_seven")
+        self.assertEqual(persona.reaction_of({"intent": "lesson_reply"}, "Excellent! The Gendang Beleq..."), "celebrate")
+        self.assertEqual(persona.reaction_of({"intent": "lesson_reply"}, "Here's a clue: Think of..."), "thinking")
+        self.assertEqual(persona.reaction_of({"intent": "offtopic"}, "That's outside what I teach"), "comfort")
+        self.assertEqual(persona.reaction_of({"intent": "qa"}, "Gendang means drum."), "teaching")
+
 
 if __name__ == "__main__":
     unittest.main()

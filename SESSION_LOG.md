@@ -1,10 +1,12 @@
 # Session Handoff Log
 
 ## Latest Status
-- **Last Updated By:** Claude Code
-- **Current Task:** Documented the Vercel deployment and fixed the greeting clock and CUQ crash there
+- **Last Updated By:** Antigravity
+- **Current Task:** Added Replika-style side companion stage and 2.5D rigged reactive avatar
 
 ## Recent Changes
+- Built Replika-inspired split-stage companion layout in `web/index.html` with a sunlit arch room backdrop, top floating navigation dock, `LVL X · <Title>` badge pill, and a 2.5D multi-layer rigged Guru Beleq SVG puppet (`#guru-puppet`) with 3D mouse-tilt parallax, eye tracking, and interactive Web Audio drum beat on click.
+- Added `reaction_of()` and `level_of()` in `src/persona.py` (exposed in `server.py` `/api/start` and `/api/chat` and shown in `app.py`) driving 8 live avatar reaction states (`idle`, `listening` while typing, `greeting`, `teaching` with animated talking mouth & drum taps, `celebrate` with double-mallet drum roll & musical notes, `thinking` with glasses adjustment, `comfort`, and `six_seven` juggle). Added test in `tests/test_bot.py` (53 tests pass).
 - Updated `src/persona.py` (`reply_greeting`) and `src/nodes.py` (`_GREETING`, `take_name`, `smalltalk`) so that in addition to the automatic clock-based greeting on startup, typing `"good morning"` / `"morning"`, `"good afternoon"` / `"afternoon"`, or `"good evening"` / `"evening"` at any time of day mirrors the corresponding greeting (`"Good morning"`, `"Good afternoon"`, or `"Good evening"`). Added tests in `tests/test_bot.py`.
 - Added menu option `8. Browse the Sasak glossary` (`glossary` intent & `glossary_node` in `src/nodes.py`, `src/persona.py`, `src/graph.py`) and unit tests in `tests/test_bot.py`.
 - Added interactive context-aware quick-action menu bars (`menu`, `lesson`, and `quiz` stage controls), **Explore Knowledge** modal (6-lesson browser with completion badges, searchable 17-term Sasak glossary with one-click queries, and 24-edge semantic network viewer), and **Export Chat** transcript download to both `web/index.html` (`server.py` `/api/meta`) and `app.py` (Streamlit).

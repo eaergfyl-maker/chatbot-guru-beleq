@@ -24,6 +24,7 @@ def progress_of(tid: str) -> dict | None:
         return None
     return {
         "badge": persona.badge(p),
+        "level": persona.level_of(p),
         "done": len(p["lessons_done"]),
         "lessons_done": p["lessons_done"],
         "total": len(topics()),
@@ -84,7 +85,13 @@ class Handler(BaseHTTPRequestHandler):
                 tid = str(uuid.uuid4())
                 reply = start(graph, tid)
                 st = state_of(graph, tid)
-                return self._json({"thread_id": tid, "reply": reply, "progress": None, "stage": st.get("stage", "ask_name")})
+                return self._json({
+                    "thread_id": tid,
+                    "reply": reply,
+                    "progress": None,
+                    "stage": st.get("stage", "ask_name"),
+                    "reaction": persona.reaction_of(st, reply),
+                })
             if self.path == "/api/cuq":
                 answers = [int(a) for a in data["answers"]]
                 comments = str(data.get("comments", ""))[:1000]
@@ -93,7 +100,12 @@ class Handler(BaseHTTPRequestHandler):
                 tid, text = str(data["thread_id"]), str(data.get("message", ""))
                 reply = ask(graph, text, tid)
                 st = state_of(graph, tid)
-                return self._json({"reply": reply, "progress": progress_of(tid), "stage": st.get("stage", "menu")})
+                return self._json({
+                    "reply": reply,
+                    "progress": progress_of(tid),
+                    "stage": st.get("stage", "menu"),
+                    "reaction": persona.reaction_of(st, reply),
+                })
             self._json({"error": "not found"}, 404)
         except (ValueError, KeyError, TypeError):
             self._json({"error": "bad request"}, 400)

@@ -132,24 +132,38 @@ tid = st.session_state.thread_id
 current_state = state_of(graph, tid)
 progress = current_state.get("progress")
 stage = current_state.get("stage", "ask_name")
+last_reply = st.session_state.history[-1][1] if st.session_state.history else ""
+reaction = persona.reaction_of(current_state, last_reply)
+
+REACTION_LABELS = {
+    "greeting": "👋 Greeting you",
+    "teaching": "🥁 Explaining...",
+    "celebrate": "🎉 Spot on!",
+    "thinking": "💡 Hint & clue",
+    "comfort": "💛 Taking it slow",
+    "six_seven": "🤲 67!",
+}
 
 with st.sidebar:
     if avatar == "🥁":
         st.markdown("# 🥁")
     else:
-        st.image(avatar, width=96, alt="Guru Beleq avatar")
+        st.image(avatar, width=140, alt="Guru Beleq avatar")
     st.subheader(persona.BOT_NAME)
-    st.caption("Your Gendang Beleq teacher")
+    st.caption(f"Your Gendang Beleq teacher · {REACTION_LABELS.get(reaction, '🥁 Ready')}")
 
     if progress:
         done, total = len(progress["lessons_done"]), len(topics())
+        lvl = persona.level_of(progress)
         quiz_text = (
             f" · Quiz {progress['quiz_right']}/{progress['quiz_total']}"
             if progress["quiz_total"]
             else ""
         )
-        st.markdown(f"**{persona.badge(progress)}** · Lessons {done}/{total}{quiz_text}")
+        st.markdown(f"**LVL {lvl} · {persona.badge(progress)}** ({done}/{total}{quiz_text})")
         st.progress(done / total)
+    else:
+        st.markdown("**LVL 1 · Curious Listener**")
 
     if st.button("Explore knowledge", icon=":material/menu_book:", width="stretch"):
         explore_knowledge_dialog(graph, tid, progress)

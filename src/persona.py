@@ -93,3 +93,54 @@ def badge(progress: dict) -> str:
     if points < 55:
         return "Gong Keeper"
     return "Master of the Big Drum"
+
+
+def level_of(progress: dict | None) -> int:
+    if not progress:
+        return 1
+    points = 10 * len(progress["lessons_done"]) + 3 * progress["quiz_right"]
+    if points < 10:
+        return 1
+    if points < 30:
+        return 2
+    if points < 55:
+        return 3
+    return 4
+
+
+def reaction_of(state: dict, reply: str = "") -> str:
+    """Visual reaction state for the side avatar based on the turn outcome."""
+    intent = state.get("intent", "")
+    mood = state.get("mood", "")
+    if intent == "six_seven" or reply.startswith("🤲 67"):
+        return "six_seven"
+    if state.get("invalid_reason") or intent == "offtopic" or "didn't catch your name" in reply:
+        return "comfort"
+    if mood == "struggling" or any(reply.startswith(c) for c in COMFORT):
+        return "comfort"
+    if (
+        any(reply.startswith(p) for p in PRAISE)
+        or "Lesson complete" in reply
+        or "Quiz finished!" in reply
+        or mood == "happy"
+    ):
+        return "celebrate"
+    if (
+        "Here's a clue:" in reply
+        or any(reply.startswith(g) for g in GENTLE)
+        or "You've got part of it" in reply
+        or "I don't have an exact answer" in reply
+        or "I'm not sure about that one" in reply
+    ):
+        return "thinking"
+    if (
+        state.get("stage") == "ask_name"
+        or intent == "bye"
+        or (
+            intent == "smalltalk"
+            and any(w in reply for w in ("Good morning", "Good afternoon", "Good evening", "You're very welcome"))
+        )
+        or reply.startswith(("Nice to meet you", "Welcome back"))
+    ):
+        return "greeting"
+    return "teaching"
