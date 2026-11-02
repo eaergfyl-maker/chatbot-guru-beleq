@@ -2,9 +2,10 @@
 
 ## Latest Status
 - **Last Updated By:** Antigravity
-- **Current Task:** Added interactive menu, special features, and full project documentation (`docs/REPORT.md`)
+- **Current Task:** Added explicit Good morning / Good afternoon / Good evening greeting mirroring (`reply_greeting`)
 
 ## Recent Changes
+- Updated `src/persona.py` (`reply_greeting`) and `src/nodes.py` (`_GREETING`, `take_name`, `smalltalk`) so that in addition to the automatic clock-based greeting on startup, typing `"good morning"` / `"morning"`, `"good afternoon"` / `"afternoon"`, or `"good evening"` / `"evening"` at any time of day mirrors the corresponding greeting (`"Good morning"`, `"Good afternoon"`, or `"Good evening"`). Added tests in `tests/test_bot.py`.
 - Added menu option `8. Browse the Sasak glossary` (`glossary` intent & `glossary_node` in `src/nodes.py`, `src/persona.py`, `src/graph.py`) and unit tests in `tests/test_bot.py`.
 - Added interactive context-aware quick-action menu bars (`menu`, `lesson`, and `quiz` stage controls), **Explore Knowledge** modal (6-lesson browser with completion badges, searchable 17-term Sasak glossary with one-click queries, and 24-edge semantic network viewer), and **Export Chat** transcript download to both `web/index.html` (`server.py` `/api/meta`) and `app.py` (Streamlit).
 - Created full technical and academic report in `docs/REPORT.md` (Chapters 1–4, Mermaid architecture & semantic network diagrams, TF-IDF and CUQ formulas, and Harvard bibliography) and updated `README.md`.

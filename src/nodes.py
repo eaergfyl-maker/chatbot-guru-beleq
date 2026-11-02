@@ -22,7 +22,7 @@ REJECT_MESSAGES = {
 ERROR_MESSAGE = "Sorry, something went wrong on my side. Could you try that again?"
 
 # ---------- patterns ----------
-_GREETING = re.compile(r"^\s*(hi|hello|hey|hai|halo|selamat\s+\w+|good\s+(morning|afternoon|evening|day))\b", re.I)
+_GREETING = re.compile(r"^\s*(hi|hello|hey|hai|halo|selamat\s+\w+|(good\s+)?(morning|afternoon|evening|day))\b", re.I)
 _THANKS = re.compile(r"\b(thanks|thank you|terima kasih|cheers|appreciate)\b", re.I)
 _BYE = re.compile(r"\b(bye|goodbye|see you|exit|quit|good night)\b", re.I)
 _MENU = re.compile(r"\b(menu|options|main menu)\b", re.I)
@@ -144,10 +144,13 @@ def route_stage(state: State) -> str:
 
 
 def take_name(state: State) -> dict:
-    if _raw(state).strip() == SIX_SEVEN:
+    raw = _raw(state)
+    if raw.strip() == SIX_SEVEN:
         return _msg(f"{SIX_SEVEN_REPLY}\n\nBefore we begin, what should I call you?")
-    name = persona.extract_name(_raw(state))  # raw text: spelling correction would damage names
+    name = persona.extract_name(raw)  # raw text: spelling correction would damage names
     if not name:
+        if _GREETING.match(raw):
+            return _msg(f"{persona.reply_greeting(raw)}! Sorry, I didn't catch your name. What should I call you? Just your first name is fine.")
         return _msg("Sorry, I didn't catch your name. What should I call you? Just your first name is fine.")
     saved = profiles.load(name)
     progress = saved or profiles.new_progress()
@@ -273,7 +276,7 @@ def smalltalk(state: State) -> dict:
     if _THANKS.search(low):
         return _msg(f"You're very welcome, {name}! What would you like to explore next?")
     if _GREETING.match(low):
-        return _msg(f"{persona.time_greeting()}, {name}! Good to see you. What would you like to learn about the Gendang Beleq today?")
+        return _msg(f"{persona.reply_greeting(low)}, {name}! Good to see you. What would you like to learn about the Gendang Beleq today?")
     return _msg(f"Glad you're enjoying it, {name}! What would you like to explore next?")
 
 

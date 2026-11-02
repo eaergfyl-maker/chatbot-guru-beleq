@@ -35,6 +35,18 @@ def time_period() -> str:
     return time_greeting().replace("Good ", "")
 
 
+def reply_greeting(text: str = "") -> str:
+    """Match an explicit time greeting ('good morning', 'good evening', etc.), or fall back to the clock."""
+    low = text.lower()
+    if re.search(r"\b(morning|pagi)\b", low):
+        return "Good morning"
+    if re.search(r"\b(afternoon|siang|sore)\b", low):
+        return "Good afternoon"
+    if re.search(r"\b(evening|malam)\b", low):
+        return "Good evening"
+    return time_greeting()
+
+
 def pick(options: list[str]) -> str:
     return random.choice(options)
 

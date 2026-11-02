@@ -65,6 +65,12 @@ class Opening(Chat):
         for hour, word in ((9, "Good morning"), (14, "Good afternoon"), (20, "Good evening")):
             with mock.patch.object(persona, "now", return_value=datetime(2026, 1, 1, hour)):
                 self.assertTrue(start(build_graph(), f"t{hour}").startswith(word))
+        self.begin()
+        self.assertIn("Good morning, Budi", self.say("good morning"))
+        self.assertIn("Good evening, Budi", self.say("good evening"))
+        self.assertIn("Good afternoon, Budi", self.say("good afternoon"))
+        self.assertIn("Good morning, Budi", self.say("morning"))
+        self.assertIn("Good evening, Budi", self.say("evening"))
 
     def test_bot_speaks_first_and_asks_name(self):
         text = start(self.graph, self.tid)
