@@ -66,7 +66,7 @@ pip install -r requirements.txt
 python -m src.graph                       # terminal chat
 python server.py                          # standalone web page at http://localhost:8000
 streamlit run app.py                      # Streamlit web UI at http://localhost:8501
-python -m unittest discover tests         # 44 scripted conversation tests
+python -m unittest discover tests         # 49 scripted conversation tests
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
 python -m eval.cuq collect                # one tester fills in the CUQ (also in the web UI)
 python -m eval.cuq report                 # CUQ score and item means from all responses

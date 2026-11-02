@@ -11,6 +11,8 @@ from .semantic_net import related_concepts
 from .state import State
 
 QUIZ_LENGTH = 5
+SIX_SEVEN = "67"
+SIX_SEVEN_REPLY = "🤲 67"
 
 REJECT_MESSAGES = {
     "empty": "I didn't catch anything there. Could you type your message again?",
@@ -142,6 +144,8 @@ def route_stage(state: State) -> str:
 
 
 def take_name(state: State) -> dict:
+    if _raw(state).strip() == SIX_SEVEN:
+        return _msg(f"{SIX_SEVEN_REPLY}\n\nBefore we begin, what should I call you?")
     name = persona.extract_name(_raw(state))  # raw text: spelling correction would damage names
     if not name:
         return _msg("Sorry, I didn't catch your name. What should I call you? Just your first name is fine.")
@@ -178,6 +182,8 @@ def classify(state: State) -> dict:
     low = text.lower()
     stage = state.get("stage", "menu")
 
+    if low == SIX_SEVEN:
+        return {"intent": "six_seven"}
     if stage in ("lesson", "quiz"):
         if _LEAVE.search(low):
             return {"intent": "leave"}
@@ -299,6 +305,12 @@ def _reprompt(state: State) -> str:
         item = {i["key"]: i for i in quiz_items()}[state["quiz"]["current"]]
         return f"\n\nNow, back to the quiz: {item['question']}"
     return ""
+
+
+def six_seven(state: State) -> dict:
+    """Echo the meme, then return to the current lesson or quiz question (or the menu). Does not count as an attempt."""
+    back = _reprompt(state) or f"\n\n{persona.menu_text(_name(state))}"
+    return _msg(f"{SIX_SEVEN_REPLY}{back}")
 
 
 def answer(state: State) -> dict:

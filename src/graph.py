@@ -30,7 +30,7 @@ INTENT_NODES = {
     "qa": "answer", "menu": "menu", "leave": "leave", "invite": "invite", "help": "help", "smalltalk": "smalltalk",
     "offtopic": "offtopic", "bye": "bye", "progress": "progress", "recommend": "recommend", "sources": "sources",
     "glossary": "glossary", "lesson_start": "lesson_start", "lesson_reply": "lesson_reply",
-    "quiz_start": "quiz_start", "quiz_reply": "quiz_reply",
+    "quiz_start": "quiz_start", "quiz_reply": "quiz_reply", "six_seven": "six_seven",
 }
 
 
@@ -50,6 +50,7 @@ def build_graph():
         ("progress", nodes.progress_node), ("recommend", nodes.recommend), ("sources", nodes.sources),
         ("glossary", nodes.glossary_node), ("lesson_start", nodes.lesson_start),
         ("lesson_reply", nodes.lesson_reply), ("quiz_start", nodes.quiz_start), ("quiz_reply", nodes.quiz_reply),
+        ("six_seven", nodes.six_seven),
     ):
         g.add_node(node_name, safe(fn))
 

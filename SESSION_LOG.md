@@ -24,6 +24,8 @@
 
 - Added a copy-and-paste "Quick start" section to the top of `README.md` (clone, install, `python server.py`, open http://localhost:8000).
 
+- Added a "67" easter egg: the exact message `67` gets `🤲 67`, then returns to the current lesson or quiz question (no attempt used), the menu, or the name prompt. `six_seven` intent/node in `src/nodes.py` and `src/graph.py`; 5 new tests (49 total). Variants like `6 7` or `six seven` are not matched.
+
 ## Open items from this session
 - `eval/cuq_responses.csv` is not in `.gitignore`: real tester answers will appear as git changes and publish if pushed. Decide whether to ignore it.
 - The web page has not been checked visually in a browser by Claude; only via HTTP requests.

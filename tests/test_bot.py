@@ -290,6 +290,46 @@ class Teaching(Chat):
         self.assertIn("Report card", self.say("5"))
 
 
+class SixSeven(Chat):
+    def test_during_lesson_returns_to_question_without_using_an_attempt(self):
+        self.begin()
+        self.say("1")
+        before = self.state()["lesson"]
+        question = get_topic(before["topic"])["lesson"][before["step"]]["question"]
+        reply = self.say("67")
+        self.assertTrue(reply.startswith("🤲 67"))
+        self.assertIn(f"back to our lesson: {question}", reply)
+        self.assertEqual(self.state()["lesson"], before)
+        self.assertEqual(self.state()["stage"], "lesson")
+
+    def test_during_quiz_returns_to_question(self):
+        self.begin()
+        self.say("3")
+        before = self.state()["quiz"]
+        reply = self.say("67")
+        self.assertTrue(reply.startswith("🤲 67"))
+        self.assertIn("back to the quiz", reply)
+        self.assertEqual(self.state()["quiz"], before)
+
+    def test_at_menu_shows_the_menu(self):
+        self.begin()
+        reply = self.say("67")
+        self.assertTrue(reply.startswith("🤲 67"))
+        self.assertIn("Start a lesson", reply)
+        self.assertNotIn("isn't on the menu", reply)
+
+    def test_when_asked_for_a_name_still_asks(self):
+        start(self.graph, self.tid)
+        reply = self.say("67")
+        self.assertTrue(reply.startswith("🤲 67"))
+        self.assertIn("what should I call you", reply)
+        self.assertEqual(self.state()["stage"], "ask_name")
+
+    def test_other_unknown_numbers_still_explained(self):
+        self.begin()
+        self.assertIn("isn't on the menu", self.say("66"))
+
+
 class Search(unittest.TestCase):
     def test_unrelated_query_has_no_hits(self):
         self.assertEqual(search.search("capital of France"), [])
