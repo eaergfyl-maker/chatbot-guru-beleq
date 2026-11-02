@@ -46,6 +46,14 @@ def meta_payload() -> dict:
     }
 
 
+def submit_cuq(answers: list[int], comments: str) -> dict:
+    """Scores and saves a CUQ response. Vercel's disk is read-only, so there the score is returned unsaved."""
+    try:
+        return {"score": round(cuq.save(answers, comments), 1), "saved": True}
+    except OSError:
+        return {"score": round(cuq.score(answers), 1), "saved": False}
+
+
 class Handler(BaseHTTPRequestHandler):
     def _send(self, code: int, body: bytes, ctype: str):
         self.send_response(code)
@@ -80,7 +88,7 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == "/api/cuq":
                 answers = [int(a) for a in data["answers"]]
                 comments = str(data.get("comments", ""))[:1000]
-                return self._json({"score": round(cuq.save(answers, comments), 1)})
+                return self._json(submit_cuq(answers, comments))
             if self.path == "/api/chat":
                 tid, text = str(data["thread_id"]), str(data.get("message", ""))
                 reply = ask(graph, text, tid)

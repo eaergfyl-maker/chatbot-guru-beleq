@@ -2,13 +2,14 @@
 import os
 import tempfile
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest import mock
 
 _tmp = tempfile.mkdtemp()
 os.environ["PROFILES_FILE"] = os.path.join(_tmp, "profiles.json")
 os.environ["CUQ_FILE"] = os.path.join(_tmp, "cuq.csv")
 
+import server  # noqa: E402
 from eval import cuq  # noqa: E402
 from src import nlp, persona, profiles, search  # noqa: E402
 from src.graph import ask, build_graph, start, state_of  # noqa: E402
@@ -377,6 +378,21 @@ class CUQ(unittest.TestCase):
         self.assertEqual(s["mean"], 75)
         self.assertEqual(s["items"][0], 4)
         self.assertEqual(s["items"][1], 2)
+
+    def test_read_only_disk_still_returns_score(self):
+        with mock.patch.object(cuq, "save", side_effect=OSError("read-only file system")):
+            self.assertEqual(server.submit_cuq([3] * 16, ""), {"score": 50.0, "saved": False})
+
+
+class Hosting(unittest.TestCase):
+    def test_vercel_clock_uses_utc_plus_8(self):
+        with mock.patch.dict(os.environ, {"VERCEL": "1"}):
+            self.assertEqual(persona.now().utcoffset(), timedelta(hours=8))
+
+    def test_local_clock_uses_the_computers_time(self):
+        with mock.patch.dict(os.environ):
+            os.environ.pop("VERCEL", None)
+            self.assertIsNone(persona.now().tzinfo)
 
 
 if __name__ == "__main__":

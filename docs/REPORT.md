@@ -163,6 +163,8 @@ Both the zero-dependency standard-library web server (`python server.py` on `htt
 - **Export Learning Transcript (`Export chat`)**: Downloads the full chat history and learner progress badge as `guru-beleq-transcript.txt`.
 - **Integrated CUQ Questionnaire Modal (`Rate this chatbot`)**: 16-item rating dialog that computes the CUQ score out of 100 and appends anonymous responses to `eval/cuq_responses.csv`.
 
+The web version is also deployed at https://chatbot-guru-beleq.vercel.app, with pushes to `main` deploying automatically. It runs as a serverless function with a read-only disk, so learner profiles and CUQ responses are not stored online, conversation state in `MemorySaver` is lost when an instance is recycled, and greetings use UTC+8 rather than the visitor's clock.
+
 ---
 
 ## Chapter 4: Testing and Usability Evaluation

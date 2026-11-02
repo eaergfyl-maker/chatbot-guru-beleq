@@ -375,8 +375,9 @@ document.getElementById('cuqform').addEventListener('submit', async e => {
     const d = await post('/api/cuq', {answers, comments: document.getElementById('comments').value});
     cuqMsg.style.color = '#1b6e2d';
     cuqMsg.textContent = `Thank you! Your score: ${d.score} out of 100.`;
+    if (d.saved === false) { cuqMsg.textContent += ' This online version cannot store answers, so please note your score.'; }
     document.getElementById('cuqform').reset();
-    setTimeout(() => { cuqEl.classList.remove('open'); cuqMsg.style.color = ''; }, 2500);
+    if (d.saved !== false) { setTimeout(() => { cuqEl.classList.remove('open'); cuqMsg.style.color = ''; }, 2500); }
   } catch { cuqMsg.textContent = 'Sorry, your answers could not be saved.'; }
 });
 begin();

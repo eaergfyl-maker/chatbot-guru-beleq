@@ -1,7 +1,8 @@
 """The chatbot's character: name, time-based greetings, teacher phrases, menu, badges."""
+import os
 import random
 import re
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 BOT_NAME = "Guru Beleq"
 BOT_MEANING = "'Guru' is Indonesian for teacher and 'beleq' is Sasak for big, so I am the Big Teacher"
@@ -19,7 +20,8 @@ _NAME = r"[^\W\d_][^\W\d_'\-]*(?:['\-][^\W\d_]+)*"  # letters in any alphabet, a
 
 
 def now() -> datetime:
-    return datetime.now()  # separate function so tests can fix the time
+    # Separate function so tests can fix the time. Vercel's clock is UTC, so online greetings use UTC+8 (Lombok time).
+    return datetime.now(timezone(timedelta(hours=8))) if os.getenv("VERCEL") else datetime.now()
 
 
 def time_greeting() -> str:

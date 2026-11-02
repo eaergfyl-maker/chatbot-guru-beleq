@@ -2,6 +2,13 @@
 
 Guru Beleq ("Big Teacher") is a rule-based chatbot that teaches about the Gendang Beleq (Gendang Belek), the traditional drum ensemble of the Sasak people of Lombok. English only. It uses no LLM and no API key: the flow is a LangGraph graph and all language handling is plain Python.
 
+**Try it online:** https://chatbot-guru-beleq.vercel.app (nothing to install)
+
+Pushes to `main` deploy automatically to the [Vercel project](https://vercel.com/eaergfyl/chatbot-guru-beleq). The online version runs `server.py` as a serverless function, so it differs from a local copy:
+- Greetings use UTC+8 (Lombok time), not the visitor's clock.
+- Learners are not remembered between sessions, and a conversation can restart if the server instance is recycled.
+- `Rate this chatbot` shows the score but does not store it. Run the app locally to collect CUQ responses.
+
 ## Quick start (copy and paste)
 
 You need [Python 3.10 or newer](https://www.python.org/downloads/) and [Git](https://git-scm.com/downloads). Open a terminal (PowerShell on Windows) and paste these lines one block at a time.
@@ -66,7 +73,7 @@ pip install -r requirements.txt
 python -m src.graph                       # terminal chat
 python server.py                          # standalone web page at http://localhost:8000
 streamlit run app.py                      # Streamlit web UI at http://localhost:8501
-python -m unittest discover tests         # 49 scripted conversation tests
+python -m unittest discover tests         # 52 scripted tests
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
 python -m eval.cuq collect                # one tester fills in the CUQ (also in the web UI)
 python -m eval.cuq report                 # CUQ score and item means from all responses

@@ -1,8 +1,8 @@
 # Session Handoff Log
 
 ## Latest Status
-- **Last Updated By:** Antigravity
-- **Current Task:** Added explicit Good morning / Good afternoon / Good evening greeting mirroring (`reply_greeting`)
+- **Last Updated By:** Claude Code
+- **Current Task:** Documented the Vercel deployment and fixed the greeting clock and CUQ crash there
 
 ## Recent Changes
 - Updated `src/persona.py` (`reply_greeting`) and `src/nodes.py` (`_GREETING`, `take_name`, `smalltalk`) so that in addition to the automatic clock-based greeting on startup, typing `"good morning"` / `"morning"`, `"good afternoon"` / `"afternoon"`, or `"good evening"` / `"evening"` at any time of day mirrors the corresponding greeting (`"Good morning"`, `"Good afternoon"`, or `"Good evening"`). Added tests in `tests/test_bot.py`.
@@ -26,6 +26,11 @@
 - Added a copy-and-paste "Quick start" section to the top of `README.md` (clone, install, `python server.py`, open http://localhost:8000).
 
 - Added a "67" easter egg: the exact message `67` gets `🤲 67`, then returns to the current lesson or quiz question (no attempt used), the menu, or the name prompt. `six_seven` intent/node in `src/nodes.py` and `src/graph.py`; 5 new tests (49 total). Variants like `6 7` or `six seven` are not matched.
+
+- Vercel deployment: live at https://chatbot-guru-beleq.vercel.app, project `eaergfyl/chatbot-guru-beleq`, connected to GitHub so pushes to `main` deploy automatically. Added the link and online limits to `README.md` and `docs/REPORT.md`.
+- Fixed two Vercel bugs: greetings used UTC (now UTC+8 when the `VERCEL` env var is set), and `POST /api/cuq` crashed with a 500 on the read-only disk (now returns the score with `saved: false`, and the page tells the tester). `server.submit_cuq` and 3 new tests (52 total).
+- Online limits: no durable storage, so CUQ responses and learner profiles are not kept; `MemorySaver` state is lost when an instance is recycled. Collect CUQ data from a local copy, or add a hosted database.
+- Local Vercel CLI is not linked: Node.js is not installed on this machine. `.vercel/` is now gitignored for when it is.
 
 ## Open items from this session
 - `eval/cuq_responses.csv` is not in `.gitignore`: real tester answers will appear as git changes and publish if pushed. Decide whether to ignore it.
