@@ -20,7 +20,7 @@ def safe(fn, **on_error):
             return fn(state)
         except Exception:
             log.exception("node %s failed", fn.__name__)
-            return {"messages": [AIMessage(content=nodes.ERROR_MESSAGE)], **on_error}
+            return {"messages": [AIMessage(content=nodes.ERROR_MESSAGE)], "engine": "python", **on_error}
 
     return wrapper
 

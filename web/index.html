@@ -63,6 +63,11 @@
     height:6px; width:72px; background:rgba(255,255,255,0.35); border-radius:3px; overflow:hidden;
   }
   #bar div { height:100%; width:0; background:#fff; transition:width .35s ease; }
+  .mode-pill {
+    padding:4px 10px; border-radius:999px; font-size:.74rem; font-weight:700; white-space:nowrap; cursor:help;
+    background:rgba(255,250,242,0.72); color:var(--brown-dark); border:1px solid rgba(91,58,36,0.18);
+  }
+  .mode-pill.smart { background:linear-gradient(135deg, #fff6dc, #f3dca4); border-color:#d9a441; }
 
   .nav-pills {
     background: rgba(91, 58, 36, 0.78); backdrop-filter: blur(12px);
@@ -78,13 +83,14 @@
   .nav-pill.active { background:rgba(255,255,255,0.25); }
 
   .action-cluster { display:flex; align-items:center; gap:6px; }
-  button.small {
+  button.small, a.small {
     background: rgba(91, 58, 36, 0.78); backdrop-filter: blur(10px);
     color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:999px;
     padding:7px 13px; cursor:pointer; font-size:.82rem; font-weight:600;
     transition: background .15s;
   }
-  button.small:hover { background: var(--brown); }
+  button.small:hover, a.small:hover { background: var(--brown); }
+  a.small { text-decoration:none; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
 
   /* Main Split Workspace: Left Avatar Companion + Right Chat Stream */
   .stage-layout {
@@ -410,6 +416,7 @@
       <span id="badge">LVL 1 · Curious Listener</span>
       <div id="bar"><div></div></div>
     </div>
+    <span id="mode-pill" class="mode-pill" hidden></span>
   </div>
 
   <nav class="nav-pills" aria-label="Companion navigation">
@@ -420,6 +427,8 @@
   </nav>
 
   <div class="action-cluster">
+    <a class="small" id="home" href="/" title="Back to the mode selection page">🏠 Switch mode</a>
+    <a class="small" href="/sandbox" title="Explore the Sasak Village Sandbox">🗺️ Sandbox</a>
     <button class="small" id="export">Export chat</button>
     <button class="small" id="restart">Start over</button>
   </div>
@@ -830,6 +839,19 @@ function renderQuickbar(stage) {
   }
 }
 
+// Smart Mode (Gemini) or Classic Mode (rule-based). Falls back silently; this pill only reflects it.
+function showEngine(smart, engine) {
+  const pill = document.getElementById('mode-pill');
+  if (typeof smart !== 'boolean') return;
+  pill.hidden = false;
+  pill.classList.toggle('smart', smart);
+  pill.textContent = smart ? '✨ Smart Mode' : '⚡ Classic Mode';
+  pill.title = (smart
+    ? 'Gemini helps word the answers, using only the cited facts.'
+    : 'Built-in rule-based engine (no API key, or Gemini is resting).')
+    + (engine ? ` Last reply: ${engine === 'gemini' ? 'Gemini' : 'rule-based'}.` : '');
+}
+
 async function post(url, body) {
   const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body || {})});
   if (!r.ok) throw new Error(r.status);
@@ -851,6 +873,7 @@ async function begin() {
     add('bot', d.reply);
     renderQuickbar(d.stage || 'ask_name');
     setAvatarReaction(d.reaction || 'greeting', true);
+    showEngine(d.smart, null);
   } catch {
     add('bot', 'Sorry, I could not reach the server. Is server.py running?');
     setAvatarReaction('comfort', false);
@@ -867,6 +890,7 @@ async function sendMessage(text) {
     showProgress(d.progress);
     renderQuickbar(d.stage || 'menu');
     setAvatarReaction(d.reaction || 'teaching', true);
+    showEngine(d.smart, d.engine);
   } catch {
     add('bot', 'Sorry, something went wrong talking to the server.');
     setAvatarReaction('comfort', false);

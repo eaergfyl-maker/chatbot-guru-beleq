@@ -1,8 +1,8 @@
 # Session Handoff Log
 
 ## Latest Status
-- **Last Updated By:** Antigravity
-- **Current Task:** Added Replika-style side companion stage and 2.5D rigged reactive avatar
+- **Last Updated By:** Claude Code (2026-11-21)
+- **Current Task:** Added optional Gemini Smart Mode with automatic rule-based fallback
 
 ## Recent Changes
 - Built Replika-inspired split-stage companion layout in `web/index.html` with a sunlit arch room backdrop, top floating navigation dock, `LVL X · <Title>` badge pill, and a 2.5D multi-layer rigged Guru Beleq SVG puppet (`#guru-puppet`) with 3D mouse-tilt parallax, eye tracking, and interactive Web Audio drum beat on click.
@@ -34,9 +34,28 @@
 - Online limits: no durable storage, so CUQ responses and learner profiles are not kept; `MemorySaver` state is lost when an instance is recycled. Collect CUQ data from a local copy, or add a hosted database.
 - Local Vercel CLI is not linked: Node.js is not installed on this machine. `.vercel/` is now gitignored for when it is.
 
+## Claude Code session: landing page and Sasak Village Sandbox (2026-11-21)
+- **Breaking route change:** `/` now serves `web/landing.html` (mode selector). The chat moved to `/chat` (`web/index.html`, unchanged apart from new `🏠 Switch mode` and `🗺️ Sandbox` links in its header). `/chat/` and `/sandbox/` also work. Old bookmarks of `/` land on the selector, one click from the chat.
+- New `/sandbox` (`web/sandbox.html`): self-contained canvas game, no external files. Courtyard with lumbung barns, Rinjani, bamboo fence, mats, stage; player moves with WASD/arrows, click/tap-to-walk, touch D-pad + E button; axis-separated collisions; fixed 1/60 s physics steps so speed does not depend on frame rate; camera follows the player when the screen is too small to show the whole 1200x780 world.
+- 8 stations with Web Audio voices (drum dag-dug, accelerating petuq ticks, gong + kempur, reyong motif + suling, kenceng shimmer, procession groove). RPG dialogue: cited fact, glossary chips, Sources (full Harvard refs), Tell me more (station facts, then `/api/chat`), Play sound, Ask Guru Beleq (free text), and on Guru Beleq a Mini-quiz with Hint/Skip/Stop. HUD: discovery pill with walk-to dots, celebration banner at 8/8, sound toggle (remembered in localStorage), CUQ "Rate this chatbot", Switch mode.
+- The sandbox chats on its own thread: it calls `/api/start`, then sends the player's name (or `Explorer`) and strips the menu text from replies.
+- New `GET /api/sandbox` from `src/sandbox.py`: each station names `(topic, phrase)` pairs that must match exactly one fact in `topics.json`, plus glossary terms. Convention: if you reword a fact, update the phrase; `SandboxStations` tests fail otherwise.
+- 9 new tests (`SandboxStations`, `WebRoutes` which runs the real handler on a free port). 62 tests pass.
+- Checked in Chrome: landing, sandbox at desktop and 390px width, click-to-walk, dialogue, chatbot question, quiz start/stop, 8/8 celebration; no console errors. Not checked on a real touch device (D-pad only appears with a coarse pointer).
+
+## Claude Code session: optional Gemini Smart Mode (2026-11-21)
+- New `src/llm.py` (standard library only): reads `GEMINI_API_KEY`, `GEMINI_MODEL` (default `gemini-2.5-flash`), `GEMINI_ENABLED` from the environment or a local `.env` (real env vars win). Calls `generateContent` with the key in the `x-goog-api-key` header, 6 s timeout, `thinkingBudget: 0` on 2.5 Flash for speed.
+- Fallback: every helper returns `None` on any failure and the node uses the rule-based reply it already built. HTTP 429 / `RESOURCE_EXHAUSTED` and 401/403 start a 300 s in-memory cooldown (per server instance; on Vercel each instance has its own). Non-STOP finish reasons (MAX_TOKENS, SAFETY) are discarded.
+- Grounding check: `llm.grounded()` rejects an answer with no citation or with any citation part not among the supplied references. Small-talk rewrites must contain no citations and keep the mirrored greeting / bot name.
+- `src/nodes.py`: `answer` (retrieved facts + up to two close runners-up; keeps the `(I read that as ...)` note, the related-lessons line and `_reprompt`), `smalltalk` and `offtopic` use Gemini. Everything else, including lesson/quiz grading, is unchanged and rule-based.
+- Convention: `_msg()` now sets `engine: "python"` on every reply; Gemini replies set `engine: "gemini"`. `/api/chat` returns `engine` and `smart` (Gemini will be tried next turn), `/api/start` returns `smart`, `/api/meta` returns `llm` status. Chat header and sandbox HUD show `✨ Smart Mode` / `⚡ Classic Mode`.
+- Tests set `GEMINI_ENABLED=0` at import so a developer's local `.env` never changes test results; `SmartMode` tests mock `urlopen`. 12 new tests, 74 total, no network.
+- Not tested against the live Gemini API (no key in this session). Try it with a real key before relying on it; if Google changes the response shape, the code falls back to Classic Mode rather than breaking.
+- The Streamlit app (`app.py`) also gets Smart Mode through the shared nodes but has no mode indicator yet.
+
 ## Open items from this session
 - `eval/cuq_responses.csv` is not in `.gitignore`: real tester answers will appear as git changes and publish if pushed. Decide whether to ignore it.
-- The web page has not been checked visually in a browser by Claude; only via HTTP requests.
+- Sandbox D-pad not yet tried on a real phone or tablet.
 
 ## Next Steps / Open Items
 - [ ] Run the CUQ usability test with real testers (see `eval/CUQ_TEST_PLAN.md`) and report results (`python -m eval.cuq report`).

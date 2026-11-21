@@ -19,3 +19,4 @@ class State(TypedDict, total=False):
     quiz: dict           # {"n", "right", "asked", "current", "attempts"} while a quiz is running
     progress: dict       # see profiles.new_progress()
     told: list           # facts already given in this conversation, so "tell me more" moves on
+    engine: str          # who wrote the last reply: "python" (rule-based) or "gemini" (Smart Mode)

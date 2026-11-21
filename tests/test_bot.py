@@ -1,17 +1,26 @@
 """Scripted conversations against the real graph. Run: python -m unittest discover tests -v"""
+import io
+import json
 import os
+import socket
 import tempfile
+import threading
 import unittest
+import urllib.error
+import urllib.request
 from datetime import datetime, timedelta
+from http.server import ThreadingHTTPServer
+from pathlib import Path
 from unittest import mock
 
 _tmp = tempfile.mkdtemp()
 os.environ["PROFILES_FILE"] = os.path.join(_tmp, "profiles.json")
 os.environ["CUQ_FILE"] = os.path.join(_tmp, "cuq.csv")
+os.environ["GEMINI_ENABLED"] = "0"  # the tests never call Gemini, even if a local .env has a key; Gemini tests mock it
 
 import server  # noqa: E402
 from eval import cuq  # noqa: E402
-from src import nlp, persona, profiles, search  # noqa: E402
+from src import llm, nlp, persona, profiles, sandbox, search  # noqa: E402
 from src.graph import ask, build_graph, start, state_of  # noqa: E402
 from src.knowledge import get_topic, glossary, references, topics, validate  # noqa: E402
 from src.semantic_net import load_edges  # noqa: E402
@@ -401,6 +410,268 @@ class Hosting(unittest.TestCase):
         self.assertEqual(persona.reaction_of({"intent": "lesson_reply"}, "Here's a clue: Think of..."), "thinking")
         self.assertEqual(persona.reaction_of({"intent": "offtopic"}, "That's outside what I teach"), "comfort")
         self.assertEqual(persona.reaction_of({"intent": "qa"}, "Gendang means drum."), "teaching")
+
+
+class SandboxStations(unittest.TestCase):
+    def test_every_station_phrase_matches_exactly_one_fact(self):
+        for spec in sandbox.STATIONS:
+            for topic_id, phrase in spec["facts"]:
+                self.assertEqual(len(sandbox.find_facts(topic_id, phrase)), 1, f"{spec['id']}: {phrase!r}")
+
+    def test_payload_has_eight_cited_stations(self):
+        d = sandbox.sandbox_payload()
+        self.assertEqual(d["total"], 8)
+        ids = [s["id"] for s in d["stations"]]
+        self.assertEqual(len(set(ids)), 8)
+        self.assertIn("guru", ids)
+        for s in d["stations"]:
+            self.assertTrue(s["facts"], s["id"])
+            self.assertTrue(s["references"], s["id"])
+            for f in s["facts"] + s["terms"]:
+                self.assertRegex(f["cite"], r"^\(.+, (\d{4}|n\.d\.).*\)$")
+            self.assertEqual(len(s["terms"]), len(next(x for x in sandbox.STATIONS if x["id"] == s["id"])["terms"]))
+
+    def test_station_facts_come_from_the_knowledge_base(self):
+        kb_facts = {f["text"] for t in topics() for f in t["facts"]}
+        for s in sandbox.sandbox_payload()["stations"]:
+            for f in s["facts"]:
+                self.assertIn(f["text"], kb_facts)
+
+
+class WebRoutes(unittest.TestCase):
+    """Starts the real request handler on a free port and requests every page and API route."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+        cls.base = f"http://127.0.0.1:{cls.httpd.server_address[1]}"
+        threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.httpd.shutdown()
+        cls.httpd.server_close()
+
+    def get(self, path):
+        with urllib.request.urlopen(self.base + path, timeout=10) as r:
+            return r.status, r.headers.get("Content-Type", ""), r.read().decode("utf-8", "replace")
+
+    def post(self, path, body):
+        req = urllib.request.Request(self.base + path, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status, json.loads(r.read())
+
+    def test_landing_page_offers_both_modes(self):
+        status, ctype, body = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn("text/html", ctype)
+        self.assertIn('href="/chat"', body)
+        self.assertIn('href="/sandbox"', body)
+        self.assertIn("/avatar.png", body)
+
+    def test_chat_page_keeps_its_features_and_links_home(self):
+        for path in ("/chat", "/chat/"):
+            status, _, body = self.get(path)
+            self.assertEqual(status, 200)
+            for feature in ('id="explore"', 'id="export"', 'id="cuq"', 'id="guru-puppet"', 'id="quickbar"', 'href="/"'):
+                self.assertIn(feature, body)
+
+    def test_sandbox_page_is_a_self_contained_canvas_game(self):
+        status, _, body = self.get("/sandbox")
+        self.assertEqual(status, 200)
+        self.assertIn('<canvas id="game"', body)
+        self.assertIn("/api/sandbox", body)
+        self.assertIn('id="rate"', body)
+        self.assertIn('href="/"', body)
+        self.assertNotRegex(body, r'<script[^>]+src=|<link[^>]+stylesheet')  # no external scripts or styles
+
+    def test_sandbox_api_returns_stations(self):
+        status, ctype, body = self.get("/api/sandbox")
+        self.assertEqual(status, 200)
+        self.assertIn("application/json", ctype)
+        d = json.loads(body)
+        self.assertEqual(d["total"], len(d["stations"]))
+        self.assertEqual({s["id"] for s in d["stations"]},
+                         {"drums", "petuq", "gong", "melody", "cymbals", "costume", "mural", "guru"})
+
+    def test_existing_routes_still_work(self):
+        self.assertEqual(self.get("/avatar.png")[0], 200)
+        self.assertEqual(json.loads(self.get("/api/cuq")[2])["scale"], cuq.SCALE)
+        self.assertTrue(json.loads(self.get("/api/meta")[2])["topics"])
+        status, d = self.post("/api/start", {})
+        self.assertEqual(status, 200)
+        status, d = self.post("/api/chat", {"thread_id": d["thread_id"], "message": "Sandbox"})
+        self.assertEqual(status, 200)
+        self.assertEqual(d["stage"], "menu")
+
+    def test_chat_reports_engine_and_mode(self):
+        _, d = self.post("/api/start", {})
+        self.assertIs(d["smart"], False)
+        _, d = self.post("/api/chat", {"thread_id": d["thread_id"], "message": "Sandbox"})
+        self.assertEqual(d["engine"], "python")
+        self.assertIs(d["smart"], False)
+        self.assertEqual(json.loads(self.get("/api/meta")[2])["llm"]["enabled"], False)
+
+    def test_unknown_route_is_404(self):
+        with self.assertRaises(urllib.error.HTTPError) as err:
+            self.get("/nope")
+        self.assertEqual(err.exception.code, 404)
+
+
+# ---------- Smart Mode (Gemini), always mocked: no network calls ----------
+SMART_ENV = {"GEMINI_API_KEY": "test-key", "GEMINI_ENABLED": "1", "GEMINI_MODEL": "gemini-2.5-flash"}
+URLOPEN = "src.llm.urllib.request.urlopen"
+
+
+def gemini_reply(text: str, finish: str = "STOP"):
+    """A fake urlopen() result carrying a Gemini generateContent response."""
+    resp = mock.MagicMock()
+    resp.read.return_value = json.dumps({"candidates": [{"content": {"parts": [{"text": text}]}, "finishReason": finish}]}).encode()
+    cm = mock.MagicMock()
+    cm.__enter__.return_value = resp
+    cm.__exit__.return_value = False
+    return cm
+
+
+def http_error(code: int, status: str = ""):
+    body = io.BytesIO(json.dumps({"error": {"code": code, "status": status}}).encode())
+    return urllib.error.HTTPError(llm.API_URL, code, "error", {}, body)
+
+
+class SmartMode(Chat):
+    QUESTION = "what does the petuq do?"
+    GOOD = "The petuq, also called the oncer, sets the tempo, and the whole group follows its speed (Saputra, 2019)."
+
+    def setUp(self):
+        super().setUp()
+        llm.reset()
+        self.addCleanup(llm.reset)
+
+    def classic(self, *turns):
+        """What the rule-based engine says to the same turns, on a separate thread with Gemini off."""
+        with mock.patch.dict(os.environ, {"GEMINI_ENABLED": "0"}):
+            g, t = build_graph(), self.id() + ":classic"
+            start(g, t)
+            ask(g, "Budi", t)
+            return [ask(g, x, t) for x in turns][-1]
+
+    def test_missing_key_falls_back_without_calling_the_api(self):
+        expected = self.classic(self.QUESTION)
+        with mock.patch.dict(os.environ, {"GEMINI_ENABLED": "1"}), mock.patch(URLOPEN) as urlopen:
+            os.environ.pop("GEMINI_API_KEY", None)
+            self.assertFalse(llm.enabled())
+            self.begin()
+            self.assertEqual(self.say(self.QUESTION), expected)
+            self.assertIsNone(llm.generate("system", "prompt"))
+            urlopen.assert_not_called()
+        self.assertEqual(self.state()["engine"], "python")
+
+    def test_quota_429_falls_back_and_starts_cooldown(self):
+        expected = self.classic(self.QUESTION, "what is the gong for?")
+        with mock.patch.dict(os.environ, SMART_ENV), \
+                mock.patch(URLOPEN, side_effect=http_error(429, "RESOURCE_EXHAUSTED")) as urlopen:
+            self.begin()
+            self.assertIn("(Saputra, 2019)", self.say(self.QUESTION))
+            self.assertEqual(urlopen.call_count, 1)
+            self.assertTrue(llm.cooling_down())
+            self.assertFalse(llm.available())
+            self.assertEqual(self.say("what is the gong for?"), expected)  # answered instantly by Python
+            self.assertEqual(urlopen.call_count, 1)  # the cooldown skipped the API
+            self.assertEqual(self.state()["engine"], "python")
+            self.assertGreater(llm.status()["cooldown_seconds"], 0)
+
+    def test_invalid_key_also_cools_down(self):
+        with mock.patch.dict(os.environ, SMART_ENV), mock.patch(URLOPEN, side_effect=http_error(403, "PERMISSION_DENIED")):
+            self.assertIsNone(llm.generate("system", "prompt"))
+            self.assertTrue(llm.cooling_down())
+
+    def test_timeout_network_and_server_errors_fall_back(self):
+        expected = self.classic(self.QUESTION)
+        self.begin()
+        for failure in (socket.timeout("timed out"), TimeoutError(), urllib.error.URLError("no network"),
+                        ConnectionResetError(), http_error(500, "INTERNAL"), http_error(503, "UNAVAILABLE")):
+            with self.subTest(failure=type(failure).__name__), mock.patch.dict(os.environ, SMART_ENV), \
+                    mock.patch(URLOPEN, side_effect=failure):
+                self.assertEqual(self.say(self.QUESTION), expected)
+                self.assertEqual(self.state()["engine"], "python")
+                self.assertFalse(llm.cooling_down())  # only quota and key errors pause Gemini
+
+    def test_malformed_or_cut_off_responses_give_none(self):
+        bad = mock.MagicMock()
+        bad.__enter__.return_value.read.return_value = b"not json"
+        empty = mock.MagicMock()
+        empty.__enter__.return_value.read.return_value = b'{"candidates": []}'
+        with mock.patch.dict(os.environ, SMART_ENV):
+            for resp in (bad, empty, gemini_reply(""), gemini_reply(self.GOOD, finish="MAX_TOKENS"), gemini_reply(self.GOOD, finish="SAFETY")):
+                with mock.patch(URLOPEN, return_value=resp):
+                    self.assertIsNone(llm.generate("system", "prompt"))
+
+    def test_valid_reply_is_used_and_keeps_the_lesson_reprompt(self):
+        with mock.patch.dict(os.environ, SMART_ENV), mock.patch(URLOPEN, return_value=gemini_reply(self.GOOD)) as urlopen:
+            self.begin()
+            self.say("lesson")
+            lesson = self.state()["lesson"]
+            question = get_topic(lesson["topic"])["lesson"][lesson["step"]]["question"]
+            reply = self.say(self.QUESTION)
+        self.assertTrue(reply.startswith(self.GOOD))
+        self.assertTrue(reply.endswith(f"Now, back to our lesson: {question}"))
+        self.assertEqual(self.state()["engine"], "gemini")
+        self.assertEqual(self.state()["stage"], "lesson")
+        self.assertEqual(self.state()["lesson"], lesson)  # asking a question doesn't use an attempt
+        req = urlopen.call_args[0][0]
+        self.assertIn("models/gemini-2.5-flash:generateContent", req.full_url)
+        self.assertNotIn("test-key", req.full_url)  # the key travels in a header, not the URL
+        self.assertEqual(req.get_header("X-goog-api-key"), "test-key")
+        system = json.loads(req.data)["system_instruction"]["parts"][0]["text"]
+        self.assertIn("keeps the tempo", system)
+        self.assertIn("(Saputra, 2019)", system)
+        self.assertIn("Budi", system)
+
+    def test_ungrounded_replies_are_rejected(self):
+        expected = self.classic(self.QUESTION)
+        self.begin()
+        for text in ("The petuq keeps the beat for everyone.",                          # no citation
+                     "The petuq keeps the beat (Smith, 2020).",                         # invented citation
+                     "The petuq keeps the beat (Saputra, 2019; Wikipedia, 2023)."):     # one invented part
+            with self.subTest(text=text), mock.patch.dict(os.environ, SMART_ENV), \
+                    mock.patch(URLOPEN, return_value=gemini_reply(text)):
+                self.assertEqual(self.say(self.QUESTION), expected)
+
+    def test_smalltalk_is_reworded_and_rule_flows_stay_python(self):
+        warm = "It's my pleasure, Budi! Shall we explore the drums or the gongs next?"
+        with mock.patch.dict(os.environ, SMART_ENV), mock.patch(URLOPEN, return_value=gemini_reply(warm)) as urlopen:
+            self.begin()
+            self.assertEqual(self.say("thank you"), warm)
+            self.assertEqual(self.state()["engine"], "gemini")
+            calls = urlopen.call_count
+            self.assertIn("1. Start a lesson", self.say("menu"))  # deterministic flows never call Gemini
+            self.say("quiz")
+            self.say("skip")
+            self.assertEqual(self.say("67").split("\n")[0], "🤲 67")
+            self.assertEqual(urlopen.call_count, calls)
+            self.assertEqual(self.state()["engine"], "python")
+
+    def test_smalltalk_reply_that_cites_facts_is_rejected(self):
+        with mock.patch.dict(os.environ, SMART_ENV), \
+                mock.patch(URLOPEN, return_value=gemini_reply("You're welcome! Gongs are bronze (Keen, 2015).")):
+            self.begin()
+            self.assertIn("You're very welcome, Budi!", self.say("thank you"))
+
+    def test_env_file_is_loaded_without_overriding_real_variables(self):
+        path = os.path.join(_tmp, "test.env")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("# comment\nGEMINI_TEST_A=abc\nexport GEMINI_TEST_B = \"quoted value\"\nGEMINI_TEST_C=from-file\n\nnot a line\n")
+        with mock.patch.dict(os.environ, {"GEMINI_TEST_C": "real"}):
+            llm.load_env(Path(path))
+            self.assertEqual(os.environ["GEMINI_TEST_A"], "abc")
+            self.assertEqual(os.environ["GEMINI_TEST_B"], "quoted value")
+            self.assertEqual(os.environ["GEMINI_TEST_C"], "real")
+        self.assertNotIn("GEMINI_TEST_A", os.environ)
+
+    def test_env_example_exists_and_env_is_ignored(self):
+        root = Path(__file__).resolve().parent.parent
+        self.assertIn("GEMINI_API_KEY=", (root / ".env.example").read_text(encoding="utf-8"))
+        self.assertIn(".env", (root / ".gitignore").read_text(encoding="utf-8").split())
 
 
 if __name__ == "__main__":

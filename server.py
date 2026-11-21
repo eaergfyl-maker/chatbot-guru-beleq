@@ -1,4 +1,7 @@
-"""Serves the Guru Beleq chat web page. Run: python server.py  then open http://localhost:8000"""
+"""Serves the Guru Beleq web app. Run: python server.py  then open http://localhost:8000
+
+Pages: / (choose a mode), /chat (companion chat), /sandbox (Sasak Village Sandbox game).
+"""
 import json
 import mimetypes
 import socket
@@ -7,13 +10,19 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from eval import cuq
-from src import persona
+from src import llm, persona
+from src.sandbox import sandbox_payload
 from src.graph import ask, build_graph, start, state_of
 from src.knowledge import cite, glossary, topics
 from src.semantic_net import load_edges
 
 ROOT = Path(__file__).parent
-STATIC = {"/": ROOT / "web" / "index.html", "/avatar.png": ROOT / "assets" / "avatar.png"}
+STATIC = {
+    "/": ROOT / "web" / "landing.html",
+    "/chat": ROOT / "web" / "index.html",
+    "/sandbox": ROOT / "web" / "sandbox.html",
+    "/avatar.png": ROOT / "assets" / "avatar.png",
+}
 graph = build_graph()
 PORT = 8000
 
@@ -44,6 +53,7 @@ def meta_payload() -> dict:
             {"s": e["s"], "r": e["r"].replace("_", " "), "o": e["o"], "cite": cite(e["sources"])}
             for e in load_edges()
         ],
+        "llm": llm.status(),
     }
 
 
@@ -71,7 +81,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"items": cuq.ITEMS, "scale": cuq.SCALE})
         if self.path == "/api/meta":
             return self._json(meta_payload())
-        path = STATIC.get(self.path.split("?")[0])
+        if self.path == "/api/sandbox":
+            return self._json(sandbox_payload())
+        route = self.path.split("?")[0].rstrip("/") or "/"  # /chat/ works like /chat
+        path = STATIC.get(route)
         if path and path.exists():
             ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
             return self._send(200, path.read_bytes(), f"{ctype}; charset=utf-8" if ctype.startswith("text") else ctype)
@@ -91,6 +104,8 @@ class Handler(BaseHTTPRequestHandler):
                     "progress": None,
                     "stage": st.get("stage", "ask_name"),
                     "reaction": persona.reaction_of(st, reply),
+                    "engine": "python",
+                    "smart": llm.available(),
                 })
             if self.path == "/api/cuq":
                 answers = [int(a) for a in data["answers"]]
@@ -105,6 +120,8 @@ class Handler(BaseHTTPRequestHandler):
                     "progress": progress_of(tid),
                     "stage": st.get("stage", "menu"),
                     "reaction": persona.reaction_of(st, reply),
+                    "engine": st.get("engine", "python"),  # who wrote this reply: "gemini" or "python"
+                    "smart": llm.available(),              # will Gemini be tried next turn (key set, no cooldown)
                 })
             self._json({"error": "not found"}, 404)
         except (ValueError, KeyError, TypeError):

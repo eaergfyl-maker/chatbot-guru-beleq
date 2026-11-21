@@ -5,7 +5,7 @@ import re
 
 from langchain_core.messages import AIMessage, HumanMessage
 
-from . import nlp, persona, profiles, search
+from . import llm, nlp, persona, profiles, search
 from .knowledge import cite, get_topic, glossary, quiz_items, references, topic_sources, topics
 from .semantic_net import related_concepts
 from .state import State
@@ -52,7 +52,13 @@ _MENU_NUMBERS = {"1": "lesson_start", "2": "invite", "3": "quiz_start", "4": "re
 
 # ---------- helpers ----------
 def _msg(text: str, **fields) -> dict:
-    return {"messages": [AIMessage(content=text)], **fields}
+    """A reply. `engine` says who wrote it: "python" (rule-based, the default) or "gemini" (Smart Mode)."""
+    return {"messages": [AIMessage(content=text)], "engine": "python", **fields}
+
+
+def _smart(text: str | None, draft: str, **fields) -> dict:
+    """Gemini's reply when it gave one, otherwise the rule-based draft."""
+    return _msg(text, engine="gemini", **fields) if text else _msg(draft, **fields)
 
 
 def _raw(state: State) -> str:
@@ -263,28 +269,35 @@ def help_node(state: State) -> dict:
     )
 
 
-def smalltalk(state: State) -> dict:
+def _smalltalk_draft(state: State) -> tuple[str, str]:
+    """The rule-based small-talk reply, and a phrase that a reworded version must keep."""
     name, low = _name(state), _raw(state).lower()
     if state.get("mood") == "struggling":
-        return _msg(f"{persona.pick(persona.COMFORT)} We can go slowly, {name}. Say 'lesson' and I will explain one small "
-                    "step at a time, with hints whenever you want them.")
+        return (f"{persona.pick(persona.COMFORT)} We can go slowly, {name}. Say 'lesson' and I will explain one small "
+                "step at a time, with hints whenever you want them.", "lesson")
     if _IDENTITY.search(low):
-        return _msg(f"I'm {persona.BOT_NAME}, a teaching chatbot built to explain the Gendang Beleq. "
-                    f"{persona.BOT_MEANING[0].upper()}{persona.BOT_MEANING[1:]}. What would you like to learn, {name}?")
+        return (f"I'm {persona.BOT_NAME}, a teaching chatbot built to explain the Gendang Beleq. "
+                f"{persona.BOT_MEANING[0].upper()}{persona.BOT_MEANING[1:]}. What would you like to learn, {name}?",
+                persona.BOT_NAME)
     if _DECLINE.match(low):
-        return _msg(f"That's fine, {name}. Ask me anything when you're ready, or say 'menu' to see the options.")
+        return f"That's fine, {name}. Ask me anything when you're ready, or say 'menu' to see the options.", ""
     if _THANKS.search(low):
-        return _msg(f"You're very welcome, {name}! What would you like to explore next?")
+        return f"You're very welcome, {name}! What would you like to explore next?", ""
     if _GREETING.match(low):
-        return _msg(f"{persona.reply_greeting(low)}, {name}! Good to see you. What would you like to learn about the Gendang Beleq today?")
-    return _msg(f"Glad you're enjoying it, {name}! What would you like to explore next?")
+        hello = persona.reply_greeting(low)
+        return f"{hello}, {name}! Good to see you. What would you like to learn about the Gendang Beleq today?", hello
+    return f"Glad you're enjoying it, {name}! What would you like to explore next?", ""
+
+
+def smalltalk(state: State) -> dict:
+    draft, keep = _smalltalk_draft(state)
+    return _smart(llm.in_character(_raw(state), _name(state), draft, must_include=keep), draft)
 
 
 def offtopic(state: State) -> dict:
-    return _msg(
-        f"That's outside what I teach, {_name(state)}. I'm here for the Gendang Beleq drum ensemble of Lombok. "
-        "What would you like to know about its history, instruments or ceremonies?"
-    )
+    draft = (f"That's outside what I teach, {_name(state)}. I'm here for the Gendang Beleq drum ensemble of Lombok. "
+             "What would you like to know about its history, instruments or ceremonies?")
+    return _smart(llm.in_character(_raw(state), _name(state), draft), draft)
 
 
 def bye(state: State) -> dict:
@@ -356,8 +369,15 @@ def answer(state: State) -> dict:
                and len(nlp.extract_keywords(canon_q)) >= 2
                and search.coverage(canon_q, " ".join(h["text"] for h in chosen)) <= 0.5)
     lead = "I don't have an exact answer to that, but this is the closest I can tell you: " if partial else ""
-    return _msg(f"{note}{lead}{answer_text}\n\n{follow}{_reprompt(state)}", progress=progress,
-                told=told + [h["text"] for h in chosen])
+    tail = f"\n\n{follow}{_reprompt(state)}"
+    # Smart Mode: Gemini rewords the same retrieved facts (plus up to two close runners-up), keeping their citations.
+    # The rule-based reply is built from the same facts and is used whenever Gemini gives nothing back.
+    extra = [h for h in ranked if h not in chosen and fits(h)][:2]
+    smart = llm.grounded_answer(_raw(state), _name(state), chosen + extra, partial=partial)
+    if smart:
+        return _msg(f"{note}{smart}{tail}", engine="gemini", progress=progress,
+                    told=told + [h["text"] for h in chosen + extra])
+    return _msg(f"{note}{lead}{answer_text}{tail}", progress=progress, told=told + [h["text"] for h in chosen])
 
 
 # ---------- teacher: lessons ----------

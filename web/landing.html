@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guru Beleq - Choose how to learn</title>
+<meta name="description" content="Learn the Gendang Beleq, the big-drum ensemble of the Sasak people of Lombok, by chatting with Guru Beleq or exploring a playable Sasak village courtyard.">
+<link rel="icon" href="/avatar.png">
+<style>
+  :root {
+    --brown:#5b3a24; --brown-dark:#3e2515; --red:#b3262d; --red-dark:#8f1d23;
+    --cream:#fbf4e6; --tan:#ecdcc0; --tan-dark:#d7be96; --gold:#d9a441; --ink:#2b1d12;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; }
+  body {
+    min-height:100vh; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink);
+    background-color:var(--cream);
+    /* songket-like woven diamonds */
+    background-image:
+      linear-gradient(180deg, rgba(251,244,230,0) 0%, var(--cream) 78%),
+      repeating-linear-gradient(45deg, rgba(179,38,45,0.06) 0 2px, transparent 2px 26px),
+      repeating-linear-gradient(-45deg, rgba(91,58,36,0.07) 0 2px, transparent 2px 26px);
+    display:flex; flex-direction:column;
+  }
+  .band {
+    height:14px; flex:none;
+    background:
+      repeating-linear-gradient(90deg, var(--red) 0 22px, var(--gold) 22px 26px, var(--brown) 26px 48px, var(--gold) 48px 52px);
+    box-shadow: 0 2px 0 rgba(62,37,21,0.25);
+  }
+  main { flex:1; width:100%; max-width:1080px; margin:0 auto; padding:34px 20px 28px; display:flex; flex-direction:column; justify-content:center; }
+
+  .hero { display:flex; align-items:center; gap:28px; margin-bottom:34px; }
+  .hero-avatar {
+    flex:none; width:168px; height:168px; border-radius:50%;
+    background:#fff url('/avatar.png') center/cover no-repeat;
+    border:6px solid #fff; box-shadow: 0 0 0 4px var(--tan-dark), 0 18px 40px rgba(62,37,21,0.28);
+    animation: bob 3.2s ease-in-out infinite; cursor:pointer;
+  }
+  @keyframes bob { 0%,100% { transform:translateY(0) rotate(-2deg); } 50% { transform:translateY(-8px) rotate(2deg); } }
+  .eyebrow { margin:0 0 6px; font-size:.82rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--red); }
+  h1 { margin:0 0 10px; font-size:clamp(2rem, 5vw, 3.1rem); line-height:1.05; color:var(--brown-dark); letter-spacing:-.01em; }
+  .lede { margin:0; max-width:56ch; font-size:1.06rem; line-height:1.55; color:#4a3423; }
+
+  .modes { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .mode {
+    position:relative; display:flex; flex-direction:column; text-decoration:none; color:inherit;
+    background:#fffaf1; border:2px solid var(--tan-dark); border-radius:22px; overflow:hidden;
+    box-shadow: 0 10px 28px rgba(62,37,21,0.12);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .mode:hover, .mode:focus-visible { transform:translateY(-4px); box-shadow:0 18px 40px rgba(62,37,21,0.2); border-color:var(--brown); outline:none; }
+  .mode:focus-visible { box-shadow:0 0 0 4px rgba(179,38,45,0.35), 0 18px 40px rgba(62,37,21,0.2); }
+  .scene { height:170px; position:relative; overflow:hidden; }
+  .scene svg { width:100%; height:100%; display:block; }
+  .mode-body { padding:18px 22px 22px; display:flex; flex-direction:column; flex:1; }
+  .tag { align-self:flex-start; font-size:.74rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+         padding:4px 10px; border-radius:999px; background:var(--tan); color:var(--brown-dark); margin-bottom:10px; }
+  .tag.new { background:var(--red); color:#fff; }
+  .mode h2 { margin:0 0 6px; font-size:1.42rem; color:var(--brown-dark); }
+  .mode p { margin:0 0 12px; line-height:1.5; color:#4a3423; }
+  .mode ul { margin:0 0 18px; padding:0; list-style:none; display:grid; gap:6px; font-size:.93rem; color:#3f2b1c; }
+  .mode li { display:flex; gap:8px; align-items:flex-start; }
+  .mode li::before { content:"◆"; color:var(--red); font-size:.7rem; margin-top:4px; }
+  .cta {
+    margin-top:auto; align-self:flex-start; display:inline-flex; align-items:center; gap:8px;
+    padding:11px 20px; border-radius:999px; font-weight:700; font-size:.98rem; color:#fff;
+    background:var(--brown); box-shadow:0 6px 16px rgba(62,37,21,0.25); transition: background .15s;
+  }
+  .mode.sandbox .cta { background:var(--red); }
+  .mode:hover .cta { background:var(--brown-dark); }
+  .mode.sandbox:hover .cta { background:var(--red-dark); }
+  .cta span { transition: transform .15s; }
+  .mode:hover .cta span { transform:translateX(4px); }
+
+  .facts { margin:30px 0 0; display:flex; flex-wrap:wrap; gap:10px 22px; justify-content:center; font-size:.88rem; color:#5d4532; }
+  .facts b { color:var(--brown-dark); }
+  footer { text-align:center; padding:0 20px 22px; font-size:.82rem; color:#7a5f48; }
+  footer a { color:var(--brown); }
+
+  @media (max-width: 760px) {
+    main { padding:24px 16px 20px; }
+    .hero { flex-direction:column; text-align:center; gap:16px; margin-bottom:24px; }
+    .hero-avatar { width:128px; height:128px; }
+    .lede { margin:0 auto; }
+    .modes { grid-template-columns:1fr; gap:16px; }
+    .scene { height:140px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hero-avatar { animation:none; } .mode, .cta span { transition:none; } }
+</style>
+</head>
+<body>
+<div class="band" aria-hidden="true"></div>
+<main>
+  <section class="hero">
+    <div class="hero-avatar" id="avatar" role="img" aria-label="Guru Beleq, a smiling drum wearing a Sasak head cloth" title="Tap me!"></div>
+    <div>
+      <p class="eyebrow">Gendang Beleq · Lombok, Indonesia</p>
+      <h1>Learn the big drums of the Sasak people</h1>
+      <p class="lede">I'm Guru Beleq, the Big Teacher. Chat with me about the Gendang Beleq ensemble, or walk around a Sasak courtyard and try the instruments yourself. Every fact I teach comes with a Harvard citation.</p>
+    </div>
+  </section>
+
+  <section class="modes" aria-label="Choose a mode">
+    <a class="mode chat" href="/chat">
+      <div class="scene" aria-hidden="true">
+        <svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="room" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe4ff"/><stop offset=".42" stop-color="#e3f3ff"/><stop offset=".421" stop-color="#f5ead8"/><stop offset="1" stop-color="#e4cfb0"/></linearGradient>
+          </defs>
+          <rect width="400" height="170" fill="url(#room)"/>
+          <rect x="196" y="34" width="180" height="40" rx="18" fill="#fff" stroke="#d7be96" stroke-width="2"/>
+          <rect x="212" y="48" width="120" height="6" rx="3" fill="#d7be96"/><rect x="212" y="58" width="80" height="6" rx="3" fill="#ecdcc0"/>
+          <rect x="250" y="86" width="126" height="32" rx="16" fill="#5b3a24"/>
+          <rect x="266" y="98" width="90" height="6" rx="3" fill="#fbf4e6" opacity=".85"/>
+          <rect x="196" y="128" width="164" height="30" rx="15" fill="#fff" stroke="#d7be96" stroke-width="2"/>
+          <rect x="212" y="140" width="100" height="6" rx="3" fill="#d7be96"/>
+          <g transform="translate(36 22)">
+            <ellipse cx="66" cy="136" rx="56" ry="8" fill="#3e2515" opacity=".18"/>
+            <rect x="64" y="30" width="76" height="92" rx="16" fill="#8a4b22" stroke="#4a250d" stroke-width="3"/>
+            <path d="M74 38 L130 64 M74 64 L130 38 M74 74 L130 100 M74 100 L130 74" stroke="#e9cf9d" stroke-width="2.5"/>
+            <ellipse cx="66" cy="76" rx="40" ry="50" fill="#f5e1b9" stroke="#4a250d" stroke-width="3"/>
+            <circle cx="52" cy="72" r="9" fill="none" stroke="#3a1b08" stroke-width="2.5"/><circle cx="78" cy="72" r="9" fill="none" stroke="#3a1b08" stroke-width="2.5"/>
+            <circle cx="52" cy="72" r="3" fill="#3a1b08"/><circle cx="78" cy="72" r="3" fill="#3a1b08"/>
+            <path d="M54 94 Q66 104 78 94" fill="none" stroke="#3a1b08" stroke-width="3" stroke-linecap="round"/>
+            <path d="M28 40 Q66 4 108 36 L100 46 Q66 26 34 50 Z" fill="#b3262d" stroke="#5e1316" stroke-width="2.5"/>
+            <path d="M92 22 L112 6 L108 28 Z" fill="#b3262d" stroke="#5e1316" stroke-width="2"/>
+          </g>
+        </svg>
+      </div>
+      <div class="mode-body">
+        <span class="tag">Mode 1 · Companion chat</span>
+        <h2>Talk with Guru Beleq</h2>
+        <p>A friendly teacher who greets you, gives step-by-step lessons, quizzes you and answers your questions.</p>
+        <ul>
+          <li>Lessons, adaptive quiz and recommendations</li>
+          <li>Reactive animated avatar and quick-action bar</li>
+          <li>Knowledge explorer, glossary and chat export</li>
+        </ul>
+        <span class="cta">Start chatting <span>→</span></span>
+      </div>
+    </a>
+
+    <a class="mode sandbox" href="/sandbox">
+      <div class="scene" aria-hidden="true">
+        <svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd59a"/><stop offset="1" stop-color="#ffefd2"/></linearGradient>
+          </defs>
+          <rect width="400" height="170" fill="url(#sky)"/>
+          <path d="M150 74 L214 18 L232 30 L290 74 Z" fill="#b9a38c" opacity=".7"/>
+          <rect y="74" width="400" height="96" fill="#e3c99d"/>
+          <path d="M0 74 H400" stroke="#c9a874" stroke-width="3"/>
+          <g fill="none" stroke="#c49a5c" stroke-width="2" opacity=".55">
+            <path d="M110 110 L200 92 L290 110 L200 128 Z"/><path d="M128 110 L200 96 L272 110 L200 124 Z"/>
+          </g>
+          <g transform="translate(26 6)">
+            <path d="M8 46 Q34 -4 60 46 Q34 54 8 46 Z" fill="#8c5a2b" stroke="#4a2c12" stroke-width="2"/>
+            <path d="M14 42 Q34 6 54 42" fill="none" stroke="#b07a3e" stroke-width="2"/>
+            <rect x="20" y="46" width="28" height="18" fill="#a8733f" stroke="#4a2c12" stroke-width="2"/>
+            <path d="M22 64 V84 M46 64 V84" stroke="#4a2c12" stroke-width="4"/>
+          </g>
+          <g transform="translate(340 8)">
+            <path d="M8 90 Q4 50 12 14" stroke="#7a5230" stroke-width="5" fill="none"/>
+            <path d="M12 14 Q-14 8 -28 22 M12 14 Q30 0 46 12 M12 14 Q0 -6 -10 -8 M12 14 Q36 18 44 34 M12 14 Q-8 24 -18 40" stroke="#3f8a3a" stroke-width="6" fill="none" stroke-linecap="round"/>
+          </g>
+          <g transform="translate(120 80)">
+            <ellipse cx="40" cy="44" rx="40" ry="6" fill="#3e2515" opacity=".18"/>
+            <rect x="0" y="12" width="78" height="26" rx="12" fill="#8a4b22" stroke="#4a250d" stroke-width="2.5"/>
+            <ellipse cx="4" cy="25" rx="8" ry="13" fill="#f5e1b9" stroke="#4a250d" stroke-width="2.5"/>
+            <path d="M10 14 L30 36 M30 14 L50 36 M50 14 L70 36" stroke="#e9cf9d" stroke-width="2"/>
+          </g>
+          <g transform="translate(236 30)">
+            <path d="M0 80 V6 H64 V80" stroke="#6b3d1e" stroke-width="5" fill="none"/>
+            <rect x="-4" y="0" width="72" height="8" rx="3" fill="#b3262d"/>
+            <circle cx="32" cy="42" r="24" fill="#c9922e" stroke="#7a5214" stroke-width="3"/>
+            <circle cx="32" cy="42" r="8" fill="#e7b75a" stroke="#7a5214" stroke-width="2"/>
+          </g>
+          <g transform="translate(196 104)">
+            <ellipse cx="12" cy="50" rx="13" ry="4" fill="#3e2515" opacity=".2"/>
+            <rect x="3" y="22" width="18" height="18" rx="4" fill="#2f2a3a"/>
+            <rect x="2" y="36" width="20" height="12" rx="3" fill="#b3262d"/>
+            <circle cx="12" cy="14" r="10" fill="#c98b5a"/>
+            <path d="M1 10 Q12 -2 23 10 L21 13 Q12 6 3 13 Z" fill="#b3262d"/>
+          </g>
+          <g font-family="system-ui,sans-serif" font-weight="700" font-size="11">
+            <rect x="196" y="76" width="68" height="20" rx="10" fill="#2b1d12" opacity=".85"/>
+            <text x="230" y="90" fill="#fff" text-anchor="middle">[E] Inspect</text>
+          </g>
+        </svg>
+      </div>
+      <div class="mode-body">
+        <span class="tag new">Mode 2 · New · Playable</span>
+        <h2>Sasak Village Sandbox</h2>
+        <p>Walk around a sunlit sanggar courtyard, play each instrument of the ensemble and discover its story.</p>
+        <ul>
+          <li>Move with WASD, arrow keys, click or tap</li>
+          <li>8 stations with sounds and cited facts</li>
+          <li>Ask Guru Beleq questions or take a mini-quiz</li>
+        </ul>
+        <span class="cta">Enter the courtyard <span>→</span></span>
+      </div>
+    </a>
+  </section>
+
+  <p class="facts" id="facts"><span><b>6</b> lessons</span><span><b>8</b> sandbox stations</span><span><b>17</b> Sasak terms</span><span><b>6</b> cited sources</span></p>
+</main>
+<footer>Guru Beleq is a rule-based teaching chatbot. Works offline on your computer with <code>python server.py</code>.</footer>
+<div class="band" aria-hidden="true"></div>
+
+<script>
+// A soft drum thump when Guru Beleq is tapped.
+document.getElementById('avatar').addEventListener('click', () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[160, 0], [95, 0.17]].forEach(([f, t]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(), now = ctx.currentTime + t;
+      o.type = 'triangle'; o.frequency.setValueAtTime(f, now); o.frequency.exponentialRampToValueAtTime(f * 0.4, now + 0.25);
+      g.gain.setValueAtTime(0.3, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      o.connect(g).connect(ctx.destination); o.start(now); o.stop(now + 0.32);
+    });
+  } catch {}
+});
+// Live counts from the knowledge base (the static numbers stay if the server can't be reached).
+fetch('/api/meta').then(r => r.json()).then(m => {
+  const el = document.getElementById('facts').querySelectorAll('b');
+  el[0].textContent = m.topics.length; el[2].textContent = m.glossary.length;
+}).catch(() => {});
+</script>
+</body>
+</html>

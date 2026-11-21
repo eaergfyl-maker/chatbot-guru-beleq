@@ -1,6 +1,6 @@
 # Guru Beleq: Gendang Beleq Teacher Chatbot
 
-Guru Beleq ("Big Teacher") is a rule-based chatbot that teaches about the Gendang Beleq (Gendang Belek), the traditional drum ensemble of the Sasak people of Lombok. English only. It uses no LLM and no API key: the flow is a LangGraph graph and all language handling is plain Python.
+Guru Beleq ("Big Teacher") is a rule-based chatbot that teaches about the Gendang Beleq (Gendang Belek), the traditional drum ensemble of the Sasak people of Lombok. English only. It works with no LLM and no API key: the flow is a LangGraph graph and all language handling is plain Python. An optional free Gemini key adds **Smart Mode**, which words answers more naturally from the same cited facts and falls back to the rule-based engine automatically (see [Smart Mode](#optional-smart-mode-gemini)).
 
 **Try it online:** https://chatbot-guru-beleq.vercel.app (nothing to install)
 
@@ -27,7 +27,7 @@ pip install -r requirements.txt
 python server.py
 ```
 
-**3. Open it:** go to http://localhost:8000 in your browser. Keep the terminal open while you chat; press `Ctrl+C` there to stop.
+**3. Open it:** go to http://localhost:8000 in your browser and pick a mode: **Talk with Guru Beleq** (`/chat`) or the **Sasak Village Sandbox** game (`/sandbox`). Keep the terminal open while you use it; press `Ctrl+C` there to stop.
 
 Prefer Streamlit or the terminal instead?
 - Streamlit UI (http://localhost:8501): `streamlit run app.py`
@@ -46,6 +46,32 @@ Prefer Streamlit or the terminal instead?
   - **Explore Knowledge Modal (`Explore knowledge`)**: Interactive 3-tab browser for all 6 lessons (with completion badges), a searchable 17-term Sasak & musical glossary with one-click *"Ask Guru"* buttons, and the 24-edge cited semantic network.
   - **Export Learning Transcript (`Export chat`)**: Downloads the conversation transcript and learner progress summary as `guru-beleq-transcript.txt`.
   - **Built-in CUQ Usability Modal (`Rate this chatbot`)**: 16-item Chatbot Usability Questionnaire dialog saving anonymous scores to `eval/cuq_responses.csv`.
+
+## Optional Smart Mode (Gemini)
+
+Without a key the chatbot runs in **⚡ Classic Mode** (pure Python). With a free Google AI Studio key it runs in **✨ Smart Mode**: Gemini rewords question answers, small talk and off-topic replies in Guru Beleq's voice. The pill next to the level badge shows which mode is active.
+
+**Add a key locally:**
+1. Get a free key at https://aistudio.google.com/apikey.
+2. Copy `.env.example` to `.env` and paste the key after `GEMINI_API_KEY=`. `.env` is gitignored, so the key is never committed.
+3. Restart `python server.py`. No extra packages are needed (`src/llm.py` uses only the standard library).
+
+**Add a key on Vercel:** Project → Settings → Environment Variables → add `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default `gemini-2.5-flash`), then redeploy.
+
+**What stays rule-based:** input validation, name capture, menu numbers, `67`, lessons and quiz (including grading, so scores stay predictable), progress, sources, glossary, recommendations and goodbye.
+
+**Grounding:** Gemini gets only the facts the TF-IDF search already retrieved, plus matching glossary entries and their Harvard references. It is told to use nothing else, and a reply is thrown away (rule-based reply used instead) if it has no citation or cites anything that was not supplied.
+
+**Automatic fallback:** no key, `GEMINI_ENABLED=0`, a 6-second timeout, network errors, 5xx errors, odd responses or an ungrounded reply all give the normal rule-based reply. A quota/rate-limit error (HTTP 429) or a rejected key (401/403) also pauses Gemini for 5 minutes, so the following replies are instant. The learner never sees an error.
+
+## Sasak Village Sandbox (`/sandbox`)
+
+A playable top-down courtyard (HTML5 canvas, no libraries or CDN files) set in a Lombok *sanggar*, with *lumbung* rice barns, palms, woven mats and a stage.
+
+- **Move** with WASD or the arrow keys, click/tap to walk, or use the on-screen D-pad and `E` button on touch screens. `E`/Space inspects the station you stand next to; `Esc` closes the dialogue.
+- **8 stations**: Gendang Mame & Gendang Nine, Petuq / Oncer, Gong Beleq & Kempur, Reyong & Suling, Kenceng & Rincik, the costume stand (sapuk, dodot, bebet), the Nyongkolan arch and history mural, and Guru Beleq on the stage.
+- **RPG dialogue box** with Guru Beleq's portrait. Facts come from `GET /api/sandbox`, which picks them from `data/knowledge/topics.json` (`src/sandbox.py`), so every fact carries its Harvard citation and the full references are listed under *Sources*. Buttons: **Tell me more** (next fact, then the chatbot), **Play sound** (Web Audio synthesis of each instrument), **Ask Guru Beleq** (free-text question through `/api/chat`), and on the stage a **Mini-quiz** with hint/skip/stop.
+- **HUD**: `Discovered n/8 stations` with dots that walk you to each station, a drum-roll celebration when all 8 are found, sound on/off, **Rate this chatbot** (CUQ), and **Switch mode** back to `/`.
 
 ## Flow
 
@@ -73,7 +99,7 @@ pip install -r requirements.txt
 python -m src.graph                       # terminal chat
 python server.py                          # standalone web page at http://localhost:8000
 streamlit run app.py                      # Streamlit web UI at http://localhost:8501
-python -m unittest discover tests         # 52 scripted tests
+python -m unittest discover tests         # 74 scripted tests (no API key or network needed)
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
 python -m eval.cuq collect                # one tester fills in the CUQ (also in the web UI)
 python -m eval.cuq report                 # CUQ score and item means from all responses
@@ -93,12 +119,17 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `src/knowledge.py` | loads and checks the knowledge base |
 | `src/semantic_net.py` | semantic network used to widen searches |
 | `src/persona.py` | name, time greetings, teacher phrases, menu, badges |
+| `src/llm.py` | optional Gemini Smart Mode: grounded rewording, citation check, timeout, quota cooldown, `.env` loading |
+| `.env.example` | template for `GEMINI_API_KEY` / `GEMINI_MODEL` (copy to `.env`) |
 | `src/profiles.py` | saves learner progress by name |
 | `data/knowledge/topics.json` | cited facts, lessons, quiz questions, glossary, references |
 | `data/knowledge/semantic_net.json` | semantic network edges, with citations |
 | `data/sources/` | notes on each source the knowledge base is written from |
 | `assets/` | GenAI avatar (`avatar.png`) and `AVATAR_LOG.md` (prompts and how it was made) |
-| `server.py`, `web/index.html` | standalone web chat page with interactive menu, knowledge explorer, transcript export, and CUQ modal |
+| `server.py` | standard-library web server: pages `/`, `/chat`, `/sandbox`; API `/api/start`, `/api/chat`, `/api/meta`, `/api/cuq`, `/api/sandbox` |
+| `web/landing.html` | mode selection page (`/`) |
+| `web/index.html` | companion chat page (`/chat`) with interactive menu, knowledge explorer, transcript export, and CUQ modal |
+| `web/sandbox.html`, `src/sandbox.py` | Sasak Village Sandbox game (`/sandbox`) and its cited station facts (`/api/sandbox`) |
 | `app.py`, `.streamlit/config.toml` | Streamlit UI with Sasak theme, quick-action bar, knowledge explorer, transcript export, and CUQ modal |
 | `docs/REPORT.md` | full technical and academic report (Chapters 1–4) |
 | `tests/` | scripted conversation tests |
