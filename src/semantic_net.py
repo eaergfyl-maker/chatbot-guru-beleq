@@ -18,8 +18,22 @@ def load_edges() -> tuple:
     return tuple(json.loads(NET_FILE.read_text(encoding="utf-8")).get("edges", []))
 
 
-def related_concepts(text: str, limit: int = 4) -> list[str]:
-    """Concepts one hop away from any node mentioned in the text.
+def label(concept: str, lang: str = "en") -> str:
+    """A concept's name in a language (proper names such as 'petuq' are the same in every language)."""
+    from .knowledge import network_labels
+
+    return network_labels(lang)[0].get(concept, concept) if lang != "en" else concept
+
+
+def relation_label(relation: str, lang: str = "en") -> str:
+    from .knowledge import network_labels
+
+    plain = relation.replace("_", " ")
+    return network_labels(lang)[1].get(relation, plain) if lang != "en" else plain
+
+
+def related_concepts(text: str, limit: int = 4, lang: str = "en") -> list[str]:
+    """Concepts one hop away from any node mentioned in the text, named in the learner's language.
 
     Gendang Beleq itself is skipped as a starting point: every concept connects to it, so spreading from it
     would pull the whole network into the search and drown out what was actually asked.
@@ -30,8 +44,10 @@ def related_concepts(text: str, limit: int = 4) -> list[str]:
         for here, other in ((e["s"], e["o"]), (e["o"], e["s"])):
             if here.lower() == "gendang beleq":
                 continue
-            if here.lower() in low and other.lower() not in low and other not in out:
-                out.append(other)
+            names = {here.lower(), label(here, lang).lower()}
+            name = label(other, lang)
+            if any(n in low for n in names) and name.lower() not in low and name not in out:
+                out.append(name)
     return out[:limit]
 
 

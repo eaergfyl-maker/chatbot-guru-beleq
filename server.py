@@ -8,19 +8,21 @@ import socket
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 from eval import cuq
-from src import llm, persona
+from src import i18n, llm, persona
 from src.sandbox import sandbox_payload
-from src.graph import ask, build_graph, start, state_of
+from src.graph import ask, build_graph, start, state_of, switch_language
 from src.knowledge import cite, glossary, topics
-from src.semantic_net import load_edges
+from src.semantic_net import label, load_edges, relation_label
 
 ROOT = Path(__file__).parent
 STATIC = {
     "/": ROOT / "web" / "landing.html",
     "/chat": ROOT / "web" / "index.html",
     "/sandbox": ROOT / "web" / "sandbox.html",
+    "/lang.js": ROOT / "web" / "lang.js",
     "/avatar.png": ROOT / "assets" / "avatar.png",
 }
 graph = build_graph()
@@ -28,11 +30,12 @@ PORT = 8000
 
 
 def progress_of(tid: str) -> dict | None:
-    p = state_of(graph, tid).get("progress")
+    st = state_of(graph, tid)
+    p = st.get("progress")
     if not p:
         return None
     return {
-        "badge": persona.badge(p),
+        "badge": persona.badge(p, i18n.norm(st.get("lang"))),
         "level": persona.level_of(p),
         "done": len(p["lessons_done"]),
         "lessons_done": p["lessons_done"],
@@ -42,18 +45,34 @@ def progress_of(tid: str) -> dict | None:
     }
 
 
-def meta_payload() -> dict:
+def meta_payload(lang: str = "en") -> dict:
     return {
-        "topics": [{"id": t["id"], "title": t["title"], "summary": t["summary"]} for t in topics()],
+        "lang": lang,
+        "topics": [{"id": t["id"], "title": t["title"], "summary": t["summary"]} for t in topics(lang)],
         "glossary": [
             {"term": k, "meaning": v["meaning"], "cite": cite(v["sources"])}
-            for k, v in sorted(glossary().items())
+            for k, v in sorted(glossary(lang).items())
         ],
         "edges": [
-            {"s": e["s"], "r": e["r"].replace("_", " "), "o": e["o"], "cite": cite(e["sources"])}
+            {"s": label(e["s"], lang), "r": relation_label(e["r"], lang), "o": label(e["o"], lang),
+             "cite": cite(e["sources"])}
             for e in load_edges()
         ],
         "llm": llm.status(),
+    }
+
+
+def turn_payload(tid: str, reply: str) -> dict:
+    """What the pages need after any bot turn."""
+    st = state_of(graph, tid)
+    return {
+        "reply": reply,
+        "progress": progress_of(tid),
+        "stage": st.get("stage", "menu"),
+        "lang": i18n.norm(st.get("lang")),
+        "reaction": persona.reaction_of(st, reply),
+        "engine": st.get("engine", "python"),  # who wrote this reply: "gemini" or "python"
+        "smart": llm.available(),              # will Gemini be tried next turn (key set, no cooldown)
     }
 
 
@@ -77,13 +96,15 @@ class Handler(BaseHTTPRequestHandler):
         self._send(code, json.dumps(data).encode("utf-8"), "application/json; charset=utf-8")
 
     def do_GET(self):
-        if self.path == "/api/cuq":
-            return self._json({"items": cuq.ITEMS, "scale": cuq.SCALE})
-        if self.path == "/api/meta":
-            return self._json(meta_payload())
-        if self.path == "/api/sandbox":
-            return self._json(sandbox_payload())
-        route = self.path.split("?")[0].rstrip("/") or "/"  # /chat/ works like /chat
+        url = urlsplit(self.path)
+        lang = i18n.norm(parse_qs(url.query).get("lang", ["en"])[0])  # ?lang=ms for Bahasa Malaysia
+        if url.path == "/api/cuq":
+            return self._json(cuq.questionnaire(lang))
+        if url.path == "/api/meta":
+            return self._json(meta_payload(lang))
+        if url.path == "/api/sandbox":
+            return self._json(sandbox_payload(lang))
+        route = url.path.rstrip("/") or "/"  # /chat/ works like /chat
         path = STATIC.get(route)
         if path and path.exists():
             ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
@@ -96,33 +117,22 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length) or b"{}")
             if self.path == "/api/start":
                 tid = str(uuid.uuid4())
-                reply = start(graph, tid)
-                st = state_of(graph, tid)
-                return self._json({
-                    "thread_id": tid,
-                    "reply": reply,
-                    "progress": None,
-                    "stage": st.get("stage", "ask_name"),
-                    "reaction": persona.reaction_of(st, reply),
-                    "engine": "python",
-                    "smart": llm.available(),
-                })
+                reply = start(graph, tid, i18n.norm(data.get("lang")))
+                return self._json({"thread_id": tid, **turn_payload(tid, reply), "progress": None})
             if self.path == "/api/cuq":
                 answers = [int(a) for a in data["answers"]]
                 comments = str(data.get("comments", ""))[:1000]
                 return self._json(submit_cuq(answers, comments))
             if self.path == "/api/chat":
                 tid, text = str(data["thread_id"]), str(data.get("message", ""))
-                reply = ask(graph, text, tid)
-                st = state_of(graph, tid)
-                return self._json({
-                    "reply": reply,
-                    "progress": progress_of(tid),
-                    "stage": st.get("stage", "menu"),
-                    "reaction": persona.reaction_of(st, reply),
-                    "engine": st.get("engine", "python"),  # who wrote this reply: "gemini" or "python"
-                    "smart": llm.available(),              # will Gemini be tried next turn (key set, no cooldown)
-                })
+                reply = ask(graph, text, tid, i18n.opt(data.get("lang")))  # no lang: keep the conversation's
+                return self._json(turn_payload(tid, reply))
+            if self.path == "/api/language":
+                tid = str(data["thread_id"])
+                if not state_of(graph, tid):
+                    return self._json({"error": "unknown thread"}, 404)
+                reply = switch_language(graph, tid, i18n.norm(data.get("lang")))
+                return self._json(turn_payload(tid, reply))
             self._json({"error": "not found"}, 404)
         except (ValueError, KeyError, TypeError):
             self._json({"error": "bad request"}, 400)

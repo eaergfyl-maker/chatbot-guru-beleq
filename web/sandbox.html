@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sasak Village Sandbox - Guru Beleq</title>
 <link rel="icon" href="/avatar.png">
+<script src="/lang.js"></script>
 <style>
   :root {
     --brown:#5b3a24; --brown-dark:#3e2515; --red:#b3262d; --red-dark:#8f1d23;
@@ -205,37 +206,37 @@
 <header>
   <div class="brand">
     <img src="/avatar.png" alt="">
-    <div>Sasak Village Sandbox<small>Gendang Beleq courtyard</small></div>
+    <div><span data-i18n="brand">Sasak Village Sandbox</span><small data-i18n="brand.sub">Gendang Beleq courtyard</small></div>
   </div>
   <div class="hud-mid">
-    <div class="pill" id="discPill" title="Stations you have inspected">🧭 <span id="discText">Discovered 0/8 stations</span><span id="dots" aria-label="Walk to a station"></span></div>
+    <div class="pill" id="discPill" title="Stations you have inspected" data-i18n-title="disc.title">🧭 <span id="discText">Discovered 0/8 stations</span><span id="dots" aria-label="Walk to a station" data-i18n-aria="dots.aria"></span></div>
     <div class="pill" id="quizPill" hidden>🎯 <span id="quizText"></span></div>
   </div>
-  <div class="actions">
-    <button class="btn" id="rate" type="button" title="Rate this chatbot (CUQ)">⭐ <span class="lbl">Rate this chatbot</span></button>
-    <button class="btn" id="mute" type="button" title="Sound on/off" aria-pressed="false">🔊 <span class="lbl">Sound</span></button>
-    <button class="btn" id="helpBtn" type="button" title="Controls">❔ <span class="lbl">Controls</span></button>
-    <a class="btn" href="/chat" title="Open the companion chat">💬 <span class="lbl">Chat mode</span></a>
-    <a class="btn primary" href="/" title="Back to the mode selection page">🏠 <span class="lbl">Switch mode</span></a>
+  <div class="actions" id="actions">
+    <button class="btn" id="rate" type="button" title="Rate this chatbot (CUQ)" data-i18n-title="rate.title">⭐ <span class="lbl" data-i18n="rate">Rate this chatbot</span></button>
+    <button class="btn" id="mute" type="button" title="Sound on/off" data-i18n-title="mute.title" aria-pressed="false">🔊 <span class="lbl" data-i18n="mute">Sound</span></button>
+    <button class="btn" id="helpBtn" type="button" title="Controls" data-i18n-title="controls">❔ <span class="lbl" data-i18n="controls">Controls</span></button>
+    <a class="btn" href="/chat" data-lang-link title="Open the companion chat" data-i18n-title="chat.title">💬 <span class="lbl" data-i18n="chat">Chat mode</span></a>
+    <a class="btn primary" href="/" data-lang-link title="Back to the mode selection page" data-i18n-title="home.title">🏠 <span class="lbl" data-i18n="home">Switch mode</span></a>
   </div>
 </header>
 
 <div id="stage">
-  <canvas id="game" tabindex="0" aria-label="Sasak village courtyard. Use WASD or the arrow keys to walk, and E to inspect the instrument stations."></canvas>
-  <div id="hint"><kbd>WASD</kbd>/<kbd>←↑↓→</kbd> walk · <kbd>E</kbd> inspect · or click anywhere to walk</div>
+  <canvas id="game" tabindex="0" aria-label="Sasak village courtyard. Use WASD or the arrow keys to walk, and E to inspect the instrument stations." data-i18n-aria="canvas.aria"></canvas>
+  <div id="hint" data-i18n-html="hint"><kbd>WASD</kbd>/<kbd>←↑↓→</kbd> walk · <kbd>E</kbd> inspect · or click anywhere to walk</div>
   <div id="toast" role="status" aria-live="polite"></div>
   <div id="dpad" aria-hidden="true">
     <button class="up" data-dir="up">▲</button><button class="left" data-dir="left">◀</button>
     <button class="right" data-dir="right">▶</button><button class="down" data-dir="down">▼</button>
   </div>
-  <button id="actbtn" type="button" aria-label="Inspect">E</button>
+  <button id="actbtn" type="button" aria-label="Inspect" data-i18n-aria="inspect">E</button>
 
-  <section id="dialog" aria-label="Guru Beleq says" hidden>
+  <section id="dialog" aria-label="Guru Beleq says" data-i18n-aria="dlg.aria" hidden>
     <div class="portrait"><img id="portrait" src="/avatar.png" alt="Guru Beleq"><span>Guru Beleq</span></div>
     <div class="dlg-main">
       <div class="dlg-head">
         <h2 id="dlgTitle"></h2><span id="dlgSub"></span><span id="dlgCount" hidden></span>
-        <button id="dlgClose" type="button" aria-label="Close dialogue (Esc)" title="Close (Esc)">✕</button>
+        <button id="dlgClose" type="button" aria-label="Close dialogue (Esc)" data-i18n-aria="dlg.closeAria" title="Close (Esc)" data-i18n-title="dlg.closeTitle">✕</button>
       </div>
       <p id="dlgAsked" hidden></p>
       <p id="dlgText"></p>
@@ -245,60 +246,161 @@
       <div id="dlgActions"></div>
       <form id="dlgForm" hidden autocomplete="off">
         <input id="dlgInput" maxlength="300" placeholder="Ask Guru Beleq anything about the Gendang Beleq...">
-        <button type="submit">Send</button>
+        <button type="submit" data-i18n="send">Send</button>
       </form>
-      <details id="dlgSources" hidden><summary>📚 Sources (Harvard)</summary><ol id="dlgRefs"></ol></details>
+      <details id="dlgSources" hidden><summary data-i18n="sources">📚 Sources (Harvard)</summary><ol id="dlgRefs"></ol></details>
     </div>
   </section>
 
   <div id="banner" hidden role="dialog" aria-labelledby="bannerTitle">
     <div class="big">🥁🎉</div>
-    <h2 id="bannerTitle">You found the whole ensemble!</h2>
-    <p>You have inspected all 8 stations of the Gendang Beleq courtyard. Ready to test what you learned with Guru Beleq's mini-quiz?</p>
-    <div class="row"><button type="button" class="alt" id="bannerClose">Keep exploring</button><button type="button" class="red" id="bannerQuiz">🎯 Take the mini-quiz</button></div>
+    <h2 id="bannerTitle" data-i18n="banner.title">You found the whole ensemble!</h2>
+    <p data-i18n="banner.p">You have inspected all 8 stations of the Gendang Beleq courtyard. Ready to test what you learned with Guru Beleq's mini-quiz?</p>
+    <div class="row"><button type="button" class="alt" id="bannerClose" data-i18n="banner.keep">Keep exploring</button><button type="button" class="red" id="bannerQuiz" data-i18n="banner.quiz">🎯 Take the mini-quiz</button></div>
   </div>
 </div>
 
 <div id="intro" class="modal open" role="dialog" aria-modal="true" aria-labelledby="introTitle"><div class="modalbox">
   <img src="/avatar.png" alt="Guru Beleq">
-  <h2 id="introTitle">Welcome to the sanggar!</h2>
-  <p>This sunny courtyard is where a Sasak music group keeps its Gendang Beleq instruments. Walk around, inspect all <b>8 stations</b>, play each sound, and talk to me on the stage.</p>
+  <h2 id="introTitle" data-i18n="intro.title">Welcome to the sanggar!</h2>
+  <p data-i18n-html="intro.p">This sunny courtyard is where a Sasak music group keeps its Gendang Beleq instruments. Walk around, inspect all <b>8 stations</b>, play each sound, and talk to me on the stage.</p>
   <form id="introForm">
-    <input id="nameInput" maxlength="30" placeholder="Your name (optional)" aria-label="Your name">
-    <button type="submit">Enter the courtyard →</button>
+    <input id="nameInput" maxlength="30" placeholder="Your name (optional)" data-i18n-placeholder="intro.name" aria-label="Your name" data-i18n-aria="intro.nameAria">
+    <button type="submit" data-i18n="intro.enter">Enter the courtyard →</button>
   </form>
   <div class="controls">
-    <b>WASD / arrows</b><span>walk around</span>
-    <b>Click / tap</b><span>walk to a spot, or straight to a station</span>
-    <b>E / Space</b><span>inspect the station you are standing near</span>
-    <b>Esc</b><span>close the dialogue</span>
+    <b data-i18n="k.arrows">WASD / arrows</b><span data-i18n="c.walk">walk around</span>
+    <b data-i18n="k.click">Click / tap</b><span data-i18n="c.walkTo">walk to a spot, or straight to a station</span>
+    <b data-i18n="k.e">E / Space</b><span data-i18n="c.inspectNear">inspect the station you are standing near</span>
+    <b>Esc</b><span data-i18n="c.close">close the dialogue</span>
   </div>
 </div></div>
 
 <div id="help" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="modalbox" style="max-width:480px">
-  <h2 id="helpTitle">Controls</h2>
+  <h2 id="helpTitle" data-i18n="controls">Controls</h2>
   <div class="controls" style="margin:12px 0 0;max-width:none">
-    <b>WASD / arrows</b><span>walk around the courtyard</span>
-    <b>Click / tap</b><span>walk to a spot; click a station to walk there and inspect it</span>
-    <b>D-pad + E button</b><span>on phones and tablets</span>
-    <b>E / Space / Enter</b><span>inspect the nearest station (or close the dialogue)</span>
-    <b>Esc</b><span>close the dialogue</span>
-    <b>HUD dots</b><span>walk straight to that station</span>
+    <b data-i18n="k.arrows">WASD / arrows</b><span data-i18n="h.walk">walk around the courtyard</span>
+    <b data-i18n="k.click">Click / tap</b><span data-i18n="h.click">walk to a spot; click a station to walk there and inspect it</span>
+    <b data-i18n="k.dpad">D-pad + E button</b><span data-i18n="h.dpad">on phones and tablets</span>
+    <b data-i18n="k.enter">E / Space / Enter</b><span data-i18n="h.enter">inspect the nearest station (or close the dialogue)</span>
+    <b>Esc</b><span data-i18n="c.close">close the dialogue</span>
+    <b data-i18n="k.dots">HUD dots</b><span data-i18n="h.dots">walk straight to that station</span>
   </div>
-  <div class="row"><button type="button" id="helpClose">Got it</button></div>
+  <div class="row"><button type="button" id="helpClose" data-i18n="h.ok">Got it</button></div>
 </div></div>
 
 <div id="cuq" class="modal" role="dialog" aria-modal="true" aria-labelledby="cuqtitle"><div class="modalbox">
-  <h2 id="cuqtitle">Rate this chatbot</h2>
+  <h2 id="cuqtitle" data-i18n="rate">Rate this chatbot</h2>
   <p class="hint" id="scale"></p>
   <form id="cuqform"><div id="qs"></div>
-    <textarea id="comments" rows="3" placeholder="Comments (optional)"></textarea>
+    <textarea id="comments" rows="3" placeholder="Comments (optional)" data-i18n-placeholder="cuq.comments"></textarea>
     <div id="cuqmsg"></div>
-    <div class="row"><button type="button" class="alt" id="cuqclose">Close</button><button>Submit</button></div>
+    <div class="row"><button type="button" class="alt" id="cuqclose" data-i18n="close">Close</button><button data-i18n="cuq.submit">Submit</button></div>
   </form>
 </div></div>
 
 <script>
+GBLang.add({
+  en: {
+    'page.title': 'Sasak Village Sandbox - Guru Beleq',
+    'brand': 'Sasak Village Sandbox', 'brand.sub': 'Gendang Beleq courtyard',
+    'disc.title': 'Stations you have inspected', 'dots.aria': 'Walk to a station',
+    'disc.n': 'Discovered {n}/{total} stations', 'disc.all': 'All {total} stations discovered!',
+    'walkTo': 'Walk to {name}', 'walkThere': '{name} (walk there)', 'newFind': '✨ New discovery: {name} ({n}/{total})',
+    'rate': 'Rate this chatbot', 'rate.title': 'Rate this chatbot (CUQ)', 'mute': 'Sound', 'mute.title': 'Sound on/off',
+    'controls': 'Controls', 'chat': 'Chat mode', 'chat.title': 'Open the companion chat',
+    'home': 'Switch mode', 'home.title': 'Back to the mode selection page',
+    'canvas.aria': 'Sasak village courtyard. Use WASD or the arrow keys to walk, and E to inspect the instrument stations.',
+    'hint': '<kbd>WASD</kbd>/<kbd>←↑↓→</kbd> walk · <kbd>E</kbd> inspect · or click anywhere to walk',
+    'inspect': 'Inspect', 'talk': 'Talk', 'tapTo': 'Tap to {verb}',
+    'dlg.aria': 'Guru Beleq says', 'dlg.closeAria': 'Close dialogue (Esc)', 'dlg.closeTitle': 'Close (Esc)',
+    'send': 'Send', 'sources': '📚 Sources (Harvard)', 'close': 'Close',
+    'banner.title': 'You found the whole ensemble!',
+    'banner.p': "You have inspected all 8 stations of the Gendang Beleq courtyard. Ready to test what you learned with Guru Beleq's mini-quiz?",
+    'banner.keep': 'Keep exploring', 'banner.quiz': '🎯 Take the mini-quiz',
+    'intro.title': 'Welcome to the sanggar!',
+    'intro.p': 'This sunny courtyard is where a Sasak music group keeps its Gendang Beleq instruments. Walk around, inspect all <b>8 stations</b>, play each sound, and talk to me on the stage.',
+    'intro.name': 'Your name (optional)', 'intro.nameAria': 'Your name', 'intro.enter': 'Enter the courtyard →',
+    'k.arrows': 'WASD / arrows', 'k.click': 'Click / tap', 'k.e': 'E / Space', 'k.dpad': 'D-pad + E button',
+    'k.enter': 'E / Space / Enter', 'k.dots': 'HUD dots',
+    'c.walk': 'walk around', 'c.walkTo': 'walk to a spot, or straight to a station',
+    'c.inspectNear': 'inspect the station you are standing near', 'c.close': 'close the dialogue',
+    'h.walk': 'walk around the courtyard', 'h.click': 'walk to a spot; click a station to walk there and inspect it',
+    'h.dpad': 'on phones and tablets', 'h.enter': 'inspect the nearest station (or close the dialogue)',
+    'h.dots': 'walk straight to that station', 'h.ok': 'Got it',
+    'short.drums': 'Big drums', 'short.petuq': 'Petuq', 'short.gong': 'Gong & kempur', 'short.melody': 'Reyong & suling',
+    'short.cymbals': 'Kenceng & rincik', 'short.costume': 'Costume', 'short.mural': 'Nyongkolan arch', 'short.guru': 'Guru Beleq',
+    'name.costume': 'Sasak Costume Stand', 'name.mural': 'Nyongkolan Arch & History Mural',
+    'explorer': 'Explorer', 'welcome': 'Selamat datang, {name}! Try the instruments.',
+    'thinking': 'Guru Beleq is thinking', 'you': 'You: {text}',
+    'err.server': 'Sorry, I could not reach the server. Is server.py running?',
+    'err.notes': "I couldn't load my notes for this station. Is server.py running? You can still play the sound.",
+    'askAnything': 'What would you like to know? Ask me anything about the Gendang Beleq.',
+    'fact.n': 'Fact {n} of {total}', 'term.title': 'What does this word mean?', 'quiz': 'Quiz',
+    'act.hint': '💡 Hint', 'act.repeat': '🔁 Repeat step', 'act.skip': '⏭️ Skip question', 'act.stopQuiz': '⏹️ Stop quiz',
+    'act.leave': '⏹️ Leave lesson', 'act.more': '💬 Tell me more', 'act.more.title': 'Another cited fact',
+    'act.askQ': '❓ Ask a question', 'act.quiz': '🎯 Mini-quiz', 'act.quiz.title': 'Up to 5 questions from Guru Beleq',
+    'act.drum': '🥁 Play drum', 'act.sound': '🔊 Play sound', 'act.askGuru': '❓ Ask Guru Beleq', 'act.close': '✕ Close',
+    'ph.answer': 'Type your answer...', 'ph.ask': 'Ask Guru Beleq anything about the Gendang Beleq...',
+    'cmd.hint': 'hint', 'cmd.repeat': 'repeat', 'cmd.skip': 'skip', 'cmd.stop': 'stop', 'cmd.more': 'tell me more',
+    'cmd.quiz': 'quiz', 'quiz.shown': 'Start the mini-quiz',
+    'cuq.comments': 'Comments (optional)', 'cuq.submit': 'Submit', 'cuq.anon': 'Your answers are anonymous.',
+    'cuq.loadFail': 'Could not load the questionnaire. Is server.py running?', 'cuq.answer': 'Please answer question {n}.',
+    'cuq.thanks': 'Thank you! Your score: {score} out of 100.', 'cuq.notSaved': ' (The online demo does not store responses.)',
+    'cuq.saveFail': 'Sorry, your answers could not be saved.',
+  },
+  ms: {
+    'page.title': 'Kotak Pasir Kampung Sasak - Guru Beleq',
+    'brand': 'Kotak Pasir Kampung Sasak', 'brand.sub': 'Halaman Gendang Beleq',
+    'disc.title': 'Stesen yang telah anda periksa', 'dots.aria': 'Berjalan ke stesen',
+    'disc.n': '{n}/{total} stesen ditemui', 'disc.all': 'Kesemua {total} stesen telah ditemui!',
+    'walkTo': 'Berjalan ke {name}', 'walkThere': '{name} (berjalan ke sana)', 'newFind': '✨ Penemuan baharu: {name} ({n}/{total})',
+    'rate': 'Nilai chatbot ini', 'rate.title': 'Nilai chatbot ini (CUQ)', 'mute': 'Bunyi', 'mute.title': 'Bunyi hidup/mati',
+    'controls': 'Kawalan', 'chat': 'Mod sembang', 'chat.title': 'Buka sembang bersama rakan',
+    'home': 'Tukar mod', 'home.title': 'Kembali ke halaman pilihan mod',
+    'canvas.aria': 'Halaman kampung Sasak. Gunakan WASD atau kekunci anak panah untuk berjalan, dan E untuk memeriksa stesen alat muzik.',
+    'hint': '<kbd>WASD</kbd>/<kbd>←↑↓→</kbd> berjalan · <kbd>E</kbd> periksa · atau klik di mana-mana untuk berjalan',
+    'inspect': 'Periksa', 'talk': 'Bercakap', 'tapTo': 'Ketik untuk {verb}',
+    'dlg.aria': 'Kata Guru Beleq', 'dlg.closeAria': 'Tutup dialog (Esc)', 'dlg.closeTitle': 'Tutup (Esc)',
+    'send': 'Hantar', 'sources': '📚 Sumber (Harvard)', 'close': 'Tutup',
+    'banner.title': 'Anda telah menemui seluruh ensembel!',
+    'banner.p': 'Anda telah memeriksa kesemua 8 stesen di halaman Gendang Beleq. Bersedia untuk menguji apa yang anda pelajari dengan kuiz mini Guru Beleq?',
+    'banner.keep': 'Teruskan meneroka', 'banner.quiz': '🎯 Ambil kuiz mini',
+    'intro.title': 'Selamat datang ke sanggar!',
+    'intro.p': 'Halaman yang cerah ini ialah tempat sekumpulan pemuzik Sasak menyimpan alat-alat Gendang Beleq mereka. Berjalan-jalanlah, periksa kesemua <b>8 stesen</b>, mainkan setiap bunyi, dan bercakap dengan saya di pentas.',
+    'intro.name': 'Nama anda (pilihan)', 'intro.nameAria': 'Nama anda', 'intro.enter': 'Masuk ke halaman →',
+    'k.arrows': 'WASD / anak panah', 'k.click': 'Klik / ketik', 'k.e': 'E / Space', 'k.dpad': 'D-pad + butang E',
+    'k.enter': 'E / Space / Enter', 'k.dots': 'Titik HUD',
+    'c.walk': 'berjalan-jalan', 'c.walkTo': 'berjalan ke sesuatu tempat, atau terus ke stesen',
+    'c.inspectNear': 'periksa stesen yang berhampiran dengan anda', 'c.close': 'tutup dialog',
+    'h.walk': 'berjalan di sekitar halaman', 'h.click': 'berjalan ke sesuatu tempat; klik stesen untuk ke sana dan memeriksanya',
+    'h.dpad': 'pada telefon dan tablet', 'h.enter': 'periksa stesen terdekat (atau tutup dialog)',
+    'h.dots': 'berjalan terus ke stesen itu', 'h.ok': 'Faham',
+    'short.drums': 'Gendang besar', 'short.petuq': 'Petuq', 'short.gong': 'Gong & kempur', 'short.melody': 'Reyong & suling',
+    'short.cymbals': 'Kenceng & rincik', 'short.costume': 'Pakaian', 'short.mural': 'Gerbang nyongkolan', 'short.guru': 'Guru Beleq',
+    'name.costume': 'Tempat Pakaian Sasak', 'name.mural': 'Gerbang Nyongkolan & Mural Sejarah',
+    'explorer': 'Penjelajah', 'welcome': 'Selamat datang, {name}! Cubalah alat-alat muzik ini.',
+    'thinking': 'Guru Beleq sedang berfikir', 'you': 'Anda: {text}',
+    'err.server': 'Maaf, saya tidak dapat menghubungi pelayan. Adakah server.py sedang berjalan?',
+    'err.notes': 'Saya tidak dapat memuatkan nota untuk stesen ini. Adakah server.py sedang berjalan? Anda masih boleh memainkan bunyinya.',
+    'askAnything': 'Apakah yang anda ingin tahu? Tanya saya apa sahaja tentang Gendang Beleq.',
+    'fact.n': 'Fakta {n} daripada {total}', 'term.title': 'Apakah maksud perkataan ini?', 'quiz': 'Kuiz',
+    'act.hint': '💡 Petunjuk', 'act.repeat': '🔁 Ulang langkah', 'act.skip': '⏭️ Langkau soalan', 'act.stopQuiz': '⏹️ Hentikan kuiz',
+    'act.leave': '⏹️ Tinggalkan pelajaran', 'act.more': '💬 Ceritakan lagi', 'act.more.title': 'Satu lagi fakta bersumber',
+    'act.askQ': '❓ Tanya soalan', 'act.quiz': '🎯 Kuiz mini', 'act.quiz.title': 'Sehingga 5 soalan daripada Guru Beleq',
+    'act.drum': '🥁 Pukul gendang', 'act.sound': '🔊 Mainkan bunyi', 'act.askGuru': '❓ Tanya Guru Beleq', 'act.close': '✕ Tutup',
+    'ph.answer': 'Taip jawapan anda...', 'ph.ask': 'Tanya Guru Beleq apa sahaja tentang Gendang Beleq...',
+    'cmd.hint': 'petunjuk', 'cmd.repeat': 'ulang', 'cmd.skip': 'langkau', 'cmd.stop': 'berhenti', 'cmd.more': 'ceritakan lagi',
+    'cmd.quiz': 'kuiz', 'quiz.shown': 'Mulakan kuiz mini',
+    'cuq.comments': 'Komen (pilihan)', 'cuq.submit': 'Hantar', 'cuq.anon': 'Jawapan anda tanpa nama.',
+    'cuq.loadFail': 'Soal selidik tidak dapat dimuatkan. Adakah server.py sedang berjalan?', 'cuq.answer': 'Sila jawab soalan {n}.',
+    'cuq.thanks': 'Terima kasih! Skor anda: {score} daripada 100.', 'cuq.notSaved': ' (Demo dalam talian tidak menyimpan jawapan.)',
+    'cuq.saveFail': 'Maaf, jawapan anda tidak dapat disimpan.',
+  },
+});
+const T = GBLang.t;
+GBLang.toggle(document.getElementById('actions'));
+GBLang.apply();
 'use strict';
 // =====================================================================
 //  World layout (world units; the canvas scales to fit the screen)
@@ -326,13 +428,15 @@ const FALLBACK_NAMES = {
   drums: 'Gendang Mame & Gendang Nine', petuq: 'Petuq / Oncer', gong: 'Gong Beleq & Kempur', melody: 'Reyong & Suling',
   cymbals: 'Kenceng & Rincik', costume: 'Sasak Costume Stand', mural: 'Nyongkolan Arch & History Mural', guru: 'Guru Beleq',
 };
-const SHORT = { drums: 'Big drums', petuq: 'Petuq', gong: 'Gong & kempur', melody: 'Reyong & suling', cymbals: 'Kenceng & rincik', costume: 'Costume', mural: 'Nyongkolan arch', guru: 'Guru Beleq' };
+// names until the server's notes arrive; only two of them are English words that need translating
+const fallbackName = id => (id === 'costume' || id === 'mural') ? T('name.' + id) : FALLBACK_NAMES[id];
+const shortName = id => T('short.' + id);  // canvas labels, drawn every frame in the current language
 
 const stations = ORDER.map(id => {
   const L = LAYOUT[id];
   const abs = b => [L.x + b[0], L.y + b[1], L.x + b[2], L.y + b[3]];
   return {
-    id, ...L, data: null, name: FALLBACK_NAMES[id], pulse: 0,
+    id, ...L, data: null, name: fallbackName(id), pulse: 0,
     boxesAbs: L.boxes.map(abs), zonesAbs: (L.zones || L.boxes).map(abs), hitAbs: abs(L.hit),
     ax: L.x + L.approach[0], ay: L.y + L.approach[1],
   };
@@ -366,7 +470,8 @@ const player = { x: 600, y: 690, dir: 'up', moving: false, anim: 0 };
 const held = { up: false, down: false, left: false, right: false };
 let target = null, targetStation = null, stuck = 0, marker = null;
 let nearest = null, hovered = null;
-let playerName = 'Explorer', introOpen = true;
+let playerName = '', introOpen = true;  // empty: "Explorer" / "Penjelajah"
+const nameOf = () => playerName || T('explorer');
 let discovered = new Set(), celebrated = false;
 let active = null, factIdx = 0, askedBot = false;
 let tid = null, chatStage = 'menu', busy = false, lastQuizText = '';
@@ -1010,7 +1115,7 @@ function drawPlayer(c, p, t) {
 }
 
 function drawLabel(c, s) {
-  const name = SHORT[s.id], done = discovered.has(s.id);
+  const name = shortName(s.id), done = discovered.has(s.id);
   const text = (done ? '✓ ' : '') + name;
   c.font = '700 12px system-ui, sans-serif';
   const w = c.measureText(text).width + 16, x = s.x - w / 2, y = s.y + s.labelDy - 9;
@@ -1020,7 +1125,8 @@ function drawLabel(c, s) {
 }
 
 function drawPrompt(c, s, t) {
-  const text = isTouch ? `Tap to ${(s.verb || 'Inspect').toLowerCase()}` : `[E] ${s.verb || 'Inspect'}`;
+  const verb = T(s.verb ? 'talk' : 'inspect');
+  const text = isTouch ? T('tapTo', {verb: verb.toLowerCase()}) : `[E] ${verb}`;
   c.font = '800 13px system-ui, sans-serif';
   const w = c.measureText(text).width + 20, y = s.y + s.promptDy + Math.sin(t * 4) * 3;
   c.fillStyle = 'rgba(43,29,18,0.25)'; rr(c, s.x - w / 2 + 2, y + 3, w, 26, 13); c.fill();
@@ -1209,32 +1315,34 @@ async function post(url, body) {
 }
 async function loadStations() {
   try {
-    const d = await (await fetch('/api/sandbox')).json();
+    const d = await (await fetch('/api/sandbox?lang=' + GBLang.lang)).json();
     d.stations.forEach(sd => { if (byId[sd.id]) { byId[sd.id].data = sd; byId[sd.id].name = sd.name; } });
   } catch { /* the world still works; dialogues say the notes could not be loaded */ }
 }
 async function ensureThread() {
   if (tid) return;
-  const d = await post('/api/start');
+  const d = await post('/api/start', { lang: GBLang.lang });
   tid = d.thread_id;
-  let r = await post('/api/chat', { thread_id: tid, message: playerName });
-  if (r.stage === 'ask_name') r = await post('/api/chat', { thread_id: tid, message: 'Explorer' });
+  let r = await post('/api/chat', { thread_id: tid, message: nameOf(), lang: GBLang.lang });
+  if (r.stage === 'ask_name') r = await post('/api/chat', { thread_id: tid, message: T('explorer'), lang: GBLang.lang });
   chatStage = r.stage || 'menu';
 }
 function cleanReply(text) {
-  const t = String(text || '').split(/\n\s*Here is what we can do together/)[0].replace(/\n?Type a number[^\n]*$/, '').trim();
-  return t || 'What would you like to know? Ask me anything about the Gendang Beleq.';
+  const t = String(text || '').split(/\n\s*(?:Here is what we can do together|Ini perkara yang boleh kita lakukan bersama)/)[0]
+    .replace(/\n?(?:Type a number|Taip nombor)[^\n]*$/, '').trim();
+  return t || T('askAnything');
 }
 async function askBot(message, shownAs) {
   if (busy) return;
   busy = true; setBusy(true);
+  document.getElementById('dlgCount').hidden = true;  // 'Fact n of m' belongs to the station notes, not to a chat reply
   const askedEl = document.getElementById('dlgAsked');
-  if (shownAs) { askedEl.textContent = `You: ${shownAs}`; askedEl.hidden = false; } else askedEl.hidden = true;
-  setText('Guru Beleq is thinking', '', true);
+  if (shownAs) { askedEl.textContent = T('you', {text: shownAs}); askedEl.hidden = false; } else askedEl.hidden = true;
+  setText(T('thinking'), '', true);
   document.getElementById('portrait').classList.add('talk');
   try {
     await ensureThread();
-    const d = await post('/api/chat', { thread_id: tid, message });
+    const d = await post('/api/chat', { thread_id: tid, message, lang: GBLang.lang });
     chatStage = d.stage || 'menu';
     const reply = cleanReply(d.reply);
     if (chatStage === 'quiz') lastQuizText = reply;
@@ -1242,7 +1350,7 @@ async function askBot(message, shownAs) {
     showProgress(d.progress);
     portraitTalk();
   } catch {
-    setText('Sorry, I could not reach the server. Is server.py running?', '');
+    setText(T('err.server'), '');
   }
   busy = false; setBusy(false);
   renderActions();
@@ -1250,7 +1358,7 @@ async function askBot(message, shownAs) {
 
 function showProgress(p) {
   const pill = document.getElementById('quizPill');
-  if (p && p.quiz_total) { pill.hidden = false; document.getElementById('quizText').textContent = `Quiz ${p.quiz_right}/${p.quiz_total}`; }
+  if (p && p.quiz_total) { pill.hidden = false; document.getElementById('quizText').textContent = `${T('quiz')} ${p.quiz_right}/${p.quiz_total}`; }
 }
 
 // =====================================================================
@@ -1272,7 +1380,7 @@ function setText(text, cite, thinking = false) {
     dots.className = 'typing-dots'; dots.setAttribute('aria-hidden', 'true');
     dots.append(document.createElement('i'), document.createElement('i'), document.createElement('i'));
     dlgText.appendChild(dots);
-    document.getElementById('dlgLive').textContent = 'Guru Beleq is thinking';
+    document.getElementById('dlgLive').textContent = T('thinking');
     return;
   }
   if (reduceMotion) { dlgText.textContent = text; return; }
@@ -1299,12 +1407,12 @@ function showFact() {
   const count = document.getElementById('dlgCount');
   document.getElementById('dlgAsked').hidden = true;
   if (!facts.length) {
-    setText("I couldn't load my notes for this station. Is server.py running? You can still play the sound.", '');
+    setText(T('err.notes'), '');
     count.hidden = true; return;
   }
   const f = facts[factIdx];
   setText(f.text, f.cite);
-  count.hidden = false; count.textContent = `Fact ${factIdx + 1} of ${facts.length}`;
+  count.hidden = false; count.textContent = T('fact.n', {n: factIdx + 1, total: facts.length});
   portraitTalk();
 }
 
@@ -1322,7 +1430,7 @@ function openStation(s) {
   const terms = document.getElementById('dlgTerms'); terms.innerHTML = '';
   ((s.data && s.data.terms) || []).forEach(term => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'term'; b.textContent = `📖 ${term.term}`;
-    b.title = 'What does this word mean?';
+    b.title = T('term.title');
     b.onclick = () => { document.getElementById('dlgAsked').hidden = true; document.getElementById('dlgCount').hidden = true; setText(`${term.term[0].toUpperCase() + term.term.slice(1)}: ${term.meaning}.`, term.cite); portraitTalk(); };
     terms.appendChild(b);
   });
@@ -1364,25 +1472,26 @@ function renderActions() {
   if (!active) return;
   const s = active;
   if (chatStage === 'quiz' || chatStage === 'lesson') {
-    act('💡 Hint', 'main', () => askBot('hint', 'hint'));
-    if (chatStage === 'lesson') act('🔁 Repeat step', '', () => askBot('repeat', 'repeat'));
-    act('⏭️ Skip question', '', () => askBot('skip', 'skip'));
-    act(chatStage === 'quiz' ? '⏹️ Stop quiz' : '⏹️ Leave lesson', 'red', () => askBot('stop', 'stop'));
+    const cmd = k => { const c = T('cmd.' + k); askBot(c, c); };
+    act(T('act.hint'), 'main', () => cmd('hint'));
+    if (chatStage === 'lesson') act(T('act.repeat'), '', () => cmd('repeat'));
+    act(T('act.skip'), '', () => cmd('skip'));
+    act(T(chatStage === 'quiz' ? 'act.stopQuiz' : 'act.leave'), 'red', () => cmd('stop'));
     dlgForm.hidden = false;
-    dlgInput.placeholder = 'Type your answer...';
+    dlgInput.placeholder = T('ph.answer');
     return;
   }
-  dlgInput.placeholder = 'Ask Guru Beleq anything about the Gendang Beleq...';
-  act('💬 Tell me more', 'main', tellMore, 'Another cited fact');
+  dlgInput.placeholder = T('ph.ask');
+  act(T('act.more'), 'main', tellMore, T('act.more.title'));
   if (s.id === 'guru') {
-    act('❓ Ask a question', '', showAsk);
-    act('🎯 Mini-quiz', 'red', startQuiz, 'Up to 5 questions from Guru Beleq');
-    act('🥁 Play drum', '', () => playStation(s));
+    act(T('act.askQ'), '', showAsk);
+    act(T('act.quiz'), 'red', startQuiz, T('act.quiz.title'));
+    act(T('act.drum'), '', () => playStation(s));
   } else {
-    act('🔊 Play sound', '', () => playStation(s));
-    act('❓ Ask Guru Beleq', '', showAsk);
+    act(T('act.sound'), '', () => playStation(s));
+    act(T('act.askGuru'), '', showAsk);
   }
-  act('✕ Close', '', closeDialog);
+  act(T('act.close'), '', closeDialog);
 }
 
 function playStation(s) {
@@ -1393,12 +1502,12 @@ function tellMore() {
   const facts = (active.data && active.data.facts) || [];
   if (!askedBot && factIdx < facts.length - 1) { factIdx++; showFact(); return; }
   document.getElementById('dlgCount').hidden = true;
-  const msg = askedBot ? 'tell me more' : active.data ? active.data.ask : 'tell me more';
+  const msg = askedBot ? T('cmd.more') : active.data ? active.data.ask : T('cmd.more');
   askedBot = true;
   askBot(msg);
 }
 function showAsk() { dlgForm.hidden = false; dlgInput.focus(); }
-function startQuiz() { dlgForm.hidden = false; askBot('quiz', 'Start the mini-quiz'); }
+function startQuiz() { dlgForm.hidden = false; askBot(T('cmd.quiz'), T('quiz.shown')); }
 
 dlgForm.addEventListener('submit', e => {
   e.preventDefault();
@@ -1422,13 +1531,13 @@ function toast(msg) {
 }
 function renderHud() {
   const n = discovered.size, total = stations.length;
-  document.getElementById('discText').textContent = n === total ? `All ${total} stations discovered!` : `Discovered ${n}/${total} stations`;
+  document.getElementById('discText').textContent = n === total ? T('disc.all', {total}) : T('disc.n', {n, total});
   document.getElementById('discPill').classList.toggle('done', n === total);
   const dots = document.getElementById('dots');
   if (!dots.children.length) {
     stations.forEach(s => {
       const b = document.createElement('button'); b.type = 'button'; b.dataset.id = s.id;
-      b.title = `Walk to ${s.name}`; b.setAttribute('aria-label', `Walk to ${s.name}`);
+      b.title = T('walkTo', {name: s.name}); b.setAttribute('aria-label', T('walkTo', {name: s.name}));
       b.onclick = () => { closeDialog(); walkTo(s); canvas.focus({ preventScroll: true }); };
       dots.appendChild(b);
     });
@@ -1436,14 +1545,14 @@ function renderHud() {
   [...dots.children].forEach(b => {
     const s = byId[b.dataset.id];
     b.classList.toggle('on', discovered.has(s.id));
-    b.title = `${discovered.has(s.id) ? '✓ ' : ''}${s.name} (walk there)`;
+    b.title = (discovered.has(s.id) ? '✓ ' : '') + T('walkThere', {name: s.name});
   });
 }
 function discover(s) {
   if (discovered.has(s.id)) return;
   discovered.add(s.id);
   renderHud();
-  if (discovered.size < stations.length) { toast(`✨ New discovery: ${s.name} (${discovered.size}/${stations.length})`); setTimeout(() => Sound.play('discover'), 650); }
+  if (discovered.size < stations.length) { toast(T('newFind', {name: s.name, n: discovered.size, total: stations.length})); setTimeout(() => Sound.play('discover'), 650); }
   else toast('🎉 All stations discovered! Close the dialogue to celebrate.');
 }
 function celebrate() {
@@ -1549,7 +1658,7 @@ document.getElementById('introForm').addEventListener('submit', e => {
   introOpen = false;
   document.getElementById('intro').classList.remove('open');
   Sound.init(); Sound.play('discover');
-  guruSpeech = { text: `Selamat datang, ${playerName}! Try the instruments.`, until: performance.now() + 6500 };
+  guruSpeech = { text: T('welcome', {name: nameOf()}), until: performance.now() + 6500 };
   canvas.focus({ preventScroll: true });
 });
 
@@ -1561,8 +1670,8 @@ let cuqLoaded = false;
 async function openCuq() {
   cuqEl.classList.add('open'); cuqMsg.textContent = '';
   if (cuqLoaded) return;
-  const d = await (await fetch('/api/cuq')).json();
-  document.getElementById('scale').textContent = d.scale + '. Your answers are anonymous.';
+  const d = await (await fetch('/api/cuq?lang=' + GBLang.lang)).json();
+  document.getElementById('scale').textContent = `${d.scale}. ${T('cuq.anon')}`;
   const qs = document.getElementById('qs');
   d.items.forEach((item, i) => {
     const q = document.createElement('div'); q.className = 'q';
@@ -1577,24 +1686,24 @@ async function openCuq() {
   });
   cuqLoaded = true;
 }
-document.getElementById('rate').onclick = () => openCuq().catch(() => { cuqMsg.textContent = 'Could not load the questionnaire. Is server.py running?'; });
+document.getElementById('rate').onclick = () => openCuq().catch(() => { cuqMsg.textContent = T('cuq.loadFail'); });
 document.getElementById('cuqclose').onclick = () => { cuqEl.classList.remove('open'); canvas.focus({ preventScroll: true }); };
 document.getElementById('cuqform').addEventListener('submit', async e => {
   e.preventDefault();
   const answers = [];
   for (let i = 0; i < 16; i++) {
     const c = document.querySelector(`input[name=q${i}]:checked`);
-    if (!c) { cuqMsg.textContent = `Please answer question ${i + 1}.`; return; }
+    if (!c) { cuqMsg.textContent = T('cuq.answer', {n: i + 1}); return; }
     answers.push(+c.value);
   }
   try {
     const d = await post('/api/cuq', { answers, comments: document.getElementById('comments').value });
     cuqMsg.style.color = '#1b6e2d';
-    const note = d.saved === false ? ' (The online demo does not store responses.)' : '';
-    cuqMsg.textContent = `Thank you! Your score: ${d.score} out of 100.${note}`;
+    const note = d.saved === false ? T('cuq.notSaved') : '';
+    cuqMsg.textContent = T('cuq.thanks', {score: d.score}) + note;
     document.getElementById('cuqform').reset();
     setTimeout(() => { cuqEl.classList.remove('open'); cuqMsg.style.color = ''; }, 2500);
-  } catch { cuqMsg.textContent = 'Sorry, your answers could not be saved.'; }
+  } catch { cuqMsg.textContent = T('cuq.saveFail'); }
 });
 
 // =====================================================================
@@ -1604,6 +1713,35 @@ new ResizeObserver(resize).observe(stageEl);
 resize();
 renderHud(); renderMute();
 loadStations().then(renderHud);
+
+// Language switch: station notes come again from the server in the new language; the open dialogue is redrawn
+GBLang.onChange(async () => {
+  cuqLoaded = false;
+  document.getElementById('qs').innerHTML = '';
+  stations.forEach(s => { if (!s.data) s.name = fallbackName(s.id); });
+  await loadStations();
+  renderHud();
+  if (active && !busy) {
+    document.getElementById('dlgTitle').textContent = active.name;
+    document.getElementById('dlgSub').textContent = active.data ? active.data.subtitle : '';
+    if (!askedBot && !(active.id === 'guru' && chatStage === 'quiz')) showFact();
+    renderActions();
+  }
+  // the conversation follows the switch; a quiz or lesson question on screen is asked again in the new language
+  if (tid && !busy) {
+    try {
+      const d = await post('/api/language', { thread_id: tid, lang: GBLang.lang });
+      chatStage = d.stage || chatStage;
+      if (active && (askedBot || chatStage === 'quiz' || chatStage === 'lesson')) {
+        const reply = cleanReply(d.reply);
+        if (chatStage === 'quiz') lastQuizText = reply;
+        document.getElementById('dlgAsked').hidden = true;
+        setText(reply, '');
+        renderActions();
+      }
+    } catch { /* the next message carries the language anyway */ }
+  }
+});
 document.getElementById('nameInput').focus();
 requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
 </script>

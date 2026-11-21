@@ -47,6 +47,17 @@ Prefer Streamlit or the terminal instead?
   - **Export Learning Transcript (`Export chat`)**: Downloads the conversation transcript and learner progress summary as `guru-beleq-transcript.txt`.
   - **Built-in CUQ Usability Modal (`Rate this chatbot`)**: 16-item Chatbot Usability Questionnaire dialog saving anonymous scores to `eval/cuq_responses.csv`.
 
+## Bahasa Malaysia
+
+Every page has an **EN | BM** switch (top right on the chat and sandbox, top corner on the landing page; a *Language / Bahasa* selector in the Streamlit sidebar). The choice is remembered in the browser, carried across `/`, `/chat` and `/sandbox`, and can be forced with `?lang=ms` (for example `http://localhost:8000/chat?lang=ms`).
+
+- **Everything switches**: page text, the bot's replies (greeting, menu, lessons, quiz, hints, recommendations, small talk), lesson titles, the glossary, the semantic network labels, sandbox station notes and the CUQ questionnaire. Gemini is told to reply in Bahasa Malaysia and gets the Malay knowledge base.
+- **Switching mid-conversation** keeps your progress: Guru Beleq confirms the switch and repeats the current lesson or quiz question (or the menu) in the new language, without using an attempt.
+- **Both languages are understood at once**: Malay intent words (`pelajaran`, `kuiz`, `petunjuk`, `langkau`, `berhenti`, `nama saya ...`, `fakta menarik`, `satu lagi`) work in either mode, an English question in BM mode gets a Malay answer, and English answer words are still accepted in Malay lessons.
+- **Citations are unchanged**: `data/knowledge/topics_ms.json` holds only the Malay text and lines up with `topics.json` by position, so each translated fact keeps the English fact's sources and Harvard citation. `python -m src.knowledge` checks that the two files line up.
+- **API**: `POST /api/start` and `/api/chat` take `"lang": "ms"`; `POST /api/language {thread_id, lang}` switches a conversation; `GET /api/meta`, `/api/sandbox` and `/api/cuq` take `?lang=ms`. The bot's own sentences live in `src/i18n.py`; page text lives in each page's `GBLang.add({...})` dictionary (shared helper `web/lang.js`).
+- The Malay wording, including the CUQ items, is our own translation and has not been checked by a native speaker yet.
+
 ## Optional Gemini (free API key)
 
 Without a key, Guru Beleq is fully rule-based (pure Python). With a free Google AI Studio key, **Gemini answers open-ended conversation first**: questions, follow-ups ("explain it simply", "tell me more"), comparisons, "give me a fun fact", small talk and off-topic questions (which it politely declines). Learners are never told which engine replied.
@@ -101,7 +112,7 @@ pip install -r requirements.txt
 python -m src.graph                       # terminal chat
 python server.py                          # standalone web page at http://localhost:8000
 streamlit run app.py                      # Streamlit web UI at http://localhost:8501
-python -m unittest discover tests         # 81 scripted tests (no API key or network needed)
+python -m unittest discover tests         # 103 scripted tests (no API key or network needed)
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
 python -m eval.cuq collect                # one tester fills in the CUQ (also in the web UI)
 python -m eval.cuq report                 # CUQ score and item means from all responses
@@ -125,6 +136,8 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `.env.example` | template for `GEMINI_API_KEY` / `GEMINI_MODEL` (copy to `.env`) |
 | `src/profiles.py` | saves learner progress by name |
 | `data/knowledge/topics.json` | cited facts, lessons, quiz questions, glossary, references |
+| `data/knowledge/topics_ms.json` | Bahasa Malaysia text for the same facts, lessons, quiz and glossary, matched by position |
+| `src/i18n.py`, `web/lang.js` | the bot's sentences in both languages, and the pages' language switch |
 | `data/knowledge/semantic_net.json` | semantic network edges, with citations |
 | `data/sources/` | notes on each source the knowledge base is written from |
 | `assets/` | GenAI avatar (`avatar.png`) and `AVATAR_LOG.md` (prompts and how it was made) |
@@ -142,7 +155,8 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 1. Add a notes file for the source to `data/sources/`, and its citation to `references` in `data/knowledge/topics.json`.
 2. Edit `topics.json`: facts (each with its `sources`), lesson steps (teach, question, answer groups, hint, explain), quiz questions, glossary.
 3. Add edges to `data/knowledge/semantic_net.json`.
-4. Run `python -m src.knowledge` and the tests. The tests fail if a fact has no citation.
+4. Add the Malay text in the same position in `data/knowledge/topics_ms.json` (facts, lesson steps with Malay answer words, quiz items, glossary meanings). Sources and citations are taken from `topics.json`.
+5. Run `python -m src.knowledge` and the tests. The tests fail if a fact has no citation or the Malay file does not line up.
 
 Answer groups: each inner list is one concept with accepted wordings, and a learner answer is correct when every group is mentioned.
 

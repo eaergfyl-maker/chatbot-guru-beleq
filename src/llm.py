@@ -212,15 +212,15 @@ def grounded(reply: str) -> bool:
     return True
 
 
-@lru_cache(maxsize=1)
-def knowledge_text() -> str:
-    """The whole cited knowledge base in compact form (about 2k tokens)."""
+@lru_cache(maxsize=None)
+def knowledge_text(lang: str = "en") -> str:
+    """The whole cited knowledge base in compact form (about 2k tokens), in the reply language."""
     parts = []
-    for t in topics():
+    for t in topics(lang):
         parts.append(f"## {t['title']}")
         parts += [f"- {f['text']} {cite(f['sources'])}" for f in t["facts"]]
     parts.append("## Glossary")
-    parts += [f"- {term}: {e['meaning']} {cite(e['sources'])}" for term, e in sorted(glossary().items())]
+    parts += [f"- {term}: {e['meaning']} {cite(e['sources'])}" for term, e in sorted(glossary(lang).items())]
     parts.append("## References (Harvard)")
     parts += [f"- {r['full']}" for r in sorted(references().values(), key=lambda r: r["full"])]
     return "\n".join(parts)
@@ -242,20 +242,31 @@ How to reply:
 - Questions not about the Gendang Beleq or Sasak culture: do not answer them. Say kindly that it is outside what
   you teach, and suggest something about the Gendang Beleq instead.
 - Keep it to 2 to 4 short sentences of plain text: no markdown, lists, headings or emoji.
+- {language}
 
 KNOWLEDGE BASE:
 {knowledge}"""
 
+LANGUAGE_RULES = {
+    "en": "Reply in English.",
+    "ms": ("Reply in Bahasa Malaysia (standard Malaysian Malay, not Indonesian), even if the learner writes in English. "
+           "Keep Sasak words, names and citations exactly as written. Malay greetings are selamat pagi, selamat "
+           "petang and selamat malam."),
+}
 
-def converse(message: str, name: str, history: list[tuple[str, str]] | None = None, note: str = "") -> str | None:
+
+def converse(message: str, name: str, history: list[tuple[str, str]] | None = None, note: str = "",
+             lang: str = "en") -> str | None:
     """Gemini's reply to an open-ended message, grounded in the knowledge base, or None.
 
     history: earlier (speaker, text) pairs, oldest first, speaker "learner" or "guru".
     note: extra context for this turn, e.g. the lesson question the learner will be brought back to.
+    lang: reply language, "en" or "ms"; the knowledge base is sent in that language too (same citations).
     """
     if not available():
         return None
-    system = SYSTEM.format(name=name, knowledge=knowledge_text())
+    lang = lang if lang in LANGUAGE_RULES else "en"
+    system = SYSTEM.format(name=name, knowledge=knowledge_text(lang), language=LANGUAGE_RULES[lang])
     lines = []
     for speaker, text in (history or [])[-HISTORY_TURNS:]:
         who = name if speaker == "learner" else "Guru Beleq"

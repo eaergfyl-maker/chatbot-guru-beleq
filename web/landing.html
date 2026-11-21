@@ -6,6 +6,7 @@
 <title>Guru Beleq - Choose how to learn</title>
 <meta name="description" content="Learn the Gendang Beleq, the big-drum ensemble of the Sasak people of Lombok, by chatting with Guru Beleq or exploring a playable Sasak village courtyard.">
 <link rel="icon" href="/avatar.png">
+<script src="/lang.js"></script>
 <style>
   :root {
     --brown:#5b3a24; --brown-dark:#3e2515; --red:#b3262d; --red-dark:#8f1d23;
@@ -29,6 +30,7 @@
       repeating-linear-gradient(90deg, var(--red) 0 22px, var(--gold) 22px 26px, var(--brown) 26px 48px, var(--gold) 48px 52px);
     box-shadow: 0 2px 0 rgba(62,37,21,0.25);
   }
+  .topbar { position:absolute; top:24px; right:20px; z-index:5; }
   main { flex:1; width:100%; max-width:1080px; margin:0 auto; padding:34px 20px 28px; display:flex; flex-direction:column; justify-content:center; }
 
   .hero { display:flex; align-items:center; gap:28px; margin-bottom:34px; }
@@ -71,8 +73,8 @@
   .mode.sandbox .cta { background:var(--red); }
   .mode:hover .cta { background:var(--brown-dark); }
   .mode.sandbox:hover .cta { background:var(--red-dark); }
-  .cta span { transition: transform .15s; }
-  .mode:hover .cta span { transform:translateX(4px); }
+  .cta .arrow { transition: transform .15s; }
+  .mode:hover .cta .arrow { transform:translateX(4px); }
 
   .facts { margin:30px 0 0; display:flex; flex-wrap:wrap; gap:10px 22px; justify-content:center; font-size:.88rem; color:#5d4532; }
   .facts b { color:var(--brown-dark); }
@@ -87,23 +89,24 @@
     .modes { grid-template-columns:1fr; gap:16px; }
     .scene { height:140px; }
   }
-  @media (prefers-reduced-motion: reduce) { .hero-avatar { animation:none; } .mode, .cta span { transition:none; } }
+  @media (prefers-reduced-motion: reduce) { .hero-avatar { animation:none; } .mode, .cta .arrow { transition:none; } }
 </style>
 </head>
 <body>
 <div class="band" aria-hidden="true"></div>
+<div class="topbar" id="langSlot"></div>
 <main>
   <section class="hero">
-    <div class="hero-avatar" id="avatar" role="img" aria-label="Guru Beleq, a smiling drum wearing a Sasak head cloth" title="Tap me!"></div>
+    <div class="hero-avatar" id="avatar" role="img" aria-label="Guru Beleq, a smiling drum wearing a Sasak head cloth" data-i18n-aria="avatar.aria" title="Tap me!" data-i18n-title="avatar.title"></div>
     <div>
       <p class="eyebrow">Gendang Beleq · Lombok, Indonesia</p>
-      <h1>Learn the big drums of the Sasak people</h1>
-      <p class="lede">I'm Guru Beleq, the Big Teacher. Chat with me about the Gendang Beleq ensemble, or walk around a Sasak courtyard and try the instruments yourself. Every fact I teach comes with a Harvard citation.</p>
+      <h1 data-i18n="h1">Learn the big drums of the Sasak people</h1>
+      <p class="lede" data-i18n="lede">I'm Guru Beleq, the Big Teacher. Chat with me about the Gendang Beleq ensemble, or walk around a Sasak courtyard and try the instruments yourself. Every fact I teach comes with a Harvard citation.</p>
     </div>
   </section>
 
-  <section class="modes" aria-label="Choose a mode">
-    <a class="mode chat" href="/chat">
+  <section class="modes" aria-label="Choose a mode" data-i18n-aria="modes.aria">
+    <a class="mode chat" href="/chat" data-lang-link>
       <div class="scene" aria-hidden="true">
         <svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice">
           <defs>
@@ -130,19 +133,19 @@
         </svg>
       </div>
       <div class="mode-body">
-        <span class="tag">Mode 1 · Companion chat</span>
-        <h2>Talk with Guru Beleq</h2>
-        <p>A friendly teacher who greets you, gives step-by-step lessons, quizzes you and answers your questions.</p>
+        <span class="tag" data-i18n="m1.tag">Mode 1 · Companion chat</span>
+        <h2 data-i18n="m1.h2">Talk with Guru Beleq</h2>
+        <p data-i18n="m1.p">A friendly teacher who greets you, gives step-by-step lessons, quizzes you and answers your questions.</p>
         <ul>
-          <li>Lessons, adaptive quiz and recommendations</li>
-          <li>Reactive animated avatar and quick-action bar</li>
-          <li>Knowledge explorer, glossary and chat export</li>
+          <li data-i18n="m1.li1">Lessons, adaptive quiz and recommendations</li>
+          <li data-i18n="m1.li2">Reactive animated avatar and quick-action bar</li>
+          <li data-i18n="m1.li3">Knowledge explorer, glossary and chat export</li>
         </ul>
-        <span class="cta">Start chatting <span>→</span></span>
+        <span class="cta"><span data-i18n="m1.cta">Start chatting</span> <span class="arrow">→</span></span>
       </div>
     </a>
 
-    <a class="mode sandbox" href="/sandbox">
+    <a class="mode sandbox" href="/sandbox" data-lang-link>
       <div class="scene" aria-hidden="true">
         <svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice">
           <defs>
@@ -186,30 +189,69 @@
           </g>
           <g font-family="system-ui,sans-serif" font-weight="700" font-size="11">
             <rect x="196" y="76" width="68" height="20" rx="10" fill="#2b1d12" opacity=".85"/>
-            <text x="230" y="90" fill="#fff" text-anchor="middle">[E] Inspect</text>
+            <text x="230" y="90" fill="#fff" text-anchor="middle" data-i18n="m2.inspect">[E] Inspect</text>
           </g>
         </svg>
       </div>
       <div class="mode-body">
-        <span class="tag new">Mode 2 · New · Playable</span>
-        <h2>Sasak Village Sandbox</h2>
-        <p>Walk around a sunlit sanggar courtyard, play each instrument of the ensemble and discover its story.</p>
+        <span class="tag new" data-i18n="m2.tag">Mode 2 · New · Playable</span>
+        <h2 data-i18n="m2.h2">Sasak Village Sandbox</h2>
+        <p data-i18n="m2.p">Walk around a sunlit sanggar courtyard, play each instrument of the ensemble and discover its story.</p>
         <ul>
-          <li>Move with WASD, arrow keys, click or tap</li>
-          <li>8 stations with sounds and cited facts</li>
-          <li>Ask Guru Beleq questions or take a mini-quiz</li>
+          <li data-i18n="m2.li1">Move with WASD, arrow keys, click or tap</li>
+          <li data-i18n="m2.li2">8 stations with sounds and cited facts</li>
+          <li data-i18n="m2.li3">Ask Guru Beleq questions or take a mini-quiz</li>
         </ul>
-        <span class="cta">Enter the courtyard <span>→</span></span>
+        <span class="cta"><span data-i18n="m2.cta">Enter the courtyard</span> <span class="arrow">→</span></span>
       </div>
     </a>
   </section>
 
-  <p class="facts" id="facts"><span><b>6</b> lessons</span><span><b>8</b> sandbox stations</span><span><b>17</b> Sasak terms</span><span><b>6</b> cited sources</span></p>
+  <p class="facts" id="facts"><span><b>6</b> <span data-i18n="f.lessons">lessons</span></span><span><b>8</b> <span data-i18n="f.stations">sandbox stations</span></span><span><b>17</b> <span data-i18n="f.terms">Sasak terms</span></span><span><b>6</b> <span data-i18n="f.sources">cited sources</span></span></p>
 </main>
-<footer>Guru Beleq is a rule-based teaching chatbot. Works offline on your computer with <code>python server.py</code>.</footer>
+<footer data-i18n-html="footer">Guru Beleq is a rule-based teaching chatbot. Works offline on your computer with <code>python server.py</code>.</footer>
 <div class="band" aria-hidden="true"></div>
 
 <script>
+GBLang.add({
+  en: {
+    'page.title': 'Guru Beleq - Choose how to learn',
+    'avatar.aria': 'Guru Beleq, a smiling drum wearing a Sasak head cloth', 'avatar.title': 'Tap me!',
+    'h1': 'Learn the big drums of the Sasak people',
+    'lede': "I'm Guru Beleq, the Big Teacher. Chat with me about the Gendang Beleq ensemble, or walk around a Sasak courtyard and try the instruments yourself. Every fact I teach comes with a Harvard citation.",
+    'modes.aria': 'Choose a mode',
+    'm1.tag': 'Mode 1 · Companion chat', 'm1.h2': 'Talk with Guru Beleq',
+    'm1.p': 'A friendly teacher who greets you, gives step-by-step lessons, quizzes you and answers your questions.',
+    'm1.li1': 'Lessons, adaptive quiz and recommendations', 'm1.li2': 'Reactive animated avatar and quick-action bar',
+    'm1.li3': 'Knowledge explorer, glossary and chat export', 'm1.cta': 'Start chatting',
+    'm2.inspect': '[E] Inspect', 'm2.tag': 'Mode 2 · New · Playable', 'm2.h2': 'Sasak Village Sandbox',
+    'm2.p': 'Walk around a sunlit sanggar courtyard, play each instrument of the ensemble and discover its story.',
+    'm2.li1': 'Move with WASD, arrow keys, click or tap', 'm2.li2': '8 stations with sounds and cited facts',
+    'm2.li3': 'Ask Guru Beleq questions or take a mini-quiz', 'm2.cta': 'Enter the courtyard',
+    'f.lessons': 'lessons', 'f.stations': 'sandbox stations', 'f.terms': 'Sasak terms', 'f.sources': 'cited sources',
+    'footer': 'Guru Beleq is a rule-based teaching chatbot. Works offline on your computer with <code>python server.py</code>.',
+  },
+  ms: {
+    'page.title': 'Guru Beleq - Pilih cara belajar',
+    'avatar.aria': 'Guru Beleq, gendang yang tersenyum memakai kain ikat kepala Sasak', 'avatar.title': 'Ketik saya!',
+    'h1': 'Pelajari gendang besar masyarakat Sasak',
+    'lede': 'Saya Guru Beleq, si Guru Besar. Bersembang dengan saya tentang ensembel Gendang Beleq, atau berjalan di sekitar halaman kampung Sasak dan cuba alat-alat muziknya sendiri. Setiap fakta yang saya ajar disertakan dengan petikan Harvard.',
+    'modes.aria': 'Pilih mod',
+    'm1.tag': 'Mod 1 · Sembang bersama rakan', 'm1.h2': 'Bersembang dengan Guru Beleq',
+    'm1.p': 'Guru yang mesra menyapa anda, memberi pelajaran langkah demi langkah, menguji anda dengan kuiz dan menjawab soalan anda.',
+    'm1.li1': 'Pelajaran, kuiz adaptif dan cadangan', 'm1.li2': 'Avatar animasi yang reaktif dan bar tindakan pantas',
+    'm1.li3': 'Peneroka pengetahuan, glosari dan eksport sembang', 'm1.cta': 'Mula bersembang',
+    'm2.inspect': '[E] Periksa', 'm2.tag': 'Mod 2 · Baharu · Boleh dimainkan', 'm2.h2': 'Kotak Pasir Kampung Sasak',
+    'm2.p': 'Berjalan di sekitar halaman sanggar yang disinari matahari, mainkan setiap alat muzik ensembel dan temui kisahnya.',
+    'm2.li1': 'Bergerak dengan WASD, kekunci anak panah, klik atau ketik', 'm2.li2': '8 stesen dengan bunyi dan fakta bersumber',
+    'm2.li3': 'Tanya Guru Beleq soalan atau ambil kuiz mini', 'm2.cta': 'Masuk ke halaman',
+    'f.lessons': 'pelajaran', 'f.stations': 'stesen kotak pasir', 'f.terms': 'istilah Sasak', 'f.sources': 'sumber bersitasi',
+    'footer': 'Guru Beleq ialah chatbot pengajar berasaskan peraturan. Boleh digunakan di luar talian pada komputer anda dengan <code>python server.py</code>.',
+  },
+});
+GBLang.toggle(document.getElementById('langSlot'));
+GBLang.apply();
+
 // A soft drum thump when Guru Beleq is tapped.
 document.getElementById('avatar').addEventListener('click', () => {
   try {

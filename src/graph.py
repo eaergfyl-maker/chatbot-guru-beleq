@@ -5,7 +5,7 @@ from langchain_core.messages import AIMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from . import nodes
+from . import i18n, nodes
 from .state import State
 
 log = logging.getLogger(__name__)
@@ -38,6 +38,7 @@ def build_graph():
     g = StateGraph(State)
 
     g.add_node("greet", nodes.greet)
+    g.add_node("relang", safe(nodes.relang, switch_lang=False))
     g.add_node("validate", nodes.validate)
     g.add_node("reject", nodes.reject)
     g.add_node("route_stage", lambda state: {})  # junction: decides between name capture and normal handling
@@ -55,12 +56,12 @@ def build_graph():
         g.add_node(node_name, safe(fn))
 
     # the bot speaks first on the boot turn, afterwards every message is validated
-    g.add_conditional_edges(START, nodes.route_start, {"greet": "greet", "validate": "validate"})
+    g.add_conditional_edges(START, nodes.route_start, {"greet": "greet", "validate": "validate", "relang": "relang"})
     g.add_conditional_edges("validate", nodes.route_valid, {"reject": "reject", "route_stage": "route_stage"})
     g.add_conditional_edges("route_stage", nodes.route_stage, {"take_name": "take_name", "normalize": "normalize"})
     g.add_edge("normalize", "classify")
     g.add_conditional_edges("classify", nodes.route_intent, {**INTENT_NODES, "error": END})
-    for end_node in ["greet", "reject", "take_name", *INTENT_NODES.values()]:
+    for end_node in ["greet", "relang", "reject", "take_name", *INTENT_NODES.values()]:
         g.add_edge(end_node, END)
 
     # MemorySaver keeps per-thread state in RAM. Learner progress is also saved by name in data/profiles.json.
@@ -71,18 +72,33 @@ def _config(thread_id: str) -> dict:
     return {"configurable": {"thread_id": thread_id}}
 
 
-def start(graph, thread_id: str = "default") -> str:
-    """The bot speaks first."""
-    return graph.invoke({"boot": True}, config=_config(thread_id))["messages"][-1].content
+def start(graph, thread_id: str = "default", lang: str = "en") -> str:
+    """The bot speaks first, in the given language ("en" or "ms")."""
+    out = graph.invoke({"boot": True, "switch_lang": False, "lang": i18n.norm(lang)}, config=_config(thread_id))
+    return out["messages"][-1].content
 
 
-def ask(graph, text: str, thread_id: str = "default") -> str:
+def ask(graph, text: str, thread_id: str = "default", lang: str | None = None) -> str:
+    """One learner turn. lang=None keeps the conversation's current language."""
+    turn = {"boot": False, "switch_lang": False, "messages": [("user", text)]}
+    if lang is not None:
+        turn["lang"] = i18n.norm(lang)
     try:
-        out = graph.invoke({"boot": False, "messages": [("user", text)]}, config=_config(thread_id))
+        out = graph.invoke(turn, config=_config(thread_id))
         return out["messages"][-1].content
     except Exception:
         log.exception("graph invocation failed")
-        return nodes.ERROR_MESSAGE
+        return i18n.t(lang or "en", "error")
+
+
+def switch_language(graph, thread_id: str, lang: str) -> str:
+    """Change the conversation's language; the bot confirms and repeats the current question or menu in it."""
+    try:
+        out = graph.invoke({"boot": False, "switch_lang": True, "lang": i18n.norm(lang)}, config=_config(thread_id))
+        return out["messages"][-1].content
+    except Exception:
+        log.exception("language switch failed")
+        return i18n.t(lang, "error")
 
 
 def state_of(graph, thread_id: str = "default") -> dict:

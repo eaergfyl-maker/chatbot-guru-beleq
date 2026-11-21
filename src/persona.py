@@ -1,20 +1,27 @@
-"""The chatbot's character: name, time-based greetings, teacher phrases, menu, badges."""
+"""The chatbot's character: name, time-based greetings, teacher phrases, menu, badges (English and Malay)."""
 import os
 import random
 import re
 from datetime import datetime, timedelta, timezone
 
-BOT_NAME = "Guru Beleq"
-BOT_MEANING = "'Guru' is Indonesian for teacher and 'beleq' is Sasak for big, so I am the Big Teacher"
+from . import i18n
 
-PRAISE = ["Excellent!", "Well done!", "Spot on!", "That's right!", "Great job!", "Exactly!"]
-GENTLE = ["Not quite, but you're on the right track.", "Close! Keep thinking.", "Good effort, let's refine it."]
-COMFORT = ["No worries, everyone learns at their own pace.", "That's okay, we'll take it slowly."]
+BOT_NAME = "Guru Beleq"
+BOT_MEANING = i18n.get("en", "bot_meaning")
+
+PRAISE = i18n.get("en", "praise")
+GENTLE = i18n.get("en", "gentle")
+COMFORT = i18n.get("en", "comfort")
 
 _NAME_STOP = {
     "hi", "hello", "hey", "yes", "no", "ok", "okay", "what", "who", "why", "how", "when", "where", "menu",
     "help", "quiz", "lesson", "bye", "thanks", "none", "nothing", "skip", "stop", "good", "morning", "afternoon",
     "evening", "fine", "here", "nice", "sorry", "ready", "not", "going", "confused", "tired", "the", "from",
+    # Bahasa Malaysia
+    "hai", "helo", "halo", "salam", "selamat", "pagi", "petang", "malam", "tengah", "terima", "kasih", "ya", "tak",
+    "tidak", "nak", "mahu", "suka", "baik", "okey", "apa", "siapa", "bila", "mana", "kenapa", "bagaimana", "nama",
+    "saya", "aku", "awak", "kamu", "anda", "bukan", "sedang", "sudah", "dah", "belum", "boleh", "keliru", "penat",
+    "kuiz", "pelajaran", "bantuan", "tolong", "maaf", "sini", "dari", "dan", "tiada", "entah", "sedia", "jom",
 }
 _NAME = r"[^\W\d_][^\W\d_'\-]*(?:['\-][^\W\d_]+)*"  # letters in any alphabet, allowing O'Brien and Anne-Marie
 
@@ -24,29 +31,31 @@ def now() -> datetime:
     return datetime.now(timezone(timedelta(hours=8))) if os.getenv("VERCEL") else datetime.now()
 
 
-def time_greeting() -> str:
+def _part_of_day() -> int:
+    """0 = morning, 1 = afternoon, 2 = evening."""
     hour = now().hour
-    if hour < 12:
-        return "Good morning"
-    if hour < 18:
-        return "Good afternoon"
-    return "Good evening"
+    return 0 if hour < 12 else 1 if hour < 18 else 2
 
 
-def time_period() -> str:
-    return time_greeting().replace("Good ", "")
+def time_greeting(lang: str = "en") -> str:
+    return i18n.get(lang, "greetings")[_part_of_day()]
 
 
-def reply_greeting(text: str = "") -> str:
-    """Match an explicit time greeting ('good morning', 'good evening', etc.), or fall back to the clock."""
+def time_period(lang: str = "en") -> str:
+    return i18n.get(lang, "periods")[_part_of_day()]
+
+
+def reply_greeting(text: str = "", lang: str = "en") -> str:
+    """Match an explicit time greeting ('good morning', 'selamat petang', etc.), or fall back to the clock."""
     low = text.lower()
+    greetings = i18n.get(lang, "greetings")
     if re.search(r"\b(morning|pagi)\b", low):
-        return "Good morning"
-    if re.search(r"\b(afternoon|siang|sore)\b", low):
-        return "Good afternoon"
+        return greetings[0]
+    if re.search(r"\b(afternoon|siang|sore|petang|tengah hari)\b", low):
+        return greetings[1]
     if re.search(r"\b(evening|malam)\b", low):
-        return "Good evening"
-    return time_greeting()
+        return greetings[2]
+    return time_greeting(lang)
 
 
 def pick(options: list[str]) -> str:
@@ -56,7 +65,8 @@ def pick(options: list[str]) -> str:
 def extract_name(text: str) -> str | None:
     """Pull a first name out of text like 'I'm Budi' or just 'Budi'. Returns None if it doesn't look like a name."""
     t = text.strip().rstrip(".!")
-    m = re.search(rf"\b(?:my name is|my name's|i am|i'm|im|call me|this is|it's|its)\s+({_NAME})", t, re.I)
+    m = re.search(rf"\b(?:my name is|my name's|i am|i'm|im|call me|this is|it's|its|nama saya|nama aku|"
+                  rf"panggil saya|panggil aku|saya ialah|saya adalah|saya|aku)\s+({_NAME})", t, re.I)
     if m:
         name = m.group(1)
     elif re.fullmatch(rf"{_NAME}(?: {_NAME})?", t):
@@ -68,31 +78,12 @@ def extract_name(text: str) -> str | None:
     return name[0].upper() + name[1:]
 
 
-def menu_text(name: str) -> str:
-    return (
-        f"Here is what we can do together, {name}:\n"
-        "  1. Start a lesson (I teach you step by step)\n"
-        "  2. Ask me anything about the Gendang Beleq\n"
-        "  3. Take a quiz\n"
-        "  4. Get a recommendation on what to learn next\n"
-        "  5. See your progress\n"
-        "  6. Help\n"
-        "  7. See the sources behind what I teach\n"
-        "  8. Browse the Sasak glossary\n"
-        "  0. Say goodbye\n"
-        "Type a number, or simply tell me in your own words what you would like."
-    )
+def menu_text(name: str, lang: str = "en") -> str:
+    return i18n.t(lang, "menu", name=name)
 
 
-def badge(progress: dict) -> str:
-    points = 10 * len(progress["lessons_done"]) + 3 * progress["quiz_right"]
-    if points < 10:
-        return "Curious Listener"
-    if points < 30:
-        return "Apprentice Drummer"
-    if points < 55:
-        return "Gong Keeper"
-    return "Master of the Big Drum"
+def badge(progress: dict, lang: str = "en") -> str:
+    return i18n.get(lang, "badges")[level_of(progress) - 1]
 
 
 def level_of(progress: dict | None) -> int:
@@ -108,39 +99,35 @@ def level_of(progress: dict | None) -> int:
     return 4
 
 
+# phrases that show how a turn went, in every language (the reply text is all the avatar gets to see)
+_MISSED_NAME = ("didn't catch your name", "tidak menangkap nama anda")
+_CELEBRATE = ("Lesson complete", "Quiz finished!", "Pelajaran selesai", "Kuiz tamat!")
+_THINKING = ("Here's a clue:", "You've got part of it", "I don't have an exact answer", "I'm not sure about that one",
+             "Ini petunjuknya:", "Anda betul sebahagiannya", "Saya tiada jawapan yang tepat",
+             "Saya kurang pasti tentang itu")
+_GREETING_WORDS = (*i18n.all_values("greetings"), "You're very welcome", "Sama-sama")
+_HELLO = ("Nice to meet you", "Welcome back", "Gembira berkenalan", "Selamat kembali")
+
+
 def reaction_of(state: dict, reply: str = "") -> str:
     """Visual reaction state for the side avatar based on the turn outcome."""
     intent = state.get("intent", "")
     mood = state.get("mood", "")
     if intent == "six_seven" or reply.startswith("🤲 67"):
         return "six_seven"
-    if state.get("invalid_reason") or intent == "offtopic" or "didn't catch your name" in reply:
+    if state.get("invalid_reason") or intent == "offtopic" or any(m in reply for m in _MISSED_NAME):
         return "comfort"
-    if mood == "struggling" or any(reply.startswith(c) for c in COMFORT):
+    if mood == "struggling" or any(reply.startswith(c) for c in i18n.all_values("comfort")):
         return "comfort"
-    if (
-        any(reply.startswith(p) for p in PRAISE)
-        or "Lesson complete" in reply
-        or "Quiz finished!" in reply
-        or mood == "happy"
-    ):
+    if any(reply.startswith(p) for p in i18n.all_values("praise")) or any(c in reply for c in _CELEBRATE) or mood == "happy":
         return "celebrate"
-    if (
-        "Here's a clue:" in reply
-        or any(reply.startswith(g) for g in GENTLE)
-        or "You've got part of it" in reply
-        or "I don't have an exact answer" in reply
-        or "I'm not sure about that one" in reply
-    ):
+    if any(c in reply for c in _THINKING) or any(reply.startswith(g) for g in i18n.all_values("gentle")):
         return "thinking"
     if (
         state.get("stage") == "ask_name"
         or intent == "bye"
-        or (
-            intent == "smalltalk"
-            and any(w in reply for w in ("Good morning", "Good afternoon", "Good evening", "You're very welcome"))
-        )
-        or reply.startswith(("Nice to meet you", "Welcome back"))
+        or (intent == "smalltalk" and any(w in reply for w in _GREETING_WORDS))
+        or reply.startswith(_HELLO)
     ):
         return "greeting"
     return "teaching"

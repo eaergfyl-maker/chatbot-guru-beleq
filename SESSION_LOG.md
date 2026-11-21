@@ -1,8 +1,8 @@
 # Session Handoff Log
 
 ## Latest Status
-- **Last Updated By:** Claude Code (2026-11-21)
-- **Current Task:** Gemini-first conversation with silent fallback, fun facts, thinking indicator
+- **Last Updated By:** Claude Code (2026-11-22)
+- **Current Task:** Bahasa Malaysia language switch everywhere; mascot centred in its window panel
 
 ## Recent Changes
 - Built Replika-inspired split-stage companion layout in `web/index.html` with a sunlit arch room backdrop, top floating navigation dock, `LVL X · <Title>` badge pill, and a 2.5D multi-layer rigged Guru Beleq SVG puppet (`#guru-puppet`) with 3D mouse-tilt parallax, eye tracking, and interactive Web Audio drum beat on click.
@@ -64,10 +64,24 @@
 - Watch: Vercel's function time limit must be above 15 s or a slow Gemini call could be cut off by the platform before the fallback runs.
 - Note for local testing: stopping a background `python server.py` task can leave the Python process running on port 8000 (seen on Windows); check the port before starting another copy.
 
+## Claude Code session: Bahasa Malaysia and centred mascot (2026-11-22)
+- **Language value:** `lang` ("en" default, "ms") is part of the LangGraph state. `start(graph, tid, lang)`, `ask(graph, text, tid, lang=None)` (None keeps the conversation's language) and new `switch_language(graph, tid, lang)` -> `relang` node, which confirms and repeats the current lesson/quiz question, name prompt or menu without using an attempt.
+- **Bot sentences:** `src/i18n.py` (`MESSAGES[lang]`, `t()`, `get()`). English strings are verbatim copies of the old ones; a 41-turn English snapshot is identical before and after.
+- **Knowledge:** `data/knowledge/topics_ms.json` is laid over `topics.json` by position (`knowledge._localise`), so translated facts keep their sources. Malay keywords and answer groups are merged with the English ones. `validate()` also checks the Malay file lines up.
+- **Understanding:** `nodes.py` patterns accept English and Malay in both modes; `nlp.py` has Malay synonyms, stopwords, question cues, -nya/-lah/-kah stemming and protected common words (so `menarik` is not "corrected" to `menari`); `search(..., lang="ms")` scores the Malay and English index per fact and returns the Malay text. `persona.extract_name` understands `nama saya`, `panggil saya`, `saya ...`.
+- **Gemini:** `llm.converse(..., lang)` sends the Malay knowledge base and `LANGUAGE_RULES["ms"]`; citations are identical so `grounded()` is unchanged.
+- **Server:** `/api/language` (404 for an unknown thread); `?lang=` on `/api/meta`, `/api/sandbox`, `/api/cuq`; `lang` in every turn payload; serves `/lang.js`.
+- **Pages:** shared `web/lang.js` (`GBLang`: `data-i18n*` attributes, `data-lang-link` keeps `?lang=ms` on links, EN|BM toggle, localStorage key `guru-beleq-lang` in try/catch, `?lang=ms` override). It also sets `translate="no"`: Chrome's own translator was turning the Malay pages back into machine English. Each page keeps its words in `GBLang.add({en, ms})`. Sandbox reloads station notes in the new language and re-asks an on-screen quiz/lesson question.
+- **Streamlit:** sidebar *Language / Bahasa* segmented control (`st.session_state.lang`, seeded from `?lang=`), `UI` dictionary, `switch_language` on change, Malay CUQ.
+- **Mascot fix (`web/index.html`):** the layout was capped at 1260px and centred, so on wide screens the avatar column sat at the right edge of the sky window and `justify-content:flex-end` pushed Guru Beleq to the bottom. Now `--side-w` sets both the window panel and the first grid column, the stage is full width, and `#avatar-stage` centres both ways (right padding equals the window frame). Measured centred at 2844x1501, 1280x720, 1024x600, 820, 390 and 360 px wide. Also fixed: the phone-width input bar overflowed (input `min-width:0`), header buttons now wrap, the body gradient no longer shows a second sky stripe, and the sandbox no longer shows "Fact n of m" over chat replies.
+- Tests: 103 pass, no key or network (22 new: Malay KB alignment, greeting/name/menu, clock greetings, cited Malay answers to Malay and English questions, lesson with Malay and English answers, quiz hint/skip, fun facts + `satu lagi`, mid-lesson switch both ways, Malay reactions, Malay Gemini prompt, language routes, `/lang.js` on every page, mascot centring CSS).
+- **Not checked by a native speaker:** all Malay wording, including the 16 CUQ items (`eval/cuq.py` `ITEMS_MS`), which are not a validated translation of the CUQ. Report CUQ results from the two languages separately or note this.
+
 ## Open items from this session
 - `eval/cuq_responses.csv` is not in `.gitignore`: real tester answers will appear as git changes and publish if pushed. Decide whether to ignore it.
 - Sandbox D-pad not yet tried on a real phone or tablet.
 
 ## Next Steps / Open Items
 - [ ] Run the CUQ usability test with real testers (see `eval/CUQ_TEST_PLAN.md`) and report results (`python -m eval.cuq report`).
+- [ ] Have a native Malay speaker review `topics_ms.json`, `src/i18n.py`, the page dictionaries and `ITEMS_MS`.
 - [ ] Optional: swap `MemorySaver` for `SqliteSaver` if persistent chat history across restarts is needed.

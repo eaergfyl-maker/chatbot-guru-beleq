@@ -38,6 +38,35 @@ ITEMS = [
     "The chatbot was very complex",
 ]
 SCALE = "1 = strongly disagree, 2 = disagree, 3 = neutral, 4 = agree, 5 = strongly agree"
+
+# Bahasa Malaysia wording of the same 16 items, in the same order (answers are stored and scored identically).
+# This is our own translation for the bilingual app, not a published validated Malay version of the CUQ.
+ITEMS_MS = [
+    "Personaliti chatbot ini realistik dan menarik",
+    "Chatbot ini kelihatan terlalu seperti robot",
+    "Chatbot ini mesra semasa permulaan",
+    "Chatbot ini kelihatan sangat tidak mesra",
+    "Chatbot ini menerangkan skop dan tujuannya dengan baik",
+    "Chatbot ini tidak memberi sebarang petunjuk tentang tujuannya",
+    "Chatbot ini mudah dilayari",
+    "Mudah untuk menjadi keliru semasa menggunakan chatbot ini",
+    "Chatbot ini memahami saya dengan baik",
+    "Chatbot ini gagal mengenal pasti banyak input saya",
+    "Jawapan chatbot berguna, sesuai dan bermaklumat",
+    "Jawapan chatbot tidak relevan",
+    "Chatbot ini menangani sebarang ralat atau kesilapan dengan baik",
+    "Chatbot ini kelihatan tidak mampu menangani sebarang ralat",
+    "Chatbot ini sangat mudah digunakan",
+    "Chatbot ini sangat rumit",
+]
+SCALE_MS = "1 = sangat tidak setuju, 2 = tidak setuju, 3 = neutral, 4 = setuju, 5 = sangat setuju"
+
+
+def questionnaire(lang: str = "en") -> dict:
+    """The items and scale shown to respondents, in English or Bahasa Malaysia."""
+    if lang == "ms":
+        return {"items": ITEMS_MS, "scale": SCALE_MS}
+    return {"items": ITEMS, "scale": SCALE}
 COLUMNS = ["respondent", *(f"Q{i}" for i in range(1, 17)), "cuq_score", "comments"]
 
 

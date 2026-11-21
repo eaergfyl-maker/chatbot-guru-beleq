@@ -5,19 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guru Beleq - Gendang Beleq Teacher</title>
 <link rel="icon" href="/avatar.png">
+<script src="/lang.js"></script>
 <style>
   :root {
     --brown:#5b3a24; --brown-dark:#3e2515; --red:#b3262d;
     --cream:#fbf4e6; --tan:#ecdcc0; --tan-dark:#d7be96;
     --glass:rgba(255, 250, 242, 0.86);
     --glass-bot:rgba(255, 252, 245, 0.94);
+    /* width of the sky-window panel AND of the avatar column, so Guru Beleq is centred in the window */
+    --side-w: clamp(300px, 36vw, 960px);
   }
   * { box-sizing: border-box; }
   body {
     margin:0; font-family: system-ui, -apple-system, Segoe UI, sans-serif;
     color:#2b1d12; height:100vh; overflow:hidden;
     display:flex; flex-direction:column;
-    background: linear-gradient(125deg, #b8e1fc 0%, #def2ff 28%, #f5ead8 28.2%, #efe0c9 68%, #e4cfb0 100%);
+    background: linear-gradient(125deg, #f5ead8 0%, #efe0c9 60%, #e4cfb0 100%);
   }
 
   /* Ambient Replika-style room architectural details */
@@ -25,7 +28,7 @@
     position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
   }
   .room-window {
-    position:absolute; left:-4%; top:0; width:44%; height:100%;
+    position:absolute; left:0; top:0; width:var(--side-w); height:100%;
     background: linear-gradient(180deg, #89c8f7 0%, #bfe4ff 55%, #e8f5ff 85%, #d6e6c3 100%);
     border-right: 18px solid #f4e9d8;
     border-top-right-radius: 260px;
@@ -77,7 +80,8 @@
   .nav-pill:hover { background:rgba(255,255,255,0.16); }
   .nav-pill.active { background:rgba(255,255,255,0.25); }
 
-  .action-cluster { display:flex; align-items:center; gap:6px; }
+  .action-cluster { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  button.small { white-space:nowrap; }
   button.small, a.small {
     background: rgba(91, 58, 36, 0.78); backdrop-filter: blur(10px);
     color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:999px;
@@ -90,20 +94,21 @@
   /* Main Split Workspace: Left Avatar Companion + Right Chat Stream */
   .stage-layout {
     position:relative; z-index:5;
-    flex:1; width:100%; max-width:1260px; margin:0 auto;
-    display:grid; grid-template-columns: 390px 1fr;
-    gap:12px; min-height:0; padding:0 18px 12px;
+    flex:1; width:100%;
+    display:grid; grid-template-columns: var(--side-w) minmax(0, 1fr);
+    gap:12px; min-height:0; padding:0 18px 12px 0;
   }
 
-  /* Left Companion Stage */
+  /* Left Companion Stage: Guru Beleq and his card sit in the middle of the window panel, both ways.
+     The right padding matches the window frame (18px), so the centre is the centre of the visible sky. */
   #avatar-stage {
     position:relative; display:flex; flex-direction:column;
-    align-items:center; justify-content:flex-end;
-    padding-bottom:14px; user-select:none;
+    align-items:center; justify-content:center; gap:10px;
+    min-height:0; overflow:hidden; padding:8px 18px 8px 0; user-select:none;
     perspective: 900px;
   }
   #puppet-wrap {
-    position:relative; width:100%; max-width:350px; height:430px;
+    position:relative; width:100%; max-width:350px; height:430px; flex:0 1 430px; min-height:120px;
     display:flex; align-items:center; justify-content:center;
     transform-style: preserve-3d;
     transition: transform 0.12s ease-out;
@@ -285,7 +290,7 @@
   /* Right Chat Column (Replika floating bubble stream) */
   .chat-column {
     display:flex; flex-direction:column; min-height:0; height:100%;
-    max-width:780px; width:100%;
+    max-width:780px; width:100%; justify-self:center;
   }
   #chat {
     flex:1; width:100%; overflow-y:auto; padding:12px 16px;
@@ -347,7 +352,7 @@
     padding:8px 14px 6px;
   }
   .input-pill {
-    flex:1; display:flex; align-items:center;
+    flex:1; min-width:0; display:flex; align-items:center;
     background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px);
     border:2px solid var(--tan-dark); border-radius:999px;
     padding:4px 6px 4px 18px;
@@ -356,7 +361,7 @@
   }
   .input-pill:focus-within { border-color:var(--red); }
   input#box {
-    flex:1; border:0; background:transparent; padding:10px 6px;
+    flex:1; min-width:0; width:100%; border:0; background:transparent; padding:10px 6px;
     font-size:.98rem; color:#2b1d12; outline:none;
   }
   form#form button#send {
@@ -395,14 +400,19 @@
 
   /* Responsive mobile layout (like Replika mobile screenshot 2) */
   @media (max-width: 820px) {
-    .stage-layout {
-      grid-template-columns: 155px 1fr;
-      gap: 6px; padding: 0 8px 8px;
-    }
-    #puppet-wrap { height: 290px; max-width: 155px; }
+    :root { --side-w: clamp(132px, 38vw, 220px); }
+    .stage-layout { gap: 6px; padding: 0 8px 8px 0; }
+    #avatar-stage { padding: 6px 12px 6px 0; }
+    .room-window { border-right-width: 12px; border-top-right-radius: 140px; }
+    #puppet-wrap { height: 290px; flex-basis: 290px; max-width: 155px; }
     .companion-card { padding: 7px 10px; flex-direction: column; align-items: flex-start; gap: 4px; }
     .nav-pills { display: none; }
+    header { padding: 8px 10px; gap: 6px; }
+    .action-cluster { gap: 4px; }
+    button.small, a.small { padding: 6px 9px; font-size: .74rem; }
     .msg { max-width: 94%; font-size: .9rem; padding: 10px 13px; }
+    form#form { padding: 6px 8px; gap: 6px; }
+    form#form button#send { padding: 10px 14px; }
   }
 </style>
 </head>
@@ -423,27 +433,27 @@
     </div>
   </div>
 
-  <nav class="nav-pills" aria-label="Companion navigation">
-    <button type="button" class="nav-pill active" id="nav-chat">💬 Chat</button>
-    <button type="button" class="nav-pill" id="explore">📚 Explore knowledge</button>
-    <button type="button" class="nav-pill" id="nav-glossary">📖 Glossary</button>
-    <button type="button" class="nav-pill" id="rate">⭐ Rate chatbot</button>
+  <nav class="nav-pills" aria-label="Companion navigation" data-i18n-aria="nav.aria">
+    <button type="button" class="nav-pill active" id="nav-chat" data-i18n="nav.chat">💬 Chat</button>
+    <button type="button" class="nav-pill" id="explore" data-i18n="nav.explore">📚 Explore knowledge</button>
+    <button type="button" class="nav-pill" id="nav-glossary" data-i18n="nav.glossary">📖 Glossary</button>
+    <button type="button" class="nav-pill" id="rate" data-i18n="nav.rate">⭐ Rate chatbot</button>
   </nav>
 
-  <div class="action-cluster">
-    <a class="small" id="home" href="/" title="Back to the mode selection page">🏠 Switch mode</a>
-    <a class="small" href="/sandbox" title="Explore the Sasak Village Sandbox">🗺️ Sandbox</a>
-    <button class="small" id="export">Export chat</button>
-    <button class="small" id="restart">Start over</button>
+  <div class="action-cluster" id="actions">
+    <a class="small" id="home" href="/" data-lang-link title="Back to the mode selection page" data-i18n-title="act.home.title" data-i18n="act.home">🏠 Switch mode</a>
+    <a class="small" href="/sandbox" data-lang-link title="Explore the Sasak Village Sandbox" data-i18n-title="act.sandbox.title" data-i18n="act.sandbox">🗺️ Sandbox</a>
+    <button class="small" id="export" data-i18n="act.export">Export chat</button>
+    <button class="small" id="restart" data-i18n="act.restart">Start over</button>
   </div>
 </header>
 
 <main class="stage-layout">
   <!-- Left Side: Replika-style Standing 2.5D Rigged Guru Beleq Companion -->
-  <aside id="avatar-stage" class="state-greeting" aria-label="Guru Beleq interactive avatar">
-    <div id="puppet-wrap" title="Click Guru Beleq to play the drum!">
+  <aside id="avatar-stage" class="state-greeting" aria-label="Guru Beleq interactive avatar" data-i18n-aria="avatar.aria">
+    <div id="puppet-wrap" title="Click Guru Beleq to play the drum!" data-i18n-title="avatar.click">
       <div id="particles"></div>
-      <svg id="guru-puppet" viewBox="0 0 360 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Guru Beleq animated drum teacher">
+      <svg id="guru-puppet" viewBox="0 0 360 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Guru Beleq animated drum teacher" data-i18n-aria="avatar.svg">
         <defs>
           <linearGradient id="woodBody" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#a84e24"/>
@@ -601,21 +611,21 @@
     <div class="companion-card">
       <div>
         <h2>Guru Beleq</h2>
-        <small>Your Gendang Beleq teacher</small>
+        <small data-i18n="card.sub">Your Gendang Beleq teacher</small>
       </div>
       <span id="mood-pill">👋 Greeting you</span>
     </div>
   </aside>
 
   <!-- Right Side: Floating Chat Stream, Quick Actions & Input Pill -->
-  <section class="chat-column" aria-label="Conversation">
+  <section class="chat-column" aria-label="Conversation" data-i18n-aria="chat.aria">
     <div id="chat" aria-live="polite"></div>
-    <div id="quickbar" aria-label="Quick actions"></div>
+    <div id="quickbar" aria-label="Quick actions" data-i18n-aria="quick.aria"></div>
     <form id="form">
       <div class="input-pill">
-        <input id="box" autocomplete="off" placeholder="Start typing..." autofocus>
+        <input id="box" autocomplete="off" placeholder="Start typing..." data-i18n-placeholder="input.ph" data-i18n-aria="input.aria" aria-label="Message" autofocus>
       </div>
-      <button id="send">Send</button>
+      <button id="send" data-i18n="input.send">Send</button>
     </form>
   </section>
 </main>
@@ -623,35 +633,117 @@
 <!-- Explore Knowledge Modal (Glossary, Lessons, Semantic Network) -->
 <div id="exploreModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="exploreTitle">
   <div class="modalbox">
-    <h2 id="exploreTitle">Explore Gendang Beleq Knowledge</h2>
-    <p class="hint">Browse lessons, search the 17-term Sasak glossary, or inspect the cited semantic network.</p>
+    <h2 id="exploreTitle" data-i18n="explore.title">Explore Gendang Beleq Knowledge</h2>
+    <p class="hint" data-i18n="explore.hint">Browse lessons, search the 17-term Sasak glossary, or inspect the cited semantic network.</p>
     <div class="tabs">
-      <button type="button" class="tabbtn active" data-tab="tab-lessons">Lessons (6)</button>
-      <button type="button" class="tabbtn" data-tab="tab-glossary">Sasak Glossary (17)</button>
-      <button type="button" class="tabbtn" data-tab="tab-net">Semantic Network (24)</button>
+      <button type="button" class="tabbtn active" data-tab="tab-lessons" data-i18n="explore.lessons">Lessons (6)</button>
+      <button type="button" class="tabbtn" data-tab="tab-glossary" data-i18n="explore.glossary">Sasak Glossary (17)</button>
+      <button type="button" class="tabbtn" data-tab="tab-net" data-i18n="explore.net">Semantic Network (24)</button>
     </div>
     <div id="tab-lessons" class="tabpane active"></div>
     <div id="tab-glossary" class="tabpane">
-      <input id="gsearch" type="search" placeholder="Search Sasak or musical terms (e.g. petuq, nyongkolan, sapuk)...">
+      <input id="gsearch" type="search" placeholder="Search Sasak or musical terms (e.g. petuq, nyongkolan, sapuk)..." data-i18n-placeholder="explore.search">
       <div id="glist"></div>
     </div>
     <div id="tab-net" class="tabpane"></div>
-    <div class="row"><button type="button" class="alt" id="exploreClose">Close</button></div>
+    <div class="row"><button type="button" class="alt" id="exploreClose" data-i18n="common.close">Close</button></div>
   </div>
 </div>
 
 <!-- CUQ Modal -->
 <div id="cuq" class="modal" role="dialog" aria-modal="true" aria-labelledby="cuqtitle"><div class="modalbox">
-  <h2 id="cuqtitle">Rate this chatbot</h2>
+  <h2 id="cuqtitle" data-i18n="cuq.title">Rate this chatbot</h2>
   <p class="hint" id="scale"></p>
   <form id="cuqform" style="display:block;padding:0;max-width:none"><div id="qs"></div>
-    <textarea id="comments" rows="3" placeholder="Comments (optional)"></textarea>
+    <textarea id="comments" rows="3" placeholder="Comments (optional)" data-i18n-placeholder="cuq.comments"></textarea>
     <div id="cuqmsg"></div>
-    <div class="row"><button type="button" class="alt" id="cuqclose">Close</button><button id="cuqsubmit">Submit</button></div>
+    <div class="row"><button type="button" class="alt" id="cuqclose" data-i18n="common.close">Close</button><button id="cuqsubmit" data-i18n="cuq.submit">Submit</button></div>
   </form>
 </div></div>
 
 <script>
+GBLang.add({
+  en: {
+    'page.title': 'Guru Beleq - Gendang Beleq Teacher',
+    'nav.aria': 'Companion navigation', 'nav.chat': '💬 Chat', 'nav.explore': '📚 Explore knowledge',
+    'nav.glossary': '📖 Glossary', 'nav.rate': '⭐ Rate chatbot',
+    'act.home': '🏠 Switch mode', 'act.home.title': 'Back to the mode selection page',
+    'act.sandbox': '🗺️ Sandbox', 'act.sandbox.title': 'Explore the Sasak Village Sandbox',
+    'act.export': 'Export chat', 'act.restart': 'Start over',
+    'avatar.aria': 'Guru Beleq interactive avatar', 'avatar.click': 'Click Guru Beleq to play the drum!',
+    'avatar.svg': 'Guru Beleq animated drum teacher', 'card.sub': 'Your Gendang Beleq teacher',
+    'chat.aria': 'Conversation', 'quick.aria': 'Quick actions', 'input.ph': 'Start typing...', 'input.aria': 'Message',
+    'input.send': 'Send',
+    'mood.idle': '🥁 Ready to teach', 'mood.listening': '👂 Listening...', 'mood.greeting': '👋 Greeting you',
+    'mood.teaching': '🥁 Explaining...', 'mood.celebrate': '🎉 Spot on!', 'mood.thinking': '💡 Hint & clue',
+    'mood.comfort': '💛 Taking it slow', 'mood.six_seven': '🤲 67!',
+    'thinking': 'Guru Beleq is thinking',
+    'badge.default': 'LVL 1 · Curious Listener', 'badge.quiz': 'Quiz',
+    'chip.hint': '💡 Hint', 'chip.repeat': '🔁 Repeat step', 'chip.skip': '⏭️ Skip question',
+    'chip.leave': '⏹️ Leave lesson', 'chip.stopQuiz': '⏹️ Stop quiz',
+    'chip.1': '1. Start lesson', 'chip.2': '2. Ask question', 'chip.3': '3. Take quiz', 'chip.4': '4. Recommend',
+    'chip.5': '5. Progress', 'chip.6': '6. Help', 'chip.7': '7. Sources', 'chip.8': '8. Glossary',
+    'cmd.hint': 'hint', 'cmd.repeat': 'repeat', 'cmd.skip': 'skip', 'cmd.stop': 'stop',
+    'select.aria': 'Jump to a specific lesson', 'select.default': 'Choose a lesson topic...', 'lesson.n': 'Lesson {n}: {title}',
+    'teachAbout': 'teach me about {title}', 'whatIs': 'what is {term}?',
+    'err.server': 'Sorry, I could not reach the server. Is server.py running?',
+    'err.chat': 'Sorry, something went wrong talking to the server.',
+    'export.title': 'Guru Beleq - Learning Transcript', 'export.status': 'Status: {badge} | Lessons: {done}/{total} | Quiz: {right}/{qtotal}',
+    'export.you': 'You', 'export.file': 'guru-beleq-transcript.txt',
+    'explore.title': 'Explore Gendang Beleq Knowledge',
+    'explore.hint': 'Browse lessons, search the 17-term Sasak glossary, or inspect the cited semantic network.',
+    'explore.lessons': 'Lessons (6)', 'explore.glossary': 'Sasak Glossary (17)', 'explore.net': 'Semantic Network (24)',
+    'explore.search': 'Search Sasak or musical terms (e.g. petuq, nyongkolan, sapuk)...',
+    'explore.done': '✓ Completed', 'explore.todo': 'To learn', 'explore.start': 'Start lesson', 'explore.ask': 'Ask Guru',
+    'common.close': 'Close',
+    'cuq.title': 'Rate this chatbot', 'cuq.comments': 'Comments (optional)', 'cuq.submit': 'Submit',
+    'cuq.anon': 'Your answers are anonymous.', 'cuq.loadFail': 'Could not load the questionnaire.',
+    'cuq.answer': 'Please answer question {n}.', 'cuq.thanks': 'Thank you! Your score: {score} out of 100.',
+    'cuq.notSaved': ' (The online demo does not store responses.)', 'cuq.saveFail': 'Sorry, your answers could not be saved.',
+  },
+  ms: {
+    'page.title': 'Guru Beleq - Guru Gendang Beleq',
+    'nav.aria': 'Navigasi rakan', 'nav.chat': '💬 Sembang', 'nav.explore': '📚 Terokai pengetahuan',
+    'nav.glossary': '📖 Glosari', 'nav.rate': '⭐ Nilai chatbot',
+    'act.home': '🏠 Tukar mod', 'act.home.title': 'Kembali ke halaman pilihan mod',
+    'act.sandbox': '🗺️ Kotak Pasir', 'act.sandbox.title': 'Terokai Kotak Pasir Kampung Sasak',
+    'act.export': 'Eksport sembang', 'act.restart': 'Mula semula',
+    'avatar.aria': 'Avatar interaktif Guru Beleq', 'avatar.click': 'Klik Guru Beleq untuk memukul gendang!',
+    'avatar.svg': 'Guru Beleq, guru gendang beranimasi', 'card.sub': 'Guru Gendang Beleq anda',
+    'chat.aria': 'Perbualan', 'quick.aria': 'Tindakan pantas', 'input.ph': 'Mula menaip...', 'input.aria': 'Mesej',
+    'input.send': 'Hantar',
+    'mood.idle': '🥁 Sedia mengajar', 'mood.listening': '👂 Sedang mendengar...', 'mood.greeting': '👋 Menyapa anda',
+    'mood.teaching': '🥁 Menerangkan...', 'mood.celebrate': '🎉 Tepat sekali!', 'mood.thinking': '💡 Petunjuk & klu',
+    'mood.comfort': '💛 Perlahan-lahan', 'mood.six_seven': '🤲 67!',
+    'thinking': 'Guru Beleq sedang berfikir',
+    'badge.default': 'TAHAP 1 · Pendengar Ingin Tahu', 'badge.quiz': 'Kuiz',
+    'chip.hint': '💡 Petunjuk', 'chip.repeat': '🔁 Ulang langkah', 'chip.skip': '⏭️ Langkau soalan',
+    'chip.leave': '⏹️ Tinggalkan pelajaran', 'chip.stopQuiz': '⏹️ Hentikan kuiz',
+    'chip.1': '1. Mula pelajaran', 'chip.2': '2. Tanya soalan', 'chip.3': '3. Ambil kuiz', 'chip.4': '4. Cadangan',
+    'chip.5': '5. Kemajuan', 'chip.6': '6. Bantuan', 'chip.7': '7. Sumber', 'chip.8': '8. Glosari',
+    'cmd.hint': 'petunjuk', 'cmd.repeat': 'ulang', 'cmd.skip': 'langkau', 'cmd.stop': 'berhenti',
+    'select.aria': 'Pergi terus ke pelajaran tertentu', 'select.default': 'Pilih topik pelajaran...', 'lesson.n': 'Pelajaran {n}: {title}',
+    'teachAbout': 'ajar saya tentang {title}', 'whatIs': 'apa itu {term}?',
+    'err.server': 'Maaf, saya tidak dapat menghubungi pelayan. Adakah server.py sedang berjalan?',
+    'err.chat': 'Maaf, ada masalah semasa berhubung dengan pelayan.',
+    'export.title': 'Guru Beleq - Transkrip Pembelajaran', 'export.status': 'Status: {badge} | Pelajaran: {done}/{total} | Kuiz: {right}/{qtotal}',
+    'export.you': 'Anda', 'export.file': 'guru-beleq-transkrip.txt',
+    'explore.title': 'Terokai Pengetahuan Gendang Beleq',
+    'explore.hint': 'Layari pelajaran, cari dalam glosari Sasak 17 istilah, atau lihat rangkaian semantik yang bersumber.',
+    'explore.lessons': 'Pelajaran (6)', 'explore.glossary': 'Glosari Sasak (17)', 'explore.net': 'Rangkaian Semantik (24)',
+    'explore.search': 'Cari istilah Sasak atau muzik (cth. petuq, nyongkolan, sapuk)...',
+    'explore.done': '✓ Selesai', 'explore.todo': 'Belum dipelajari', 'explore.start': 'Mula pelajaran', 'explore.ask': 'Tanya Guru',
+    'common.close': 'Tutup',
+    'cuq.title': 'Nilai chatbot ini', 'cuq.comments': 'Komen (pilihan)', 'cuq.submit': 'Hantar',
+    'cuq.anon': 'Jawapan anda tanpa nama.', 'cuq.loadFail': 'Soal selidik tidak dapat dimuatkan.',
+    'cuq.answer': 'Sila jawab soalan {n}.', 'cuq.thanks': 'Terima kasih! Skor anda: {score} daripada 100.',
+    'cuq.notSaved': ' (Demo dalam talian tidak menyimpan jawapan.)', 'cuq.saveFail': 'Maaf, jawapan anda tidak dapat disimpan.',
+  },
+});
+const T = GBLang.t;
+GBLang.toggle(document.getElementById('actions'));
+GBLang.apply();
+
 const chat = document.getElementById('chat'), box = document.getElementById('box'), send = document.getElementById('send');
 const quickbar = document.getElementById('quickbar');
 const avatarStage = document.getElementById('avatar-stage');
@@ -661,18 +753,20 @@ const particles = document.getElementById('particles');
 const pupilL = document.getElementById('pupil-l'), pupilR = document.getElementById('pupil-r');
 
 let tid = null, currentStage = 'ask_name', currentProgress = null, meta = null, historyLog = [];
+const metaByLang = {};
 let reactionTimer = null, speakTimer = null, lastReaction = 'greeting';
 
 const REACTION_META = {
-  idle:      { label: '🥁 Ready to teach', bursts: [] },
-  listening: { label: '👂 Listening...', bursts: [] },
-  greeting:  { label: '👋 Greeting you', bursts: ['👋', '🥁', '✨'] },
-  teaching:  { label: '🥁 Explaining...', bursts: ['🥁', '🎶'] },
-  celebrate: { label: '🎉 Spot on!', bursts: ['🎵', '🎶', '✨', '🌟', '🥁'] },
-  thinking:  { label: '💡 Hint & clue', bursts: ['💡', '🤔'] },
-  comfort:   { label: '💛 Taking it slow', bursts: ['💛', '✨'] },
-  six_seven: { label: '🤲 67!', bursts: ['🤲', '6️⃣', '7️⃣', '✨'] },
+  idle:      { bursts: [] },
+  listening: { bursts: [] },
+  greeting:  { bursts: ['👋', '🥁', '✨'] },
+  teaching:  { bursts: ['🥁', '🎶'] },
+  celebrate: { bursts: ['🎵', '🎶', '✨', '🌟', '🥁'] },
+  thinking:  { bursts: ['💡', '🤔'] },
+  comfort:   { bursts: ['💛', '✨'] },
+  six_seven: { bursts: ['🤲', '6️⃣', '7️⃣', '✨'] },
 };
+const moodLabel = state => T('mood.' + state);
 
 function spawnParticles(icons) {
   if (!icons || !icons.length) return;
@@ -694,7 +788,7 @@ function setAvatarReaction(state, speaking = false) {
   if (clean !== 'listening') lastReaction = clean;
   avatarStage.className = 'state-' + clean + (speaking ? ' speaking' : '');
   const info = REACTION_META[clean] || REACTION_META.idle;
-  moodPill.textContent = info.label;
+  moodPill.textContent = moodLabel(clean);
   if (info.bursts.length) spawnParticles(info.bursts);
 
   clearTimeout(speakTimer);
@@ -705,7 +799,7 @@ function setAvatarReaction(state, speaking = false) {
   if (clean !== 'idle' && clean !== 'listening') {
     reactionTimer = setTimeout(() => {
       avatarStage.className = 'state-idle';
-      moodPill.textContent = REACTION_META.idle.label;
+      moodPill.textContent = moodLabel('idle');
     }, 4200);
   }
 }
@@ -768,7 +862,7 @@ function add(role, text) {
   d.textContent = text;
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
-  historyLog.push({role: role === 'bot' ? 'Guru Beleq' : 'You', text});
+  historyLog.push({role: role === 'bot' ? 'Guru Beleq' : 'user', text});
 }
 
 // "Guru Beleq is thinking..." bubble at the bottom of the chat while a reply is on its way
@@ -778,7 +872,10 @@ function showThinking() {
   d.className = 'msg bot typing';
   d.id = 'thinking';
   d.setAttribute('role', 'status');
-  d.innerHTML = '<span>Guru Beleq is thinking</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+  const label = document.createElement('span');
+  label.textContent = T('thinking');
+  d.append(label);
+  d.insertAdjacentHTML('beforeend', '<span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>');
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
   setAvatarReaction('thinking', false);
@@ -788,13 +885,14 @@ function hideThinking() { document.getElementById('thinking')?.remove(); }
 function showProgress(p) {
   currentProgress = p;
   if (!p) {
-    document.getElementById('badge').textContent = 'LVL 1 · Curious Listener';
+    document.getElementById('badge').textContent = T('badge.default');
     document.querySelector('#bar div').style.width = '0';
     return;
   }
   const lvl = p.level || 1;
-  const quiz = p.quiz_total ? ` · Quiz ${p.quiz_right}/${p.quiz_total}` : '';
-  document.getElementById('badge').textContent = `LVL ${lvl} · ${p.badge} (${p.done}/${p.total}${quiz})`;
+  const quiz = p.quiz_total ? ` · ${T('badge.quiz')} ${p.quiz_right}/${p.quiz_total}` : '';
+  const lvlWord = GBLang.lang === 'ms' ? 'TAHAP' : 'LVL';
+  document.getElementById('badge').textContent = `${lvlWord} ${lvl} · ${p.badge} (${p.done}/${p.total}${quiz})`;
   document.querySelector('#bar div').style.width = (100 * p.done / p.total) + '%';
 }
 
@@ -813,43 +911,34 @@ function renderQuickbar(stage) {
   if (currentStage === 'ask_name') return;
   if (currentStage === 'lesson') {
     quickbar.append(
-      makeChip('💡 Hint', 'hint', true),
-      makeChip('🔁 Repeat step', 'repeat'),
-      makeChip('⏭️ Skip question', 'skip'),
-      makeChip('⏹️ Leave lesson', 'stop')
+      makeChip(T('chip.hint'), T('cmd.hint'), true),
+      makeChip(T('chip.repeat'), T('cmd.repeat')),
+      makeChip(T('chip.skip'), T('cmd.skip')),
+      makeChip(T('chip.leave'), T('cmd.stop'))
     );
     return;
   }
   if (currentStage === 'quiz') {
     quickbar.append(
-      makeChip('💡 Hint', 'hint', true),
-      makeChip('⏭️ Skip question', 'skip'),
-      makeChip('⏹️ Stop quiz', 'stop')
+      makeChip(T('chip.hint'), T('cmd.hint'), true),
+      makeChip(T('chip.skip'), T('cmd.skip')),
+      makeChip(T('chip.stopQuiz'), T('cmd.stop'))
     );
     return;
   }
-  quickbar.append(
-    makeChip('1. Start lesson', '1', true),
-    makeChip('2. Ask question', '2'),
-    makeChip('3. Take quiz', '3'),
-    makeChip('4. Recommend', '4'),
-    makeChip('5. Progress', '5'),
-    makeChip('6. Help', '6'),
-    makeChip('7. Sources', '7'),
-    makeChip('8. Glossary', '8')
-  );
+  quickbar.append(...['1', '2', '3', '4', '5', '6', '7', '8'].map(n => makeChip(T('chip.' + n), n, n === '1')));
   if (meta && meta.topics) {
     const sel = document.createElement('select');
     sel.className = 'chip-select';
-    sel.setAttribute('aria-label', 'Jump to a specific lesson');
+    sel.setAttribute('aria-label', T('select.aria'));
     const def = document.createElement('option');
     def.value = '';
-    def.textContent = 'Choose a lesson topic...';
+    def.textContent = T('select.default');
     sel.appendChild(def);
     meta.topics.forEach((t, idx) => {
       const o = document.createElement('option');
-      o.value = `teach me about ${t.title.toLowerCase()}`;
-      o.textContent = `Lesson ${idx + 1}: ${t.title}`;
+      o.value = T('teachAbout', {title: t.title.toLowerCase()});
+      o.textContent = T('lesson.n', {n: idx + 1, title: t.title});
       sel.appendChild(o);
     });
     sel.onchange = () => { if (sel.value) { sendMessage(sel.value); sel.value = ''; } };
@@ -864,8 +953,11 @@ async function post(url, body) {
 }
 
 async function loadMeta() {
-  if (meta) return meta;
-  try { meta = await (await fetch('/api/meta')).json(); } catch { meta = null; }
+  const lang = GBLang.lang;
+  if (!metaByLang[lang]) {
+    try { metaByLang[lang] = await (await fetch('/api/meta?lang=' + lang)).json(); } catch { return meta; }
+  }
+  meta = metaByLang[lang];
   return meta;
 }
 
@@ -873,13 +965,13 @@ async function begin() {
   chat.innerHTML = ''; historyLog = []; showProgress(null);
   await loadMeta();
   try {
-    const d = await post('/api/start');
+    const d = await post('/api/start', {lang: GBLang.lang});
     tid = d.thread_id;
     add('bot', d.reply);
     renderQuickbar(d.stage || 'ask_name');
     setAvatarReaction(d.reaction || 'greeting', true);
   } catch {
-    add('bot', 'Sorry, I could not reach the server. Is server.py running?');
+    add('bot', T('err.server'));
     setAvatarReaction('comfort', false);
   }
 }
@@ -890,7 +982,7 @@ async function sendMessage(text) {
   box.value = ''; add('user', clean); send.disabled = true;
   showThinking();
   try {
-    const d = await post('/api/chat', {thread_id: tid, message: clean});
+    const d = await post('/api/chat', {thread_id: tid, message: clean, lang: GBLang.lang});
     hideThinking();
     add('bot', d.reply);
     showProgress(d.progress);
@@ -898,7 +990,7 @@ async function sendMessage(text) {
     setAvatarReaction(d.reaction || 'teaching', true);
   } catch {
     hideThinking();
-    add('bot', 'Sorry, something went wrong talking to the server.');
+    add('bot', T('err.chat'));
     setAvatarReaction('comfort', false);
   }
   send.disabled = false; box.focus();
@@ -909,19 +1001,43 @@ document.getElementById('form').addEventListener('submit', e => {
   sendMessage(box.value);
 });
 document.getElementById('restart').onclick = begin;
+
+// Language switch: the page changes at once, and the bot confirms and repeats the current question or menu
+GBLang.onChange(async lang => {
+  cuqLoaded = false;
+  document.getElementById('qs').innerHTML = '';
+  showProgress(currentProgress);
+  moodPill.textContent = moodLabel(lastReaction);
+  await loadMeta();
+  renderQuickbar(currentStage);
+  if (exploreModal.classList.contains('open')) renderExplore();
+  if (!tid) return;
+  showThinking();
+  try {
+    const d = await post('/api/language', {thread_id: tid, lang});
+    hideThinking();
+    add('bot', d.reply);
+    showProgress(d.progress);
+    renderQuickbar(d.stage || currentStage);
+    setAvatarReaction('greeting', true);
+  } catch {
+    hideThinking();
+  }
+});
 document.getElementById('nav-chat').onclick = () => box.focus();
 
 // ---- Export Chat Transcript ----
 document.getElementById('export').onclick = () => {
   if (!historyLog.length) return;
-  const header = `Guru Beleq - Learning Transcript\n` +
-    (currentProgress ? `Status: ${currentProgress.badge} | Lessons: ${currentProgress.done}/${currentProgress.total} | Quiz: ${currentProgress.quiz_right}/${currentProgress.quiz_total}\n` : '') +
+  const p = currentProgress;
+  const header = `${T('export.title')}\n` +
+    (p ? T('export.status', {badge: p.badge, done: p.done, total: p.total, right: p.quiz_right, qtotal: p.quiz_total}) + '\n' : '') +
     `==================================================\n\n`;
-  const body = historyLog.map(m => `[${m.role}]\n${m.text}\n`).join('\n');
+  const body = historyLog.map(m => `[${m.role === 'user' ? T('export.you') : m.role}]\n${m.text}\n`).join('\n');
   const blob = new Blob([header + body], {type: 'text/plain;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'guru-beleq-transcript.txt';
+  a.download = T('export.file');
   a.click();
   URL.revokeObjectURL(a.href);
 };
@@ -945,20 +1061,20 @@ function renderExplore() {
     const c = document.createElement('div'); c.className = 'card';
     const left = document.createElement('div');
     const title = document.createElement('div'); title.className = 'card-title';
-    title.textContent = `Lesson ${i + 1}: ${t.title}`;
+    title.textContent = T('lesson.n', {n: i + 1, title: t.title});
     const pill = document.createElement('span');
     pill.className = 'badge-pill' + (doneSet.has(t.id) ? ' done' : '');
-    pill.textContent = doneSet.has(t.id) ? '✓ Completed' : 'To learn';
+    pill.textContent = doneSet.has(t.id) ? T('explore.done') : T('explore.todo');
     title.appendChild(pill);
     const sub = document.createElement('div'); sub.className = 'card-sub';
     sub.textContent = t.summary;
     left.append(title, sub);
     const act = document.createElement('button');
     act.type = 'button'; act.className = 'chip primary';
-    act.textContent = 'Start lesson';
+    act.textContent = T('explore.start');
     act.onclick = () => {
       exploreModal.classList.remove('open');
-      sendMessage(`teach me about ${t.title.toLowerCase()}`);
+      sendMessage(T('teachAbout', {title: t.title.toLowerCase()}));
     };
     c.append(left, act);
     lessonsEl.appendChild(c);
@@ -994,10 +1110,10 @@ function renderGlossaryList(filter) {
     left.append(t, m);
     const askBtn = document.createElement('button');
     askBtn.type = 'button'; askBtn.className = 'chip';
-    askBtn.textContent = 'Ask Guru';
+    askBtn.textContent = T('explore.ask');
     askBtn.onclick = () => {
       exploreModal.classList.remove('open');
-      sendMessage(`what is ${g.term}?`);
+      sendMessage(T('whatIs', {term: g.term}));
     };
     c.append(left, askBtn);
     glist.appendChild(c);
@@ -1025,8 +1141,8 @@ let cuqLoaded = false;
 async function openCuq() {
   cuqEl.classList.add('open'); cuqMsg.textContent = '';
   if (cuqLoaded) return;
-  const d = await (await fetch('/api/cuq')).json();
-  document.getElementById('scale').textContent = d.scale + '. Your answers are anonymous.';
+  const d = await (await fetch('/api/cuq?lang=' + GBLang.lang)).json();
+  document.getElementById('scale').textContent = `${d.scale}. ${T('cuq.anon')}`;
   const qs = document.getElementById('qs');
   d.items.forEach((item, i) => {
     const q = document.createElement('div'); q.className = 'q';
@@ -1041,25 +1157,25 @@ async function openCuq() {
   });
   cuqLoaded = true;
 }
-document.getElementById('rate').onclick = () => openCuq().catch(() => alert('Could not load the questionnaire.'));
+document.getElementById('rate').onclick = () => openCuq().catch(() => { cuqMsg.textContent = T('cuq.loadFail'); });
 document.getElementById('cuqclose').onclick = () => cuqEl.classList.remove('open');
 document.getElementById('cuqform').addEventListener('submit', async e => {
   e.preventDefault();
   const answers = [];
   for (let i = 0; i < 16; i++) {
     const c = document.querySelector(`input[name=q${i}]:checked`);
-    if (!c) { cuqMsg.textContent = `Please answer question ${i + 1}.`; return; }
+    if (!c) { cuqMsg.textContent = T('cuq.answer', {n: i + 1}); return; }
     answers.push(+c.value);
   }
   try {
     const d = await post('/api/cuq', {answers, comments: document.getElementById('comments').value});
     cuqMsg.style.color = '#1b6e2d';
-    const note = d.saved === false ? ' (The online demo does not store responses.)' : '';
-    cuqMsg.textContent = `Thank you! Your score: ${d.score} out of 100.${note}`;
+    const note = d.saved === false ? T('cuq.notSaved') : '';
+    cuqMsg.textContent = T('cuq.thanks', {score: d.score}) + note;
     document.getElementById('cuqform').reset();
     setAvatarReaction('celebrate', false);
     setTimeout(() => { cuqEl.classList.remove('open'); cuqMsg.style.color = ''; }, 2500);
-  } catch { cuqMsg.textContent = 'Sorry, your answers could not be saved.'; }
+  } catch { cuqMsg.textContent = T('cuq.saveFail'); }
 });
 begin();
 </script>

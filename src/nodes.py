@@ -1,11 +1,15 @@
-"""Graph nodes. Every node is plain Python: it reads the State and returns the fields it changes."""
+"""Graph nodes. Every node is plain Python: it reads the State and returns the fields it changes.
+
+Language: state["lang"] is "en" (default) or "ms" (Bahasa Malaysia). Replies come from src/i18n.py and the
+knowledge base in that language; the intent patterns below understand both languages either way.
+"""
 import copy
 import random
 import re
 
 from langchain_core.messages import AIMessage, HumanMessage
 
-from . import llm, nlp, persona, profiles, search
+from . import i18n, llm, nlp, persona, profiles, search
 from .knowledge import cite, get_topic, glossary, quiz_items, references, topic_sources, topics
 from .semantic_net import related_concepts
 from .state import State
@@ -14,40 +18,56 @@ QUIZ_LENGTH = 5
 SIX_SEVEN = "67"
 SIX_SEVEN_REPLY = "🤲 67"
 
-REJECT_MESSAGES = {
-    "empty": "I didn't catch anything there. Could you type your message again?",
-    "too_long": "That message is a bit long for me. Could you shorten it to one or two sentences?",
-    "gibberish": "I couldn't make sense of that. Could you rephrase it in a sentence?",
-}
-ERROR_MESSAGE = "Sorry, something went wrong on my side. Could you try that again?"
+REJECT_MESSAGES = {k: i18n.get("en", f"reject.{k}") for k in ("empty", "too_long", "gibberish")}
+ERROR_MESSAGE = i18n.get("en", "error")
 
-# ---------- patterns ----------
-_GREETING = re.compile(r"^\s*(hi|hello|hey|hai|halo|selamat\s+\w+|(good\s+)?(morning|afternoon|evening|day))\b", re.I)
-_THANKS = re.compile(r"\b(thanks|thank you|terima kasih|cheers|appreciate)\b", re.I)
-_BYE = re.compile(r"\b(bye|goodbye|see you|exit|quit|good night)\b", re.I)
-_MENU = re.compile(r"\b(menu|options|main menu)\b", re.I)
-_PROGRESS = re.compile(r"\b(progress|score|report card|how am i doing|my results|badge)\b", re.I)
-_HELP = re.compile(r"^\s*(help|how do i use|what can you do|commands)\b", re.I)
-_RECOMMEND = re.compile(r"\b(recommend|suggest|what should i|where (do|should) i (start|begin)|next topic|what next)\b", re.I)
-_QUIZ = re.compile(r"\b(quiz|test me|test my|exam|question me)\b", re.I)
-_LESSON = re.compile(r"\b(lessons?|teach|tutorial|class|study)\b|\b(want|like|love|help me|let'?s|start|begin) (to )?learn\b|^\s*learn\b", re.I)
-_SOURCES = re.compile(r"\b(sources?|references?|citations?|bibliography|where did you (get|learn))\b", re.I)
-_GLOSSARY = re.compile(r"\b(glossary|dictionary|vocabulary|word list|all terms|sasak terms|musical terms)\b", re.I)
-_IDENTITY = re.compile(r"\b(who are you|what are you|your name|about you|are you a (bot|robot|person|human))\b", re.I)
-_CONTINUE = re.compile(r"^\s*(next|continue|yes|yeah|yep|sure|ok|okay|ready|go on|go ahead|let'?s go)\b", re.I)
-_DECLINE = re.compile(r"^\s*(no|nope|not now|not yet|nah|maybe later|later)\b", re.I)
-_LEAVE = re.compile(r"^\s*(stop|quit|exit|menu|leave|cancel|main menu)\b|\b(stop|quit) (the )?(lesson|quiz)\b", re.I)
-_HINT = re.compile(r"^\s*(hint|clue|help)\b", re.I)
-_SKIP = re.compile(r"\b(skip|pass|i don'?t know|dunno|no idea|give up|tell me the answer)\b", re.I)
-_REPEAT = re.compile(r"\b(repeat|again|re-?explain)\b", re.I)
-_QUESTION = re.compile(r"^\s*(what|who|when|where|why|how|which|can|could|does|do|is|are|tell me)\b", re.I)
-_DOMAIN = re.compile(r"\b(gendang|beleq|belek|sasak|lombok|drum|drums|gong|ensemble|nyongkolan)", re.I)
-_STRUGGLING = re.compile(r"(confus|don'?t understand|do not understand|too hard|difficult|stuck|lost|frustrat|boring)", re.I)
-_HAPPY = re.compile(r"\b(great|awesome|love|fun|cool|amazing|nice|interesting)\b", re.I)
+# ---------- patterns (English | Bahasa Malaysia) ----------
+_GREETING = re.compile(r"^\s*(hi|hello|hey|hai|helo|halo|salam|assalamualaikum|selamat\s+(?!tinggal|jalan)\w+"
+                       r"|(good\s+)?(morning|afternoon|evening|day))\b", re.I)
+_THANKS = re.compile(r"\b(thanks|thank you|terima kasih|cheers|appreciate|tq|thx)\b", re.I)
+_BYE = re.compile(r"\b(bye|goodbye|see you|exit|quit|good night|selamat tinggal|selamat jalan|jumpa lagi|babai)\b", re.I)
+_MENU = re.compile(r"\b(menu|options|main menu|pilihan|menu utama)\b", re.I)
+_PROGRESS = re.compile(r"\b(progress|score|report card|how am i doing|my results|badge"
+                       r"|kemajuan|markah|prestasi|kad laporan|keputusan saya|lencana|pencapaian)\b", re.I)
+_HELP = re.compile(r"^\s*(help|how do i use|what can you do|commands|bantuan|cara guna|macam mana nak guna"
+                   r"|apa (yang )?(awak|kamu|anda) boleh (buat|lakukan))\b", re.I)
+_RECOMMEND = re.compile(r"\b(recommend|suggest|what should i|where (do|should) i (start|begin)|next topic|what next"
+                        r"|cadang|cadangkan|cadangan|syor|apa (yang )?(patut|perlu) saya|nak mula dari mana"
+                        r"|topik seterusnya|apa seterusnya)\b", re.I)
+_QUIZ = re.compile(r"\b(quiz|test me|test my|exam|question me|kuiz|uji saya|soal saya|ujian)\b", re.I)
+_LESSON = re.compile(r"\b(lessons?|teach|tutorial|class|study|pelajaran|ajar|ajarkan|ajari|belajar|pelajari|kelas)\b"
+                     r"|\b(want|like|love|help me|let'?s|start|begin) (to )?learn\b|^\s*learn\b", re.I)
+_SOURCES = re.compile(r"\b(sources?|references?|citations?|bibliography|where did you (get|learn)"
+                      r"|sumber|rujukan|bibliografi)\b", re.I)
+_GLOSSARY = re.compile(r"\b(glossary|dictionary|vocabulary|word list|all terms|sasak terms|musical terms"
+                       r"|glosari|kamus|senarai (kata|istilah)|istilah sasak|istilah muzik)\b", re.I)
+_IDENTITY = re.compile(r"\b(who are you|what are you|your name|about you|are you a (bot|robot|person|human)"
+                       r"|siapa(kah)? (awak|kamu|anda)|nama (awak|kamu|anda)|tentang (diri )?(awak|kamu|anda)"
+                       r"|(awak|kamu|anda) (ni |ini )?(bot|robot|manusia))\b", re.I)
+_CONTINUE = re.compile(r"^\s*(next|continue|yes|yeah|yep|sure|ok|okay|ready|go on|go ahead|let'?s go"
+                       r"|ya|ye|yup|baik|baiklah|okey|teruskan|seterusnya|sedia|jom|mari)\b", re.I)
+_DECLINE = re.compile(r"^\s*(no|nope|not now|not yet|nah|maybe later|later"
+                      r"|tidak|tak|bukan sekarang|belum|nanti|lain kali)\b", re.I)
+_LEAVE = re.compile(r"^\s*(stop|quit|exit|menu|leave|cancel|main menu|berhenti|keluar|batal|menu utama)\b"
+                    r"|\b(stop|quit) (the )?(lesson|quiz)\b|\b(berhenti|keluar) (dari |daripada )?(pelajaran|kuiz)\b", re.I)
+_HINT = re.compile(r"^\s*(hint|clue|help|petunjuk|klu|bantuan|bantu)\b", re.I)
+_SKIP = re.compile(r"\b(skip|pass|i don'?t know|dunno|no idea|give up|tell me the answer"
+                   r"|langkau|tak tahu|tidak tahu|tak pasti|entah|menyerah|beritahu (saya )?jawapan(nya)?)\b", re.I)
+_REPEAT = re.compile(r"\b(repeat|again|re-?explain|ulang|ulangi|sekali lagi|terangkan semula)\b", re.I)
+_QUESTION = re.compile(r"^\s*(what|who|when|where|why|how|which|can|could|does|do|is|are|tell me"
+                       r"|apa|apakah|siapa|siapakah|bila|bilakah|di ?mana|manakah|kenapa|mengapa|bagaimana"
+                       r"|bagaimanakah|macam mana|berapa|adakah|boleh|bolehkah|ceritakan|terangkan|beritahu)\b", re.I)
+_DOMAIN = re.compile(r"\b(gendang|beleq|belek|sasak|lombok|drum|drums|gong|ensemble|nyongkolan|ensembel)", re.I)
+_STRUGGLING = re.compile(r"(confus|don'?t understand|do not understand|too hard|difficult|stuck|lost|frustrat|boring"
+                         r"|keliru|tak faham|tidak faham|kurang faham|susah|sukar|tersekat|buntu|bosan|pening)", re.I)
+_HAPPY = re.compile(r"\b(great|awesome|love|fun|cool|amazing|nice|interesting"
+                    r"|best|hebat|bagus|seronok|menarik|syok|mantap|terbaik)\b", re.I)
 _SUBJECT_NAMES = re.compile(r"\b(gendang bel(ek|aq|eg)|big drums?( ensemble)?|giant drums?|drum ensemble)\b", re.I)
-_MORE = re.compile(r"\b(more|else|another|other|further)\b", re.I)
-_FUN_FACT = re.compile(r"\b(fun|interesting|random|cool|surprising) facts?\b|\bsurprise me\b|\btrivia\b|\bdid you know\b", re.I)
-_ANOTHER = re.compile(r"\b(another|more|again|one more|next)\b", re.I)
+_MORE = re.compile(r"\b(more|else|another|other|further|lagi|lain|tambahan|selanjutnya|lanjut)\b", re.I)
+_FUN_FACT = re.compile(r"\b(fun|interesting|random|cool|surprising) facts?\b|\bsurprise me\b|\btrivia\b|\bdid you know\b"
+                       r"|\bfakta (yang )?(menarik|rawak|best|seronok|unik|pelik)\b|\bkejutkan saya\b"
+                       r"|\btahukah (anda|awak|kamu)\b", re.I)
+_ANOTHER = re.compile(r"\b(another|more|again|one more|next|lagi|satu lagi|seterusnya)\b", re.I)
 _MENU_NUMBERS = {"1": "lesson_start", "2": "invite", "3": "quiz_start", "4": "recommend", "5": "progress", "6": "help",
                  "7": "sources", "8": "glossary", "0": "bye"}
 
@@ -56,6 +76,14 @@ _MENU_NUMBERS = {"1": "lesson_start", "2": "invite", "3": "quiz_start", "4": "re
 def _msg(text: str, **fields) -> dict:
     """A reply. `engine` records who wrote it, for diagnostics only: "python" (rule-based, the default) or "gemini"."""
     return {"messages": [AIMessage(content=text)], "engine": "python", **fields}
+
+
+def _lang(state: State) -> str:
+    return i18n.norm(state.get("lang"))
+
+
+def _t(state: State, key: str, **values) -> str:
+    return i18n.t(_lang(state), key, **values)
 
 
 def _history(state: State) -> list[tuple[str, str]]:
@@ -71,16 +99,17 @@ def _gemini(state: State) -> dict | None:
     when Gemini is off or fails, in which case the caller gives its rule-based reply. The learner can't tell which."""
     if not llm.available():
         return None
+    lang = _lang(state)
     back = _reprompt(state)
     note = ""
     if back:
         note = ("The learner is in the middle of a lesson or quiz and will be asked this question again right after "
                 f"your reply, so do not give away its answer: {back.split(': ', 1)[1]}")
-    reply = llm.converse(_raw(state), _name(state), _history(state), note)
+    reply = llm.converse(_raw(state), _name(state), _history(state), note, lang=lang)
     if not reply:
         return None
     progress = _progress(state)
-    hit = next(iter(search.search(state.get("search_query") or _text(state), k=1, question=_text(state))), None)
+    hit = next(iter(search.search(state.get("search_query") or _text(state), k=1, question=_text(state), lang=lang)), None)
     if hit and hit["topic"] != "glossary" and hit["topic"] not in progress["topics_seen"]:
         progress["topics_seen"].append(hit["topic"])  # keeps "you asked about it earlier" in recommendations
     return _msg(f"{reply}{back}", engine="gemini", progress=progress)
@@ -108,7 +137,7 @@ def _text(state: State) -> str:
 
 
 def _name(state: State) -> str:
-    return state.get("user_name") or "friend"
+    return state.get("user_name") or ("kawan" if _lang(state) == "ms" else "friend")
 
 
 def _progress(state: State) -> dict:
@@ -130,32 +159,50 @@ def _stat(progress: dict, topic_id: str, correct: bool) -> None:
     s["right"] += int(correct)
 
 
+def _quiz_item(state: State, key: str) -> dict:
+    return next(i for i in quiz_items(_lang(state)) if i["key"] == key)
+
+
 def _current_answer(state: State) -> list:
     """Accepted answer groups for the question the learner is on."""
     if state.get("stage") == "lesson" and state.get("lesson"):
         L = state["lesson"]
-        return get_topic(L["topic"])["lesson"][L["step"]]["answer"]
+        return get_topic(L["topic"], _lang(state))["lesson"][L["step"]]["answer"]
     if state.get("stage") == "quiz" and state.get("quiz", {}).get("current"):
-        return next(i["answer"] for i in quiz_items() if i["key"] == state["quiz"]["current"])
+        return _quiz_item(state, state["quiz"]["current"])["answer"]
     return []
 
 
-def _next_unfinished(progress: dict):
+def _next_unfinished(progress: dict, lang: str = "en"):
     done = set(progress["lessons_done"])
-    return next((t for t in topics() if t["id"] not in done), None)
+    return next((t for t in topics(lang) if t["id"] not in done), None)
 
 
 # ---------- opening and input handling ----------
 def greet(state: State) -> dict:
+    lang = _lang(state)
     return _msg(
-        f"{persona.time_greeting()}! I'm {persona.BOT_NAME}, your Gendang Beleq teacher. "
-        f"({persona.BOT_MEANING}.) Before we begin, what should I call you?",
+        i18n.t(lang, "greet", greeting=persona.time_greeting(lang), bot=persona.BOT_NAME,
+               meaning=i18n.get(lang, "bot_meaning")),
         stage="ask_name", boot=False,
     )
 
 
 def route_start(state: State) -> str:
+    if state.get("switch_lang"):
+        return "relang"
     return "greet" if state.get("boot") else "validate"
+
+
+def relang(state: State) -> dict:
+    """The learner switched language mid-conversation: confirm, then repeat where they were in the new language."""
+    head = _t(state, "switched")
+    if state.get("stage", "ask_name") == "ask_name":
+        return _msg(f"{head} {_t(state, 'ask_name')}", switch_lang=False)
+    back = _reprompt(state)
+    if back:
+        return _msg(head + back, switch_lang=False)
+    return _msg(f"{head}\n\n{persona.menu_text(_name(state), _lang(state))}", switch_lang=False, stage="menu")
 
 
 def validate(state: State) -> dict:
@@ -167,7 +214,7 @@ def route_valid(state: State) -> str:
 
 
 def reject(state: State) -> dict:
-    return _msg(REJECT_MESSAGES[state["invalid_reason"]])
+    return _msg(_t(state, f"reject.{state['invalid_reason']}"))
 
 
 def route_stage(state: State) -> str:
@@ -175,31 +222,32 @@ def route_stage(state: State) -> str:
 
 
 def take_name(state: State) -> dict:
-    raw = _raw(state)
+    raw, lang = _raw(state), _lang(state)
     if raw.strip() == SIX_SEVEN:
-        return _msg(f"{SIX_SEVEN_REPLY}\n\nBefore we begin, what should I call you?")
+        return _msg(f"{SIX_SEVEN_REPLY}\n\n{_t(state, 'ask_name')}")
     name = persona.extract_name(raw)  # raw text: spelling correction would damage names
     if not name:
         if _GREETING.match(raw):
-            return _msg(f"{persona.reply_greeting(raw)}! Sorry, I didn't catch your name. What should I call you? Just your first name is fine.")
-        return _msg("Sorry, I didn't catch your name. What should I call you? Just your first name is fine.")
+            return _msg(f"{persona.reply_greeting(raw, lang)}! {_t(state, 'name_retry')}")
+        return _msg(_t(state, "name_retry"))
     saved = profiles.load(name)
     progress = saved or profiles.new_progress()
     total = len(topics())
     if saved and saved["lessons_done"]:
-        hello = f"Welcome back, {name}! You have completed {len(saved['lessons_done'])} of {total} lessons so far."
+        hello = _t(state, "welcome_back", name=name, done=len(saved["lessons_done"]), total=total)
     else:
-        hello = f"Nice to meet you, {name}!"
-    return _msg(f"{hello}\n\n{persona.menu_text(name)}", user_name=name, progress=progress, stage="menu")
+        hello = _t(state, "nice_to_meet", name=name)
+    return _msg(f"{hello}\n\n{persona.menu_text(name, lang)}", user_name=name, progress=progress, stage="menu")
 
 
 def normalize(state: State) -> dict:
     """Spelling-correct the message and build the search query (synonyms, related concepts, previous turn)."""
-    raw = _raw(state)
-    clean = nlp.correct_spelling(raw)
+    raw, lang = _raw(state), _lang(state)
+    clean = nlp.correct_spelling(raw, lang)
     canon = _SUBJECT_NAMES.sub("gendang beleq", clean)  # one name for matching
-    cues = nlp.question_cues(canon, search.mentions_domain(canon))
-    extras = [s for s in (*nlp.expand_synonyms(canon), *related_concepts(canon)) if s.lower() != "gendang beleq"]
+    cues = nlp.question_cues(canon, search.mentions_domain(canon, lang), lang)
+    extras = [s for s in (*nlp.expand_synonyms(canon, lang), *related_concepts(canon, lang=lang))
+              if s.lower() != "gendang beleq"]
     parts = [canon, *cues, *extras]  # "gendang beleq" is the subject of every topic, so it is no clue and is left out
     keywords = nlp.extract_keywords(clean)
     if not cues and len(keywords) < 2 and (not keywords or _MORE.search(clean)):  # a follow-up such as "tell me more"
@@ -215,11 +263,12 @@ def classify(state: State) -> dict:
     text = _text(state).strip()
     low = text.lower()
     stage = state.get("stage", "menu")
+    lang = _lang(state)
 
     if low == SIX_SEVEN:
         return {"intent": "six_seven"}
     # "give me a fun fact", or "another one" straight after a fun fact
-    wants_fact = _FUN_FACT.search(low) or (
+    wants_fact = _FUN_FACT.search(low) or _FUN_FACT.search(_raw(state)) or (
         state.get("intent") == "fun_fact" and _ANOTHER.search(low) and len(low.split()) <= 5)
     if stage in ("lesson", "quiz"):
         if _LEAVE.search(low):
@@ -251,7 +300,8 @@ def classify(state: State) -> dict:
             return {"intent": intent}
     if state.get("mood") == "struggling" and not _QUESTION.match(low):
         return {"intent": "smalltalk"}
-    if _DOMAIN.search(low) or search.mentions_domain(low) or search.search(state.get("search_query", text), question=text):
+    if (_DOMAIN.search(low) or search.mentions_domain(low, lang)
+            or search.search(state.get("search_query", text), question=text, lang=lang)):
         return {"intent": "qa"}
     return {"intent": "offtopic"}
 
@@ -262,71 +312,59 @@ def route_intent(state: State) -> str:
 
 # ---------- menu, help, small talk ----------
 def menu(state: State) -> dict:
-    wrong_number = "That number isn't on the menu.\n\n" if _text(state).strip().isdigit() else ""
-    return _msg(wrong_number + persona.menu_text(_name(state)), stage="menu")
+    wrong_number = _t(state, "wrong_number") if _text(state).strip().isdigit() else ""
+    return _msg(wrong_number + persona.menu_text(_name(state), _lang(state)), stage="menu")
 
 
 def leave(state: State) -> dict:
     _save(state, _progress(state))
-    return _msg(f"No problem, {_name(state)}. We can pick it up whenever you like.\n\n{persona.menu_text(_name(state))}",
+    return _msg(_t(state, "leave", name=_name(state), menu=persona.menu_text(_name(state), _lang(state))),
                 stage="menu", lesson={}, quiz={})
 
 
 def sources(state: State) -> dict:
     lines = "\n".join(f"  - {r['full']}" for r in sorted(references().values(), key=lambda r: r["full"]))
-    return _msg(f"Everything I teach comes from these sources, {_name(state)}:\n{lines}\n\nWhat would you like to explore?")
+    return _msg(_t(state, "sources", name=_name(state), lines=lines))
 
 
 def glossary_node(state: State) -> dict:
     lines = "\n".join(
         f"  - {term}: {entry['meaning']} {cite(entry['sources'])}"
-        for term, entry in sorted(glossary().items())
+        for term, entry in sorted(glossary(_lang(state)).items())
     )
-    return _msg(f"Here is the Sasak and musical glossary, {_name(state)}:\n{lines}\n\nAsk me about any term or topic to learn more!")
+    return _msg(_t(state, "glossary", name=_name(state), lines=lines))
 
 
 def invite(state: State) -> dict:
-    return _msg(
-        f"Ask away, {_name(state)}! You can ask about the name, the instruments, when it is played, its history "
-        "or the players. What would you like to know?"
-    )
+    return _msg(_t(state, "invite", name=_name(state)))
 
 
 def help_node(state: State) -> dict:
-    return _msg(
-        "Just talk to me like you would to a teacher. I understand small typos and different wordings. "
-        "Say 'lesson' to learn step by step, 'quiz' to test yourself, 'progress' for your report card, "
-        "'sources' for my references, 'glossary' for Sasak terms, or ask any question. Inside a lesson or quiz you can say 'hint', 'skip', 'repeat' or 'stop'. "
-        "Type 'menu' at any time to see the options."
-    )
+    return _msg(_t(state, "help"))
 
 
 def smalltalk(state: State) -> dict:
     smart = _gemini(state)
     if smart:
         return smart
-    name, low = _name(state), _raw(state).lower()
+    name, low, lang = _name(state), _raw(state).lower(), _lang(state)
     if state.get("mood") == "struggling":
-        return _msg(f"{persona.pick(persona.COMFORT)} We can go slowly, {name}. Say 'lesson' and I will explain one small "
-                    "step at a time, with hints whenever you want them.")
+        return _msg(_t(state, "struggling", comfort=persona.pick(i18n.get(lang, "comfort")), name=name))
     if _IDENTITY.search(low):
-        return _msg(f"I'm {persona.BOT_NAME}, a teaching chatbot built to explain the Gendang Beleq. "
-                    f"{persona.BOT_MEANING[0].upper()}{persona.BOT_MEANING[1:]}. What would you like to learn, {name}?")
+        meaning = i18n.get(lang, "bot_meaning")
+        return _msg(_t(state, "identity", bot=persona.BOT_NAME, meaning=meaning[0].upper() + meaning[1:], name=name))
     if _DECLINE.match(low):
-        return _msg(f"That's fine, {name}. Ask me anything when you're ready, or say 'menu' to see the options.")
+        return _msg(_t(state, "decline", name=name))
     if _THANKS.search(low):
-        return _msg(f"You're very welcome, {name}! What would you like to explore next?")
+        return _msg(_t(state, "thanks", name=name))
     if _GREETING.match(low):
-        return _msg(f"{persona.reply_greeting(low)}, {name}! Good to see you. What would you like to learn about the Gendang Beleq today?")
-    return _msg(f"Glad you're enjoying it, {name}! What would you like to explore next?")
+        return _msg(_t(state, "hello", greeting=persona.reply_greeting(low, lang), name=name))
+    return _msg(_t(state, "enjoying", name=name))
 
 
 def offtopic(state: State) -> dict:
     # Gemini first: the keyword router can't tell "explain it simply" or a comparison from a truly off-topic question
-    return _gemini(state) or _msg(
-        f"That's outside what I teach, {_name(state)}. I'm here for the Gendang Beleq drum ensemble of Lombok. "
-        "What would you like to know about its history, instruments or ceremonies?"
-    )
+    return _gemini(state) or _msg(_t(state, "offtopic", name=_name(state)))
 
 
 def fun_fact(state: State) -> dict:
@@ -335,15 +373,14 @@ def fun_fact(state: State) -> dict:
     if smart:
         return smart
     told = state.get("told") or []
-    facts = [(t, f) for t in topics() for f in t["facts"]]
+    facts = [(t, f) for t in topics(_lang(state)) for f in t["facts"]]
     fresh = [tf for tf in facts if tf[1]["text"] not in told] or facts
     topic, fact = random.choice(fresh)
     progress = _progress(state)
     if topic["id"] not in progress["topics_seen"]:
         progress["topics_seen"].append(topic["id"])
     return _msg(
-        f"Here's a fun fact, {_name(state)}: {fact['text']} {cite(fact['sources'])}\n\n"
-        f"Want another one? Just ask!{_reprompt(state)}",
+        _t(state, "fun_fact", name=_name(state), fact=fact["text"], cite=cite(fact["sources"])) + _reprompt(state),
         progress=progress, told=told + [fact["text"]],
     )
 
@@ -351,10 +388,10 @@ def fun_fact(state: State) -> dict:
 def bye(state: State) -> dict:
     progress = _progress(state)
     _save(state, progress)
-    done = len(progress["lessons_done"])
+    lang = _lang(state)
     return _msg(
-        f"Goodbye, {_name(state)}! You have completed {done} of {len(topics())} lessons and earned the title "
-        f"'{persona.badge(progress)}'. Have a lovely {persona.time_period()}, and come back soon!",
+        _t(state, "bye", name=_name(state), done=len(progress["lessons_done"]), total=len(topics()),
+           badge=persona.badge(progress, lang), period=persona.time_period(lang)),
         stage="menu",
     )
 
@@ -364,16 +401,15 @@ def _reprompt(state: State) -> str:
     """When a question interrupts a lesson or quiz, bring the learner back to where they were."""
     if state.get("stage") == "lesson" and state.get("lesson"):
         L = state["lesson"]
-        return f"\n\nNow, back to our lesson: {get_topic(L['topic'])['lesson'][L['step']]['question']}"
+        return _t(state, "back_lesson", question=get_topic(L["topic"], _lang(state))["lesson"][L["step"]]["question"])
     if state.get("stage") == "quiz" and state.get("quiz", {}).get("current"):
-        item = {i["key"]: i for i in quiz_items()}[state["quiz"]["current"]]
-        return f"\n\nNow, back to the quiz: {item['question']}"
+        return _t(state, "back_quiz", question=_quiz_item(state, state["quiz"]["current"])["question"])
     return ""
 
 
 def six_seven(state: State) -> dict:
     """Echo the meme, then return to the current lesson or quiz question (or the menu). Does not count as an attempt."""
-    back = _reprompt(state) or f"\n\n{persona.menu_text(_name(state))}"
+    back = _reprompt(state) or f"\n\n{persona.menu_text(_name(state), _lang(state))}"
     return _msg(f"{SIX_SEVEN_REPLY}{back}")
 
 
@@ -381,15 +417,13 @@ def answer(state: State) -> dict:
     smart = _gemini(state)  # Gemini first; the rule-based answer below is the silent fallback
     if smart:
         return smart
+    lang = _lang(state)
     progress = _progress(state)
-    hits = search.search(state.get("search_query") or _text(state), question=_text(state))
-    note = f"(I read that as: \"{state['heard']}\")\n" if state.get("heard") else ""
+    hits = search.search(state.get("search_query") or _text(state), question=_text(state), lang=lang)
+    note = _t(state, "heard", heard=state["heard"]) if state.get("heard") else ""
     if not hits:
-        titles = ", ".join(t["title"].lower() for t in topics()[:4])
-        return _msg(
-            f"{note}I'm not sure about that one, {_name(state)}, and I'd rather not guess. "
-            f"I can teach you about topics like {titles}. What would you like to look at?{_reprompt(state)}"
-        )
+        titles = ", ".join(t["title"].lower() for t in topics(lang)[:4])
+        return _msg(f"{note}{_t(state, 'not_sure', name=_name(state), titles=titles)}{_reprompt(state)}")
     question = _text(state)
     told = state.get("told") or []
     good = [h for h in hits if h["score"] >= 0.6 * hits[0]["score"]]
@@ -397,10 +431,13 @@ def answer(state: State) -> dict:
     ranked = ([h for h in good if h["text"] not in told] or good) if _MORE.search(question) else good
     best = ranked[0]
 
+    def covered(q: str, h: dict) -> float:  # in Malay mode the question may be in English, so check both texts
+        return max(search.coverage(q, h["text"]), search.coverage(q, h["alt"]) if h.get("alt") else 0)
+
     def fits(h: dict) -> bool:
         # a second fact must read as one thought with the first: same topic, or something the question actually asked
         if best["topic"] == "glossary":
-            return search.coverage(question, h["text"]) > 0
+            return covered(question, h) > 0
         return h["topic"] == best["topic"] and h["score"] >= 0.75 * best["score"]
 
     second = next((h for h in ranked[1:] if fits(h)), None)
@@ -409,47 +446,51 @@ def answer(state: State) -> dict:
         chosen = [second]  # "what does the petuq do?" wants the fact; a definition on top only repeats it
     answer_text = " ".join(f"{h['text']} {cite(h['sources'])}" for h in chosen)
     topic_id = next((h["topic"] for h in chosen if h["topic"] != "glossary"), "glossary")
-    follow = "What else would you like to know?"
+    follow = _t(state, "what_else")
     if topic_id != "glossary":
         if topic_id not in progress["topics_seen"]:
             progress["topics_seen"].append(topic_id)
-        related = [f"'{get_topic(r)['title']}'" for r in get_topic(topic_id).get("related", [])]
-        follow = f"Related lessons: {', '.join(related)}. What would you like to explore next?" if related else follow
+        related = [f"'{get_topic(r, lang)['title']}'" for r in get_topic(topic_id).get("related", [])]
+        follow = _t(state, "related", related=", ".join(related)) if related else follow
     canon_q = _SUBJECT_NAMES.sub("gendang beleq", question)
-    partial = (not state.get("cued") and not nlp.expand_synonyms(canon_q)
+    joined = {"text": " ".join(h["text"] for h in chosen), "alt": " ".join(h.get("alt", "") for h in chosen).strip()}
+    partial = (not state.get("cued") and not nlp.expand_synonyms(canon_q, lang)
                and len(nlp.extract_keywords(canon_q)) >= 2
-               and search.coverage(canon_q, " ".join(h["text"] for h in chosen)) <= 0.5)
-    lead = "I don't have an exact answer to that, but this is the closest I can tell you: " if partial else ""
+               and covered(canon_q, joined) <= 0.5)
+    lead = _t(state, "partial") if partial else ""
     return _msg(f"{note}{lead}{answer_text}\n\n{follow}{_reprompt(state)}", progress=progress,
                 told=told + [h["text"] for h in chosen])
 
 
 # ---------- teacher: lessons ----------
-def _present(topic: dict, i: int) -> str:
+def _present(state: State, topic: dict, i: int) -> str:
     step = topic["lesson"][i]
-    return f"Step {i + 1} of {len(topic['lesson'])}\n{step['teach']}\n\nNow it's your turn: {step['question']}"
+    return _t(state, "present", n=i + 1, total=len(topic["lesson"]), teach=step["teach"], question=step["question"])
 
 
 def _pick_topic(state: State, progress: dict):
-    text = _text(state).lower()
+    text, lang = _text(state).lower(), _lang(state)
+    # a lesson title in either language picks that lesson ("teach me about the instruments", "ajar saya tentang ...")
+    for code in dict.fromkeys((lang, "en")):
+        for t in topics(code):
+            if t["title"].lower().rstrip("?") in text:
+                return get_topic(t["id"], lang)
     best, top = None, 0
-    for t in topics():
+    for t in topics(lang):
         score = sum(1 for k in t["keywords"] if search.keyword_hit(k, text))
         if score > top:
             best, top = t, score
-    return best or _next_unfinished(progress)
+    return best or _next_unfinished(progress, lang)
 
 
 def lesson_start(state: State) -> dict:
     progress = _progress(state)
     topic = _pick_topic(state, progress)
     if topic is None:
-        return _msg(f"You have finished every lesson, {_name(state)}! Say 'quiz' to test everything you have learned, "
-                    "or ask me any question.", stage="menu")
+        return _msg(_t(state, "all_lessons_done", name=_name(state)), stage="menu")
     number = [t["id"] for t in topics()].index(topic["id"]) + 1
     return _msg(
-        f"Let's begin, {_name(state)}! Lesson {number}: {topic['title']}\n"
-        "I'll teach a little, then ask you a question. Say 'hint' if you need a clue.\n\n" + _present(topic, 0),
+        _t(state, "lesson_start", name=_name(state), number=number, title=topic["title"]) + _present(state, topic, 0),
         stage="lesson", lesson={"topic": topic["id"], "step": 0, "attempts": 0},
     )
 
@@ -457,28 +498,29 @@ def lesson_start(state: State) -> dict:
 def _advance_lesson(state: State, progress: dict, lesson: dict, topic: dict, feedback: str) -> dict:
     nxt = lesson["step"] + 1
     if nxt < len(topic["lesson"]):
-        return _msg(f"{feedback}\n\n{_present(topic, nxt)}", lesson={**lesson, "step": nxt, "attempts": 0}, progress=progress)
+        return _msg(f"{feedback}\n\n{_present(state, topic, nxt)}", lesson={**lesson, "step": nxt, "attempts": 0},
+                    progress=progress)
     if topic["id"] not in progress["lessons_done"]:
         progress["lessons_done"].append(topic["id"])
     _save(state, progress)
-    upcoming = _next_unfinished(progress)
-    onward = (f"When you're ready, say 'lesson' to continue with '{upcoming['title']}', or 'quiz' to test yourself."
-              if upcoming else "You have now finished all the lessons! Say 'quiz' to test everything you learned.")
+    upcoming = _next_unfinished(progress, _lang(state))
+    onward = _t(state, "onward_next", title=upcoming["title"]) if upcoming else _t(state, "onward_done")
     return _msg(
-        f"{feedback}\n\nLesson complete, {_name(state)}! Quick recap: {topic['summary']} {cite(topic_sources(topic))}\n{onward}",
+        _t(state, "lesson_complete", feedback=feedback, name=_name(state), summary=topic["summary"],
+           cite=cite(topic_sources(topic)), onward=onward),
         stage="menu", lesson={}, progress=progress,
     )
 
 
 def lesson_reply(state: State) -> dict:
-    progress, lesson = _progress(state), dict(state["lesson"])
-    topic = get_topic(lesson["topic"])
+    progress, lesson, lang = _progress(state), dict(state["lesson"]), _lang(state)
+    topic = get_topic(lesson["topic"], lang)
     step = topic["lesson"][lesson["step"]]
     text = _text(state)
     if _REPEAT.search(text):
-        return _msg(f"Of course! Here it is again.\n\n{_present(topic, lesson['step'])}")
+        return _msg(_t(state, "repeat", step=_present(state, topic, lesson["step"])))
     if _HINT.match(text):
-        return _msg(f"Here's a clue: {step['hint']}")
+        return _msg(_t(state, "clue", hint=step["hint"]))
     skipped = bool(_SKIP.search(text))
     hit, total = _grade(text, step["answer"])
 
@@ -486,20 +528,20 @@ def lesson_reply(state: State) -> dict:
         progress["lesson_total"] += 1
         if lesson["attempts"] == 0:
             progress["lesson_right"] += 1
-        return _advance_lesson(state, progress, lesson, topic, f"{persona.pick(persona.PRAISE)} {step['explain']}")
+        return _advance_lesson(state, progress, lesson, topic, f"{persona.pick(i18n.get(lang, 'praise'))} {step['explain']}")
     if not skipped and lesson["attempts"] == 0:
-        tone = persona.pick(persona.COMFORT if state.get("mood") == "struggling" else persona.GENTLE)
+        tone = persona.pick(i18n.get(lang, "comfort" if state.get("mood") == "struggling" else "gentle"))
         if hit and hit < total:
-            tone = f"You've got part of it, {_name(state)}."
-        return _msg(f"{tone} Here's a clue: {step['hint']}\nTry again in your own words.", lesson={**lesson, "attempts": 1})
+            tone = _t(state, "partly", name=_name(state))
+        return _msg(_t(state, "lesson_retry", tone=tone, hint=step["hint"]), lesson={**lesson, "attempts": 1})
     progress["lesson_total"] += 1
-    return _advance_lesson(state, progress, lesson, topic, f"No problem, let's learn it together. {step['explain']}")
+    return _advance_lesson(state, progress, lesson, topic, _t(state, "learn_together", explain=step["explain"]))
 
 
 # ---------- teacher: quiz ----------
-def _pick_quiz(quiz: dict, progress: dict):
+def _pick_quiz(quiz: dict, progress: dict, lang: str = "en"):
     level = 2 if quiz["right"] >= 2 else 1
-    pool = [i for i in quiz_items() if i["key"] not in quiz["asked"]]
+    pool = [i for i in quiz_items(lang) if i["key"] not in quiz["asked"]]
     allowed = [i for i in pool if i["level"] <= level] or pool
     learned = [i for i in allowed if i["topic"] in progress["lessons_done"]]
     return random.choice(learned or allowed) if allowed else None
@@ -508,99 +550,93 @@ def _pick_quiz(quiz: dict, progress: dict):
 def quiz_start(state: State) -> dict:
     progress = _progress(state)
     quiz = {"n": 0, "right": 0, "asked": [], "current": None, "attempts": 0}
-    item = _pick_quiz(quiz, progress)
+    item = _pick_quiz(quiz, progress, _lang(state))
     quiz.update(current=item["key"], asked=[item["key"]])
-    return _msg(
-        f"Quiz time, {_name(state)}! I'll ask up to {QUIZ_LENGTH} questions. Answer in your own words. "
-        f"Say 'hint' for a clue, 'skip' to pass, or 'stop' to quit.\n\nQuestion 1: {item['question']}",
-        stage="quiz", quiz=quiz,
-    )
+    return _msg(_t(state, "quiz_start", name=_name(state), n=QUIZ_LENGTH, question=item["question"]),
+                stage="quiz", quiz=quiz)
 
 
 def quiz_reply(state: State) -> dict:
-    progress, quiz = _progress(state), dict(state["quiz"])
-    item = {i["key"]: i for i in quiz_items()}[quiz["current"]]
+    progress, quiz, lang = _progress(state), dict(state["quiz"]), _lang(state)
+    item = _quiz_item(state, quiz["current"])
     text = _text(state)
     if _HINT.match(text):
-        return _msg(f"Here's a clue: {item['hint']}")
+        return _msg(_t(state, "clue", hint=item["hint"]))
     skipped = bool(_SKIP.search(text))
     hit, total = _grade(text, item["answer"])
     correct = not skipped and hit == total
 
     if not correct and not skipped and quiz["attempts"] == 0:
-        tone = f"You've got part of it, {_name(state)}." if hit else persona.pick(persona.GENTLE)
-        return _msg(f"{tone} Here's a clue: {item['hint']}\nGive it one more try.", quiz={**quiz, "attempts": 1})
+        tone = _t(state, "partly", name=_name(state)) if hit else persona.pick(i18n.get(lang, "gentle"))
+        return _msg(_t(state, "quiz_retry", tone=tone, hint=item["hint"]), quiz={**quiz, "attempts": 1})
 
     progress["quiz_total"] += 1
     _stat(progress, item["topic"], correct and quiz["attempts"] == 0)
     if correct:
         progress["quiz_right"] += 1
         quiz["right"] += 1
-        feedback = f"{persona.pick(persona.PRAISE)} {item['explain']}"
+        feedback = f"{persona.pick(i18n.get(lang, 'praise'))} {item['explain']}"
     else:
-        feedback = f"The answer was: {item['explain']}"
+        feedback = _t(state, "answer_was", explain=item["explain"])
     quiz["n"] += 1
     quiz["attempts"] = 0
     _save(state, progress)
 
-    nxt = _pick_quiz(quiz, progress) if quiz["n"] < QUIZ_LENGTH else None
+    nxt = _pick_quiz(quiz, progress, lang) if quiz["n"] < QUIZ_LENGTH else None
     if nxt is None:
         ratio = quiz["right"] / quiz["n"]
-        comment = ("Fantastic work!" if ratio >= 0.8 else "Good progress!" if ratio >= 0.5
-                   else "Keep practising, a lesson will help.")
+        comment = _t(state, "quiz_high" if ratio >= 0.8 else "quiz_mid" if ratio >= 0.5 else "quiz_low")
         return _msg(
-            f"{feedback}\n\nQuiz finished! You got {quiz['right']} out of {quiz['n']}. {comment} "
-            f"Your title is now '{persona.badge(progress)}'.",
+            _t(state, "quiz_done", feedback=feedback, right=quiz["right"], n=quiz["n"], comment=comment,
+               badge=persona.badge(progress, lang)),
             stage="menu", quiz={}, progress=progress,
         )
     quiz.update(current=nxt["key"], asked=quiz["asked"] + [nxt["key"]])
-    return _msg(f"{feedback}\n\nQuestion {quiz['n'] + 1}: {nxt['question']}", quiz=quiz, progress=progress)
+    return _msg(_t(state, "quiz_next", feedback=feedback, n=quiz["n"] + 1, question=nxt["question"]),
+                quiz=quiz, progress=progress)
 
 
 # ---------- teacher: progress and recommendations ----------
 def progress_node(state: State) -> dict:
-    p = _progress(state)
-    titles = [get_topic(t)["title"] for t in p["lessons_done"]]
-    acc = f"{100 * p['quiz_right'] // p['quiz_total']}%" if p["quiz_total"] else "no quiz taken yet"
-    upcoming = _next_unfinished(p)
-    nxt = f"Next up: {upcoming['title']}." if upcoming else "You have finished every lesson!"
-    return _msg(
-        f"Report card for {_name(state)}\n"
-        f"  Lessons completed: {len(titles)} of {len(topics())}" + (f" ({'; '.join(titles)})" if titles else "") + "\n"
-        f"  Lesson questions right first time: {p['lesson_right']} of {p['lesson_total']}\n"
-        f"  Quiz: {p['quiz_right']} of {p['quiz_total']} correct ({acc})\n"
-        f"  Title: {persona.badge(p)}\n{nxt}"
-    )
+    p, lang = _progress(state), _lang(state)
+    titles = [get_topic(t, lang)["title"] for t in p["lessons_done"]]
+    acc = f"{100 * p['quiz_right'] // p['quiz_total']}%" if p["quiz_total"] else _t(state, "no_quiz")
+    upcoming = _next_unfinished(p, lang)
+    nxt = _t(state, "next_up", title=upcoming["title"]) if upcoming else _t(state, "finished_all")
+    return _msg(_t(
+        state, "report", name=_name(state), done=len(titles), total=len(topics()),
+        titles=f" ({'; '.join(titles)})" if titles else "", lesson_right=p["lesson_right"],
+        lesson_total=p["lesson_total"], quiz_right=p["quiz_right"], quiz_total=p["quiz_total"], acc=acc,
+        badge=persona.badge(p, lang), next=nxt,
+    ))
 
 
 def recommend(state: State) -> dict:
     """Rule-based consultant. Score = +3 not yet learned, +2 per interest keyword in the message,
     +2 if quiz accuracy on the topic is below 60%, +1 if the learner has asked about it."""
-    p = _progress(state)
+    p, lang = _progress(state), _lang(state)
     text = _text(state).lower()
     scored = []
-    for t in topics():
+    for t in topics(lang):
         score, reasons = 0, []
         if t["id"] not in p["lessons_done"]:
             score += 3
-            reasons.append("you haven't done this lesson yet")
+            reasons.append(_t(state, "why_new"))
         hits = [k for k in t["keywords"] if search.keyword_hit(k, text)]
         if hits:
             score += 2 * len(hits)
-            reasons.append(f"it matches your interest in {hits[0]}")
+            reasons.append(_t(state, "why_interest", keyword=hits[0]))
         s = p["topic_stats"].get(t["id"])
         if s and s["right"] / s["total"] < 0.6:
             score += 2
-            reasons.append("the quiz showed it needs more practice")
+            reasons.append(_t(state, "why_practice"))
         if t["id"] in p["topics_seen"]:
             score += 1
-            reasons.append("you asked about it earlier")
+            reasons.append(_t(state, "why_asked"))
         scored.append((score, t, reasons))
     scored.sort(key=lambda x: x[0], reverse=True)
     top = [x for x in scored if x[0] > 0][:2]
     if not top:
-        return _msg(f"You've covered everything, {_name(state)}! A quiz is the best way to keep it fresh. "
-                    "Is there any part you'd like to revisit?")
-    lines = [f"  - {t['title']}: {reasons[0]}." for _, t, reasons in top]
-    return _msg(f"Based on what you've done so far, I recommend:\n" + "\n".join(lines) +
-                "\n\nTell me which one appeals to you, or what you're curious about, and I'll start from there.")
+        return _msg(_t(state, "covered_all", name=_name(state)))
+    lines = "\n".join(f"  - {t['title']}: {reasons[0]}." for _, t, reasons in top)
+    return _msg(_t(state, "recommend", lines=lines))

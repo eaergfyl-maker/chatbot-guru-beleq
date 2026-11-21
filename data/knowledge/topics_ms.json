@@ -1,0 +1,278 @@
+{
+  "_note": "Bahasa Malaysia text for topics.json. Only the wording is here: facts, lesson steps and quiz items are matched to topics.json by position and keep its sources, so every Malay fact carries the same Harvard citation. Malay keywords and answer words are added to the English ones, so English answers are still accepted in Malay mode. Check with: python -m src.knowledge",
+  "topics": {
+    "overview": {
+      "title": "Apakah Gendang Beleq?",
+      "summary": "Gendang Beleq ialah ensembel gendang tradisional masyarakat Sasak di Lombok, Nusa Tenggara Barat, Indonesia.",
+      "keywords": ["gambaran", "pengenalan", "ensembel", "merosot", "kemerosotan", "masa depan", "pemeliharaan", "identiti"],
+      "facts": [
+        "Gendang Beleq ialah kesenian tradisional masyarakat Sasak di Lombok, Nusa Tenggara Barat, Indonesia, dan merupakan sumber identiti budaya bagi mereka.",
+        "Ensembel ini dinamakan sempena gendangnya yang luar biasa besar, tetapi ia juga merangkumi gong, seruling dan alat perkusi lain.",
+        "Ia terdapat di seluruh Lombok, terutamanya di kabupaten Lombok Tengah, Lombok Timur dan Lombok Barat.",
+        "Penyokong kesenian ini bimbang akan kemerosotannya, kerana gaya muzik yang lebih baharu seperti kecimol dan dangdut jalanan kini sering menggantikannya."
+      ],
+      "lesson": [
+        {
+          "teach": "Gendang Beleq ialah ensembel gendang tradisional. Ia milik masyarakat Sasak, yang tinggal di pulau Lombok di Indonesia.",
+          "question": "Gendang Beleq milik masyarakat mana, dan di pulau manakah mereka tinggal?",
+          "answer": [["sasak"], ["lombok"]],
+          "hint": "Nama masyarakat itu bermula dengan 'Sa', dan pulau mereka terletak di sebelah timur Bali.",
+          "explain": "Gendang Beleq milik masyarakat Sasak di Lombok."
+        },
+        {
+          "teach": "Ia dinamakan sempena gendangnya yang besar, tetapi ia ialah sekumpulan alat muzik yang dimainkan bersama: gendang, gong, seruling dan alat perkusi lain.",
+          "question": "Dengan kata-kata anda sendiri, apakah jenis kumpulan muzik Gendang Beleq?",
+          "answer": [["perkusi", "dram", "ensembel", "gamelan", "paluan", "kumpulan gendang", "gendang besar", "pukulan gendang"]],
+          "hint": "Fikirkan apa yang dipukul oleh pemuzik untuk menghasilkan bunyi.",
+          "explain": "Ia ialah ensembel gendang dan perkusi."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Lombok terletak dalam wilayah Indonesia yang mana?",
+          "answer": [["nusa tenggara barat", "ntb", "nusa tenggara"]],
+          "hint": "Singkatannya ialah NTB.",
+          "explain": "Lombok terletak dalam wilayah Nusa Tenggara Barat (NTB)."
+        }
+      ]
+    },
+    "name": {
+      "title": "Apakah maksud namanya?",
+      "summary": "Gendang Beleq bermaksud 'gendang besar'.",
+      "keywords": ["nama", "maksud", "makna", "terjemahan", "ejaan", "dieja"],
+      "facts": [
+        "'Gendang' bermaksud gendang (dram) dan 'beleq' ialah perkataan Sasak untuk besar, jadi Gendang Beleq bermaksud 'gendang besar'.",
+        "Nama ini juga dieja Gendang Belek.",
+        "Ia mengambil nama daripada gendangnya, yang jauh lebih besar daripada gendang biasa."
+      ],
+      "lesson": [
+        {
+          "teach": "Nama ini terdiri daripada dua perkataan. 'Gendang' bermaksud gendang (dram), dan 'beleq' bermaksud besar dalam bahasa Sasak.",
+          "question": "Jadi, apakah maksud 'Gendang Beleq' dalam bahasa Melayu?",
+          "answer": [["besar", "raksasa", "gergasi"], ["gendang", "dram"]],
+          "hint": "Gendang ialah alat muziknya; beleq menerangkan saiznya.",
+          "explain": "Gendang Beleq bermaksud 'gendang besar'."
+        },
+        {
+          "teach": "Anda akan melihat nama ini dieja dalam dua cara dalam artikel dan laman web. Kedua-duanya merujuk kepada ensembel yang sama.",
+          "question": "Bolehkah anda beritahu ejaan lain yang biasa bagi 'Beleq'?",
+          "answer": [["belek"]],
+          "hint": "Ia berakhir dengan huruf k, bukan q.",
+          "explain": "Ejaan lainnya ialah 'Belek', seperti dalam Gendang Belek."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Apakah maksud perkataan 'beleq'?",
+          "answer": [["besar", "raksasa", "gergasi"]],
+          "hint": "Ia menerangkan saiz gendang itu.",
+          "explain": "'Beleq' bermaksud besar."
+        }
+      ]
+    },
+    "instruments": {
+      "title": "Alat-alat muzik",
+      "summary": "Dua gendang besar mengetuai ensembel, dengan melodi daripada suling dan reyong serta irama daripada gong dan alat perkusi lain.",
+      "keywords": ["alat muzik", "instrumen", "simbal", "seruling", "melodi", "kulit", "kayu", "pemukul", "irama"],
+      "facts": [
+        "Dua gendang besar mengetuai ensembel: gendang mame (jantan) dengan bunyi yang lebih tinggi, dan gendang nine (betina) dengan bunyi yang lebih rendah. Ia juga dipanggil mama dan nina, atau lanang dan wadon.",
+        "Badan gendang diperbuat daripada kayu, seperti kayu randu atau kayu tap, dengan kulit di kedua-dua hujungnya. Sumber melaporkan kulit kambing, kulit lembu atau kulit kerbau.",
+        "Gendangnya panjang: dalam satu kumpulan yang telah diukur secara terperinci, panjangnya 94 cm, dan saiznya berbeza antara kumpulan.",
+        "Pemain gendang memukul satu muka gendang dengan pemukul yang dipanggil pemantok dan menampar dengan tangan yang satu lagi. Kedua-dua pemain gendang memainkan corak yang saling berjalin.",
+        "Melodi datang daripada suling, iaitu seruling buluh, dan reyong, iaitu set gong kecil daripada logam yang dimainkan secara berjalin.",
+        "Bahagian irama terdiri daripada gendang, gong beleq (gong besar), kempur, petuq, rincik dan kenceng, iaitu simbal.",
+        "Petuq, juga dipanggil oncer, menjaga tempo: apabila pemainnya mempercepatkan rentak, semua orang mengikut.",
+        "Gong menutup setiap frasa muzik, dan kempur mengisi kiraan di dalam frasa.",
+        "Alat-alat muzik ensembel ini ialah dua gendang besar, suling, reyong, gong beleq, kempur, petuq, rincik dan kenceng. Set sebenar boleh berbeza antara kumpulan."
+      ],
+      "lesson": [
+        {
+          "teach": "Dua gendang besar mengetuai ensembel. Gendang jantan, gendang mame, mempunyai bunyi yang lebih tinggi. Gendang betina, gendang nine, mempunyai bunyi yang lebih rendah. Sesetengah penulis mengejanya mama dan nina.",
+          "question": "Apakah nama dua gendang besar itu?",
+          "answer": [["mame", "mama", "lanang"], ["nine", "nina", "wadon"]],
+          "hint": "Ia ialah gendang m... (jantan) dan gendang n... (betina).",
+          "explain": "Ia ialah gendang mame (jantan) dan gendang nine (betina)."
+        },
+        {
+          "teach": "Gendang-gendang itu disertai suling (seruling buluh) dan reyong (set gong kecil), yang memainkan melodi, serta gong beleq, kempur, petuq, rincik dan simbal kenceng, yang menyokong irama.",
+          "question": "Namakan satu alat muzik dalam ensembel selain dua gendang besar.",
+          "answer": [["gong", "reyong", "reong", "petuq", "petuk", "oncer", "kempur", "rincik", "kenceng", "simbal", "seruling", "suling"]],
+          "hint": "Fikirkan seruling buluh, atau alat logam besar yang menutup setiap frasa.",
+          "explain": "Suling, reyong, gong beleq, kempur, petuq, rincik dan kenceng semuanya menyertai gendang."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Alat muzik manakah yang menjaga tempo ensembel?",
+          "answer": [["petuq", "petuk", "oncer"]],
+          "hint": "Bentuknya seperti reyong tetapi lebih besar, dan ia mempunyai nama kedua, oncer.",
+          "explain": "Petuq, juga dipanggil oncer, menjaga tempo."
+        },
+        {
+          "question": "Dua alat muzik manakah yang membawa melodi?",
+          "answer": [["suling", "seruling"], ["reyong", "reong"]],
+          "hint": "Satu ialah seruling buluh dan satu lagi ialah set gong kecil.",
+          "explain": "Suling dan reyong membawa melodi."
+        },
+        {
+          "question": "Antara dua gendang besar itu, yang manakah mempunyai bunyi yang lebih tinggi?",
+          "answer": [["mame", "mama", "lanang", "jantan"]],
+          "hint": "Ia ialah gendang yang dianggap jantan.",
+          "explain": "Gendang jantan, gendang mame, mempunyai bunyi yang lebih tinggi."
+        }
+      ]
+    },
+    "occasions": {
+      "title": "Bila ia dimainkan",
+      "summary": "Ia mengiringi majlis perkahwinan Sasak dan upacara kehidupan lain, serta dipersembahkan di pesta dan acara rasmi.",
+      "keywords": ["upacara", "perkahwinan", "kahwin", "majlis", "pesta", "perayaan", "berkhatan", "khatan", "menuai", "keagamaan", "pelancong"],
+      "facts": [
+        "Dalam majlis perkahwinan Sasak, Gendang Beleq mengiringi nyongkolan, iaitu perarakan pengantin lelaki, pengantin perempuan dan tetamu mereka melalui jalan-jalan kampung.",
+        "Ia juga mengiringi upacara Sasak yang lain: berkhatan, potong rambut pertama bayi (ngurisan) dan upacara besar yang dipanggil begawe beleq.",
+        "Ia dipersembahkan di majlis rasmi dan acara kebudayaan, termasuk perayaan Bau Nyale, pesta menuai, upacara keagamaan dan acara pelancongan.",
+        "Pada banyak majlis perkahwinan hari ini, gaya baharu yang lebih murah seperti kecimol atau dangdut jalanan dipilih sebagai gantinya.",
+        "Pelawat boleh menontonnya di kampung pelancongan Sade dan Ende serta di pusat kebudayaan di Mataram dan Kuta."
+      ],
+      "lesson": [
+        {
+          "teach": "Dalam majlis perkahwinan Sasak, Gendang Beleq mengiringi nyongkolan, iaitu perarakan gembira pengantin lelaki, pengantin perempuan dan tetamu mereka melalui jalan-jalan kampung.",
+          "question": "Dalam sambutan keluarga yang bagaimanakah ensembel ini mengiringi perarakan?",
+          "answer": [["perkahwinan", "kahwin", "berkahwin", "nikah", "pernikahan", "nyongkolan", "merariq", "pengantin"]],
+          "hint": "Fikirkan sambutan apabila dua orang berkahwin.",
+          "explain": "Ia mengiringi perarakan perkahwinan, yang dipanggil nyongkolan."
+        },
+        {
+          "teach": "Perkahwinan bukan satu-satunya masa. Ia juga mengiringi upacara berkhatan dan potong rambut pertama bayi, serta dipersembahkan di pesta, majlis rasmi dan acara kebudayaan.",
+          "question": "Selain perkahwinan, namakan satu lagi majlis apabila ia dimainkan.",
+          "answer": [["khatan", "berkhatan", "sunat", "potong rambut", "ngurisan", "pesta", "perayaan", "rasmi", "acara", "kebudayaan", "budaya", "menuai", "keagamaan", "upacara", "begawe", "nyale"]],
+          "hint": "Fikirkan upacara kehidupan seorang kanak-kanak, atau sambutan awam yang besar.",
+          "explain": "Ia juga dimainkan semasa berkhatan, potong rambut pertama bayi, pesta dan acara rasmi."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Apakah nama perarakan perkahwinan Sasak?",
+          "answer": [["nyongkolan"]],
+          "hint": "Ia bermula dengan 'nyong'.",
+          "explain": "Perarakan itu dipanggil nyongkolan."
+        }
+      ]
+    },
+    "history": {
+      "title": "Sejarah dan asal usul",
+      "summary": "Ia dikatakan bermula dengan mengiringi pahlawan pada zaman kerajaan-kerajaan Lombok, dan kini kebanyakannya untuk upacara, walaupun asal usulnya yang tepat belum dibuktikan.",
+      "keywords": ["sejarah", "asal", "asal usul", "perang", "pahlawan", "kerajaan", "diraja", "askar", "pertempuran"],
+      "facts": [
+        "Menurut cerita masyarakat, pada asalnya ia mengiringi askar diraja ketika berlatih atau pergi berperang, dan bunyinya menjadikan mereka lebih berani.",
+        "Ia juga digunakan untuk menyambut pahlawan yang pulang dari medan perang.",
+        "Sejarah sebenarnya tidak pasti. Orang percaya ia berasal dari zaman kerajaan, tetapi tiada sesiapa yang dapat memastikan bila atau di kerajaan mana ia bermula, dan perkara ini belum dibuktikan secara saintifik.",
+        "Lama-kelamaan ia beralih daripada peperangan kepada perayaan, dan kini ia mengiringi perkahwinan, upacara kehidupan dan pesta kebudayaan."
+      ],
+      "lesson": [
+        {
+          "teach": "Cerita masyarakat mengatakan ensembel ini mula-mula mengiringi askar diraja ketika berlatih atau pergi berperang, dan bunyinya menjadikan mereka lebih berani. Ini ialah cerita turun-temurun, kerana permulaannya yang tepat belum dibuktikan.",
+          "question": "Menurut cerita-cerita ini, untuk apakah ensembel ini mula-mula dimainkan?",
+          "answer": [["perang", "peperangan", "berperang", "pahlawan", "pertempuran", "bertempur", "askar", "tentera", "pejuang"]],
+          "hint": "Fikirkan apa yang disediakan oleh askar.",
+          "explain": "Ia dikatakan mengiringi askar yang pergi berperang."
+        },
+        {
+          "teach": "Zaman telah berubah. Hari ini Gendang Beleq mengiringi perkahwinan dan upacara kehidupan serta dipersembahkan di pesta kebudayaan.",
+          "question": "Bagaimanakah ensembel ini kebanyakannya digunakan hari ini?",
+          "answer": [["upacara", "majlis", "perayaan", "sambutan", "kebudayaan", "budaya", "persembahan", "pesta", "perkahwinan", "kahwin", "warisan"]],
+          "hint": "Ia bukan lagi untuk berperang. Fikirkan perayaan.",
+          "explain": "Hari ini ia digunakan untuk upacara, perkahwinan dan pesta kebudayaan."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Bahagian manakah dalam sejarah ensembel ini yang masih tidak pasti?",
+          "answer": [["bila", "tarikh", "kerajaan", "asal", "asal usul", "permulaan", "bermula", "mula"]],
+          "hint": "Fikirkan bila dan di mana ia mula-mula muncul.",
+          "explain": "Tiada sesiapa yang dapat memastikan bila atau di kerajaan mana ia bermula."
+        }
+      ]
+    },
+    "players": {
+      "title": "Pemain dan pakaian mereka",
+      "summary": "Sekumpulan besar pemain berpakaian tradisional Sasak bermain dan menari bersama, selalunya sambil berarak dalam perarakan.",
+      "keywords": ["pakaian", "kostum", "pemain", "pemuzik", "perarakan", "berarak", "tarian", "menari", "ikat kepala", "memikul"],
+      "facts": [
+        "Pemainnya ialah kumpulan pemuzik Sasak, yang sering berpangkalan di kumpulan seni komuniti yang dipanggil sanggar.",
+        "Satu kumpulan mempunyai sedozen pemain atau lebih, dan sesetengah ensembel mempunyai tiga puluh pemuzik atau lebih.",
+        "Ia boleh dipersembahkan sambil berdiri di tempat atau sambil bergerak, tetapi ia paling terkenal dalam perarakan, apabila pemain berarak dan menari sambil bermain.",
+        "Pemain memikul gendang besar di bahu mereka. Gong cukup berat sehingga satu sumber melaporkan empat lelaki mengangkat dua gong yang terbesar, dan gong besi dipilih sebahagiannya kerana lebih ringan semasa perarakan.",
+        "Pemain memakai pakaian tradisional Sasak. Kain ikat kepala batik (sapuk atau sapo'), tali pinggang (dodot) dan kain pinggang (bebet) dianggap penting, manakala sesetengah kumpulan kini memakai pakaian seragam kumpulan moden.",
+        "Ia dimainkan secara berkumpulan, jadi perpaduan antara pemain amat penting supaya bunyinya sedap."
+      ],
+      "lesson": [
+        {
+          "teach": "Gendang Beleq boleh dipersembahkan sambil berdiri di tempat, tetapi ia paling terkenal dalam perarakan. Pemain berarak dan menari sambil bermain, sambil memikul gendang besar di bahu mereka.",
+          "question": "Bagaimanakah ensembel ini sering membuat persembahan di majlis perkahwinan: dalam formasi apa?",
+          "answer": [["perarakan", "berarak", "arak", "berjalan", "jalan", "bergerak", "gerak", "perbarisan"]],
+          "hint": "Mereka tidak duduk diam. Fikirkan barisan orang yang bergerak.",
+          "explain": "Pemain sering berarak dan menari dalam perarakan semasa membuat persembahan."
+        },
+        {
+          "teach": "Pemain memakai pakaian tradisional Sasak. Kain ikat kepala batik (sapuk), tali pinggang (dodot) dan kain pinggang (bebet) dianggap penting, kerana ia menandakan muzik itu sebagai tradisional.",
+          "question": "Apakah yang dipakai oleh pemain?",
+          "answer": [["tradisional", "pakaian", "kostum", "sasak", "batik", "sapuk", "sapo", "dodot", "bebet", "ikat kepala", "tengkolok", "destar", "baju", "sarung", "kain"]],
+          "hint": "Fikirkan pakaian yang menunjukkan budaya mereka.",
+          "explain": "Mereka memakai pakaian tradisional Sasak, termasuk kain ikat kepala batik yang dipanggil sapuk."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Apakah nama kain ikat kepala batik yang dipakai oleh pemain?",
+          "answer": [["sapuk", "sapo"]],
+          "hint": "Ia bermula dengan 'sap'.",
+          "explain": "Kain ikat kepala itu dipanggil sapuk, juga dieja sapo'."
+        }
+      ]
+    }
+  },
+  "glossary": {
+    "gendang": "perkataan untuk gendang (dram)",
+    "beleq": "perkataan Sasak untuk besar",
+    "belek": "ejaan lain bagi beleq",
+    "sasak": "masyarakat Lombok yang memiliki tradisi Gendang Beleq",
+    "nyongkolan": "perarakan yang menjadi sebahagian daripada majlis perkahwinan Sasak",
+    "gendang mame": "gendang jantan dalam ensembel, dengan bunyi yang lebih tinggi",
+    "gendang nine": "gendang betina dalam ensembel, dengan bunyi yang lebih rendah",
+    "suling": "seruling buluh yang memainkan melodi",
+    "reyong": "set gong kecil daripada logam yang memainkan melodi, juga dieja reong",
+    "petuq": "alat muzik yang menjaga tempo, juga dipanggil oncer",
+    "oncer": "nama lain bagi petuq, yang menjaga tempo",
+    "kempur": "gong besar yang mengisi kiraan frasa muzik",
+    "rincik": "simbal kecil yang mengisi ruang dalam irama",
+    "kenceng": "simbal, serupa dengan ceng-ceng, yang menghiasi irama",
+    "pemantok": "pemukul yang digunakan untuk memukul gendang",
+    "sapuk": "kain ikat kepala batik yang dipakai pemain, juga dieja sapo'",
+    "kecimol": "gaya muzik yang lebih baharu yang bersaing dengan Gendang Beleq"
+  },
+  "network": {
+    "concepts": {
+      "Sasak people": "masyarakat Sasak",
+      "West Nusa Tenggara": "Nusa Tenggara Barat",
+      "bronze": "gangsa",
+      "circumcision": "berkhatan",
+      "drum ensemble": "ensembel gendang",
+      "festival": "pesta",
+      "melody": "melodi",
+      "players": "pemain",
+      "wedding": "perkahwinan",
+      "wood": "kayu"
+    },
+    "relations": {
+      "is_a": "ialah",
+      "part_of": "sebahagian daripada",
+      "originates_from": "berasal dari",
+      "played_by": "dimainkan oleh",
+      "played_at": "dimainkan di",
+      "made_of": "diperbuat daripada",
+      "worn_by": "dipakai oleh",
+      "keeps": "menjaga",
+      "plays": "memainkan"
+    }
+  }
+}

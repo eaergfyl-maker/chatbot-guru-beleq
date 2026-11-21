@@ -2,6 +2,7 @@
 import io
 import json
 import os
+import re
 import socket
 import tempfile
 import threading
@@ -20,9 +21,9 @@ os.environ["GEMINI_ENABLED"] = "0"  # the tests never call Gemini, even if a loc
 
 import server  # noqa: E402
 from eval import cuq  # noqa: E402
-from src import llm, nlp, persona, profiles, sandbox, search  # noqa: E402
-from src.graph import ask, build_graph, start, state_of  # noqa: E402
-from src.knowledge import get_topic, glossary, references, topics, validate  # noqa: E402
+from src import i18n, llm, nlp, persona, profiles, sandbox, search  # noqa: E402
+from src.graph import ask, build_graph, start, state_of, switch_language  # noqa: E402
+from src.knowledge import get_topic, glossary, load_translation, references, topics, validate  # noqa: E402
 from src.semantic_net import load_edges  # noqa: E402
 
 
@@ -483,7 +484,9 @@ class WebRoutes(unittest.TestCase):
         self.assertIn("/api/sandbox", body)
         self.assertIn('id="rate"', body)
         self.assertIn('href="/"', body)
-        self.assertNotRegex(body, r'<script[^>]+src=|<link[^>]+stylesheet')  # no external scripts or styles
+        # no external scripts or styles; the only script file is the shared language switch from this server
+        self.assertEqual(re.findall(r'<script[^>]+src="([^"]+)"', body), ["/lang.js"])
+        self.assertNotRegex(body, r'<link[^>]+stylesheet')
 
     def test_sandbox_api_returns_stations(self):
         status, ctype, body = self.get("/api/sandbox")
@@ -759,7 +762,9 @@ class SmartMode(Chat):
                 self.assertIn("Guru Beleq is thinking", html)
                 self.assertIn("typing-dots", html)
         self.assertIn("setAvatarReaction('thinking', false)", (root / "index.html").read_text(encoding="utf-8"))
-        self.assertIn('st.spinner("Guru Beleq is thinking...")', (root.parent / "app.py").read_text(encoding="utf-8"))
+        app = (root.parent / "app.py").read_text(encoding="utf-8")
+        self.assertIn('st.spinner(UI[current_lang()]["thinking"])', app)
+        self.assertIn('"thinking": "Guru Beleq is thinking..."', app)
 
     def test_env_file_is_loaded_without_overriding_real_variables(self):
         path = os.path.join(_tmp, "test.env")
@@ -780,3 +785,167 @@ class SmartMode(Chat):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------- Bahasa Malaysia ----------
+class MalayChat(Chat):
+    def say(self, text, lang=None):
+        return ask(self.graph, text, self.tid, lang)
+
+    def begin(self, name="Siti", lang="ms"):
+        start(self.graph, self.tid, lang)
+        return self.say(name)
+
+    def test_malay_knowledge_base_lines_up_with_the_english_one(self):
+        self.assertEqual(validate(), [])
+        ms = load_translation("ms")["topics"]
+        for t in topics():
+            m = get_topic(t["id"], "ms")
+            self.assertEqual(len(m["facts"]), len(t["facts"]))
+            self.assertEqual(len(m["lesson"]), len(t["lesson"]))
+            self.assertNotEqual(m["title"], t["title"])
+            self.assertEqual(ms[t["id"]]["title"], m["title"])
+            for fe, fm in zip(t["facts"], m["facts"]):
+                self.assertEqual(fe["sources"], fm["sources"])  # a translated fact keeps its citation
+        self.assertEqual(set(glossary("ms")), set(glossary()))
+
+    def test_greeting_name_and_menu_in_malay(self):
+        start(self.graph, self.tid, "ms")
+        self.assertEqual(self.state()["lang"], "ms")
+        reply = self.say("nama saya Siti")
+        self.assertEqual(self.state()["user_name"], "Siti")
+        self.assertIn("Siti", reply)
+        self.assertIn("Ini perkara yang boleh kita lakukan bersama", reply)
+        for text, name in (("nama saya Aminah", "Aminah"), ("panggil saya Ali", "Ali"), ("saya Farid", "Farid")):
+            self.assertEqual(persona.extract_name(text), name)
+
+    def test_malay_greetings_follow_the_clock(self):
+        with mock.patch.object(persona, "_part_of_day", return_value=0):
+            self.assertTrue(persona.time_greeting("ms").startswith("Selamat pagi"))
+        with mock.patch.object(persona, "_part_of_day", return_value=2):
+            self.assertTrue(persona.time_greeting("ms").startswith("Selamat malam"))
+
+    def test_questions_are_answered_in_malay_with_citations(self):
+        self.begin()
+        reply = self.say("apa fungsi petuq?")
+        self.assertIn("rentak", reply)
+        self.assertIn("(Saputra, 2019)", reply)
+        english = self.say("what does the petuq do?")  # an English question still gets a Malay answer
+        self.assertIn("rentak", english)
+        self.assertNotIn("sets the tempo", english)
+
+    def test_malay_lesson_accepts_malay_and_english_answers(self):
+        self.begin()
+        reply = self.say("1")
+        self.assertIn("Pelajaran 1", reply)
+        self.assertIn("pulau manakah", reply)
+        self.say("petunjuk")
+        self.assertEqual(self.state()["stage"], "lesson")
+        self.assertEqual(self.state()["lesson"]["attempts"], 0)  # a hint does not use an attempt
+        reply = self.say("masyarakat Sasak di Lombok")
+        self.assertIn("Langkah 2", reply)
+        reply = self.say("it means big drum")  # the English answer words are still accepted
+        self.assertNotEqual(self.state()["stage"], "lesson")
+        self.assertIn("overview", self.state()["progress"]["lessons_done"])
+
+    def test_malay_quiz_hint_and_skip(self):
+        self.begin()
+        reply = self.say("kuiz")
+        self.assertEqual(self.state()["stage"], "quiz")
+        self.assertIn("kuiz", reply.lower())
+        self.say("petunjuk")
+        self.assertEqual(self.state()["stage"], "quiz")
+        before = self.state()["quiz"]
+        self.say("langkau")
+        self.assertNotEqual(self.state()["quiz"], before)
+
+    def test_malay_fun_facts_and_another_one(self):
+        self.begin()
+        self.assertEqual(nlp.correct_spelling("beri saya fakta menarik", "ms"), "beri saya fakta menarik")
+        first = self.say("beri saya fakta menarik")
+        self.assertRegex(first, r"\([A-Z][^()]*, (\d{4}|n\.d\.)\)")  # Harvard citation
+        self.assertTrue(first.startswith("Ini satu fakta menarik, Siti"))
+        second = self.say("satu lagi")
+        self.assertNotEqual(first, second)
+
+    def test_switching_language_mid_lesson_repeats_the_question(self):
+        start(self.graph, self.tid, "en")
+        self.say("Budi")
+        question_en = self.say("lesson")
+        self.assertIn("Which people does the Gendang Beleq belong to", question_en)
+        reply = switch_language(self.graph, self.tid, "ms")
+        self.assertTrue(reply.startswith(i18n.t("ms", "switched")))
+        self.assertIn("pulau manakah", reply)
+        self.assertEqual(self.state()["stage"], "lesson")
+        self.assertEqual(self.state()["lesson"]["attempts"], 0)  # switching does not use an attempt
+        back = switch_language(self.graph, self.tid, "en")
+        self.assertIn("Which people does the Gendang Beleq belong to", back)
+
+    def test_english_is_the_default(self):
+        start(self.graph, self.tid)
+        self.assertEqual(self.state()["lang"], "en")
+        self.assertIn("Here is what we can do together", self.say("Budi"))
+
+    def test_avatar_reactions_understand_malay_replies(self):
+        self.begin()
+        self.say("1")
+        reply = self.say("masyarakat Sasak di Lombok")
+        self.assertEqual(persona.reaction_of(self.state(), reply), "celebrate")
+
+    def test_gemini_prompt_in_malay_uses_the_malay_facts(self):
+        llm.reset()
+        self.addCleanup(llm.reset)
+        good = "Petuq menetapkan rentak, dan semua orang mengikut kelajuannya (Saputra, 2019)."
+        with mock.patch.dict(os.environ, SMART_ENV), mock.patch(URLOPEN, return_value=gemini_reply(good)) as urlopen:
+            self.begin()
+            self.say("apa fungsi petuq?")
+        system = json.loads(urlopen.call_args[0][0].data)["systemInstruction"]["parts"][0]["text"]
+        self.assertIn(llm.LANGUAGE_RULES["ms"], system)
+        for f in get_topic("instruments", "ms")["facts"]:
+            self.assertIn(f["text"], system)
+
+
+class MalayWeb(WebRoutes):
+    def test_language_routes(self):
+        _, d = self.post("/api/start", {"lang": "ms"})
+        self.assertEqual(d["lang"], "ms")
+        self.assertIn("Saya Guru Beleq", d["reply"])
+        tid = d["thread_id"]
+        _, d = self.post("/api/chat", {"thread_id": tid, "message": "Siti", "lang": "ms"})
+        self.assertEqual(d["stage"], "menu")
+        _, d = self.post("/api/language", {"thread_id": tid, "lang": "en"})
+        self.assertEqual(d["lang"], "en")
+        self.assertTrue(d["reply"].startswith("Sure, let's continue in English!"))
+        with self.assertRaises(urllib.error.HTTPError) as err:
+            self.post("/api/language", {"thread_id": "no-such-thread", "lang": "ms"})
+        self.assertEqual(err.exception.code, 404)
+
+    def test_get_routes_in_malay(self):
+        meta = json.loads(self.get("/api/meta?lang=ms")[2])
+        self.assertEqual(meta["topics"][0]["title"], get_topic("overview", "ms")["title"])
+        self.assertEqual(json.loads(self.get("/api/cuq?lang=ms")[2])["items"], cuq.ITEMS_MS)
+        stations = json.loads(self.get("/api/sandbox?lang=ms")[2])
+        self.assertEqual(stations["lang"], "ms")
+        self.assertEqual(len(stations["stations"]), 8)
+
+    def test_every_page_loads_the_language_switch(self):
+        status, ctype, body = self.get("/lang.js")
+        self.assertEqual(status, 200)
+        self.assertIn("javascript", ctype)
+        self.assertIn("window.GBLang", body)
+        for path in ("/", "/chat", "/sandbox"):
+            page = self.get(path)[2]
+            self.assertIn('<script src="/lang.js"></script>', page)
+            self.assertIn("GBLang.toggle(", page)
+            self.assertIn("ms: {", page)
+            self.assertIn("data-lang-link", page)
+
+    def test_mascot_is_centred_in_its_window_panel(self):
+        page = self.get("/chat")[2]
+        self.assertIn("--side-w:", page)
+        self.assertIn("width:var(--side-w)", page)  # the window panel ...
+        self.assertIn("grid-template-columns: var(--side-w)", page)  # ... and the avatar column share one width
+        stage = page[page.index("#avatar-stage {"):]
+        stage = stage[:stage.index("}")]
+        self.assertIn("justify-content:center", stage)
+        self.assertNotIn("flex-end", stage)

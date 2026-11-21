@@ -1,6 +1,7 @@
 """Lightweight NLP layer: input validation, spelling correction, synonyms, keywords, answer matching.
 
-Plain Python, no models and no network.
+Plain Python, no models and no network. English is the base; Bahasa Malaysia ("ms") adds its own synonyms,
+question cues and stopwords on top, so a learner in Malay mode can also type English.
 """
 import difflib
 import re
@@ -22,6 +23,21 @@ SYNONYMS = {
     "lombok": ["west nusa tenggara", "ntb"],
 }
 
+# Bahasa Malaysia: canonical words that appear in the Malay facts -> what a learner might type
+SYNONYMS_MS = {
+    "gendang beleq": ["gendang belek", "gendang belaq", "gendang beleg", "ensembel gendang"],
+    "sejarah": ["asal usul", "latar belakang", "warisan", "dahulu kala", "zaman dulu"],
+    "alat muzik": ["instrumen", "alat-alat", "peralatan", "simbal", "gong"],
+    "upacara": ["ritual", "perayaan", "sambutan", "majlis", "kenduri", "acara"],
+    "dimainkan": ["main", "bermain", "persembahan", "pertunjukan", "dipersembahkan", "memainkan"],
+    "pahlawan": ["perang", "berperang", "peperangan", "askar", "tentera", "pejuang", "pertempuran"],
+    "pakaian": ["baju", "kostum", "busana", "uniform", "seragam", "tengkolok", "destar"],
+    "perkahwinan": ["kahwin", "berkahwin", "nikah", "pernikahan", "pengantin", "kenduri kahwin"],
+    "maksud": ["makna", "erti", "bermaksud", "bererti", "simbol", "fungsi", "peranan"],
+    "sasak": ["orang lombok", "masyarakat lombok", "suku lombok"],
+    "lombok": ["nusa tenggara barat", "ntb"],
+}
+
 # what kind of question is it? Each pattern adds the words that answers to that kind of question use.
 QUESTION_CUES = [
     (r"^\s*what(\s+is|'s)\s+(the\s+|a\s+)?gendang beleq\b\W*$", "traditional art sasak lombok identity"),
@@ -39,7 +55,29 @@ QUESTION_CUES = [
     (r"\b(dying|disappear|declin|extinct|losing|surviv|popular|future)", "decline kecimol dangdut"),
     (r"\bwhy\b.*\b(big|large|name|called)", "named large drums"),
 ]
-_REFERS_TO_SUBJECT = re.compile(r"\b(it|its|they|them|their|these|those|this)\b", re.I)
+_REFERS_TO_SUBJECT = re.compile(r"\b(it|its|they|them|their|these|those|this|ia|mereka|ini|itu)\b|\w{3,}nya\b", re.I)
+
+# Bahasa Malaysia question types -> words the Malay facts use for that kind of answer
+QUESTION_CUES_MS = [
+    (r"^\s*(apa|apakah)\s+(itu\s+)?gendang beleq\b\W*$", "kesenian tradisional sasak lombok identiti"),
+    (r"\b(nama|dipanggil)\b.*\bdua gendang\b|\bdua gendang\b.*\b(nama|dipanggil)\b", "mame nine jantan betina"),
+    (r"\b(apa|apakah)\b.*\b(dilakukan|dibuat oleh|fungsi|peranan|tugas)\b|\b(fungsi|peranan|tugas)\b",
+     "menutup menjaga mengisi memainkan"),
+    (r"\bberapa (ramai|banyak|orang)\b|\bbilangan\b|\bjumlah pemain\b", "sedozen tiga puluh pemuzik kumpulan"),
+    (r"\bberapa (besar|panjang|berat|tinggi)\b|\bsaiz\b", "panjang gendang memikul"),
+    (r"\b(bagaimana|macam mana|cara)\b.*\b(main|dimainkan|bermain|memainkan|pukul|dipukul)\b",
+     "pemukul memukul menampar"),
+    (r"\b(diperbuat|dibuat) (daripada|dari)\b|\bbahan\b", "kayu kulit badan"),
+    (r"\b(bila|bilakah)\b(?!.*\b(mula|bermula|dicipta|asal))|\b(majlis|acara)\b",
+     "perkahwinan perarakan mengiringi kampung upacara pesta"),
+    (r"\b(di ?mana|mana)\b.*\b(tengok|tonton|lihat|melihat|menonton|lawat)\b|\bboleh (saya )?(tengok|tonton|lihat)\b",
+     "pelawat kampung pusat kebudayaan menonton"),
+    (r"\b(dari|di) ?mana\b.*\b(asal|berasal|datang)\b|\bberasal\b", "lombok kabupaten sasak"),
+    (r"\bsiapa(kah)?\b.*\b(main|bermain|memainkan|persembah)", "pemain kumpulan sasak"),
+    (r"\b(cipta|dicipta|bermula|mula-mula|asal usul|berapa (lama|tua)|sejak bila)\b", "berasal sejarah pasti kerajaan"),
+    (r"\b(pupus|hilang|merosot|kemerosotan|semakin kurang|bertahan|popular|masa depan)\b", "kemerosotan kecimol dangdut"),
+    (r"\b(kenapa|mengapa)\b.*\b(besar|nama|dipanggil)\b", "dinamakan besar gendang"),
+]
 
 STOPWORDS = {
     "the", "a", "an", "is", "are", "was", "were", "do", "does", "did", "of", "to", "in", "on", "at", "and", "or",
@@ -48,6 +86,19 @@ STOPWORDS = {
     "my", "your", "some", "any", "there", "they", "them", "their", "from", "also", "more", "else", "another",
     "other", "further",
 }
+# Bahasa Malaysia function words. None of them is an English knowledge-base word, so one shared set is safe.
+MALAY_STOPWORDS = {
+    "dan", "di", "ke", "dari", "daripada", "yang", "ini", "itu", "untuk", "dengan", "ada", "adakah", "saya", "aku",
+    "kami", "kita", "anda", "awak", "kamu", "engkau", "dia", "ia", "mereka", "apa", "apakah", "siapa", "siapakah",
+    "bila", "bilakah", "mana", "manakah", "kenapa", "mengapa", "bagaimana", "bagaimanakah", "macam", "berapa",
+    "boleh", "bolehkah", "tentang", "mengenai", "dalam", "pada", "oleh", "atau", "juga", "lagi", "sahaja", "saja",
+    "tidak", "tak", "bukan", "akan", "sudah", "dah", "telah", "masih", "ialah", "adalah", "merupakan", "sangat",
+    "amat", "lebih", "paling", "semua", "setiap", "beberapa", "sedikit", "satu", "sebuah", "seorang", "pun",
+    "tolong", "sila", "ceritakan", "cerita", "terangkan", "beritahu", "tahu", "nak", "mahu", "hendak", "ingin",
+    "jadi", "kalau", "jika", "maka", "sebagai", "serta", "seperti", "antara", "selain", "lain", "itulah", "inilah",
+    "sini", "situ", "begitu", "begini", "punya", "buat", "mesti", "perlu", "patut", "dapat", "dulu", "hai",
+}
+STOPWORDS |= MALAY_STOPWORDS
 
 # names users are most likely to mistype; matched loosely
 _BASE_VOCAB = {
@@ -57,11 +108,26 @@ _BASE_VOCAB = {
 }
 
 
-@lru_cache(maxsize=1)
-def load_vocab() -> frozenset:
+# everyday Malay words a learner types that the spelling corrector must leave alone
+# (otherwise 'menarik' would become 'menari', a word in the facts)
+_MALAY_COMMON = {
+    "menarik", "rawak", "unik", "pelik", "seronok", "kejutkan", "fakta", "beri", "berikan", "bagi", "lagi", "belajar",
+    "pelajaran", "pelajari", "ajar", "ajarkan", "kuiz", "ujian", "soalan", "jawapan", "petunjuk", "langkau", "ulang",
+    "ulangi", "berhenti", "keluar", "batal", "kemajuan", "markah", "cadangan", "cadangkan", "glosari", "kamus",
+    "sumber", "rujukan", "bantuan", "keliru", "faham", "susah", "sukar", "bosan", "terima", "kasih", "selamat", "pagi",
+    "petang", "malam", "tinggal", "jumpa", "teruskan", "seterusnya", "sedia", "tengok", "lihat", "dengar", "bunyi",
+    "lagu", "muzik", "nyanyi", "tarian", "bagus", "hebat", "best", "mantap", "terbaik", "suka", "minat", "sejarah",
+    "maksud", "makna", "nama", "panggil", "bermain", "main", "pukul", "besar", "kecil", "panjang", "berat", "orang",
+    "ramai", "banyak", "mula", "bermula", "asal", "datang", "tentang", "mengenai", "kenapa", "mengapa", "bagaimana",
+    "berapa", "siapa", "bilakah", "dimana", "manakah", "sekali", "semula", "baiklah", "okey", "tolong", "maaf",
+}
+
+
+@lru_cache(maxsize=None)
+def load_vocab(lang: str = "en") -> frozenset:
     from .knowledge import vocabulary  # lazy import: knowledge does not depend on nlp
 
-    return frozenset(_BASE_VOCAB | vocabulary())
+    return frozenset(_BASE_VOCAB | vocabulary(lang) | (_MALAY_COMMON if lang == "ms" else set()))
 
 
 def validate_input(text: str) -> str | None:
@@ -80,9 +146,9 @@ def validate_input(text: str) -> str | None:
     return None
 
 
-def correct_spelling(text: str) -> str:
+def correct_spelling(text: str, lang: str = "en") -> str:
     """Fix near-miss spellings of domain words (e.g. 'gendnag' -> 'gendang')."""
-    vocab = load_vocab()
+    vocab = load_vocab(lang)
     candidates = sorted(vocab)
     core = sorted(_BASE_VOCAB)
 
@@ -106,11 +172,14 @@ def correct_spelling(text: str) -> str:
     return re.sub(r"[A-Za-z]+", fix, text)
 
 
-def expand_synonyms(text: str) -> list[str]:
+def expand_synonyms(text: str, lang: str = "en") -> list[str]:
     """Canonical terms whose variants appear in the text and that the text doesn't already contain."""
     low = text.lower()
     found = []
-    for canonical, variants in SYNONYMS.items():
+    table = list(SYNONYMS.items()) + (list(SYNONYMS_MS.items()) if lang == "ms" else [])
+    for canonical, variants in table:
+        if canonical in found:
+            continue
         if canonical in low:
             continue
         if any(re.search(rf"\b{re.escape(v)}\b", low) for v in variants):
@@ -118,16 +187,19 @@ def expand_synonyms(text: str) -> list[str]:
     return found
 
 
-def question_cues(text: str, about_subject: bool) -> list[str]:
+def question_cues(text: str, about_subject: bool, lang: str = "en") -> list[str]:
     """Extra search words for the kind of question asked. Only applies to questions about this subject,
     so 'who invented the guitar?' stays off-topic while 'who invented it?' does not."""
     if not (about_subject or _REFERS_TO_SUBJECT.search(text)):
         return []
-    return [words for pattern, words in QUESTION_CUES if re.search(pattern, text, re.I)]
+    cues = QUESTION_CUES + (QUESTION_CUES_MS if lang == "ms" else [])
+    return [words for pattern, words in cues if re.search(pattern, text, re.I)]
 
 
 def stem(word: str) -> str:
-    """Crude suffix stripping so plays, played and playing all match."""
+    """Crude suffix stripping so plays, played and playing all match (and Malay sejarahnya, apakah: -nya, -lah, -kah)."""
+    if len(word) > 5 and word.endswith(("nya", "lah", "kah")):
+        word = word[:-3]
     if len(word) > 4 and word.endswith("ies"):
         return word[:-3] + "y"
     if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
