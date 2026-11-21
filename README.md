@@ -1,6 +1,6 @@
 # Guru Beleq: Gendang Beleq Teacher Chatbot
 
-Guru Beleq ("Big Teacher") is a rule-based chatbot that teaches about the Gendang Beleq (Gendang Belek), the traditional drum ensemble of the Sasak people of Lombok. English only. It works with no LLM and no API key: the flow is a LangGraph graph and all language handling is plain Python. An optional free Gemini key adds **Smart Mode**, which words answers more naturally from the same cited facts and falls back to the rule-based engine automatically (see [Smart Mode](#optional-smart-mode-gemini)).
+Guru Beleq ("Big Teacher") is a rule-based chatbot that teaches about the Gendang Beleq (Gendang Belek), the traditional drum ensemble of the Sasak people of Lombok. English only. It works with no LLM and no API key: the flow is a LangGraph graph and all language handling is plain Python. An optional free Gemini key lets Gemini answer open-ended conversation first, grounded in the same cited facts, with a silent fallback to the rule-based engine (see [Optional Gemini](#optional-gemini-free-api-key)).
 
 **Try it online:** https://chatbot-guru-beleq.vercel.app (nothing to install)
 
@@ -36,7 +36,7 @@ Prefer Streamlit or the terminal instead?
 ## What it does
 
 - Speaks first, greets by the computer's time of day, and asks your name.
-- Menu by number (`1–8`, `0`), clickable quick-action chips, or free text: lessons, questions, quiz, recommendation, progress, help, sources, and Sasak glossary.
+- Menu by number (`1–8`, `0`), clickable quick-action chips, or free text: lessons, questions, quiz, recommendation, progress, help, sources, Sasak glossary, and fun facts ("give me a fun fact", "surprise me").
 - Acts as a teacher: teaches a step, asks a question, gives hints, explains after two misses, and answers interrupting side questions before returning to the lesson or quiz.
 - Understands small typos, alternative wording and the kind of question asked (spelling correction, synonyms, keywords, question cues, one-hop semantic network expansion).
 - Cites its sources in Harvard style in every answer, and admits when it has no exact answer instead of guessing.
@@ -47,9 +47,9 @@ Prefer Streamlit or the terminal instead?
   - **Export Learning Transcript (`Export chat`)**: Downloads the conversation transcript and learner progress summary as `guru-beleq-transcript.txt`.
   - **Built-in CUQ Usability Modal (`Rate this chatbot`)**: 16-item Chatbot Usability Questionnaire dialog saving anonymous scores to `eval/cuq_responses.csv`.
 
-## Optional Smart Mode (Gemini)
+## Optional Gemini (free API key)
 
-Without a key the chatbot runs in **⚡ Classic Mode** (pure Python). With a free Google AI Studio key it runs in **✨ Smart Mode**: Gemini rewords question answers, small talk and off-topic replies in Guru Beleq's voice. The pill next to the level badge shows which mode is active.
+Without a key, Guru Beleq is fully rule-based (pure Python). With a free Google AI Studio key, **Gemini answers open-ended conversation first**: questions, follow-ups ("explain it simply", "tell me more"), comparisons, "give me a fun fact", small talk and off-topic questions (which it politely declines). Learners are never told which engine replied.
 
 **Add a key locally:**
 1. Get a free key at https://aistudio.google.com/apikey.
@@ -58,11 +58,13 @@ Without a key the chatbot runs in **⚡ Classic Mode** (pure Python). With a fre
 
 **Add a key on Vercel:** Project → Settings → Environment Variables → add `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default `gemini-2.5-flash`), then redeploy.
 
-**What stays rule-based:** input validation, name capture, menu numbers, `67`, lessons and quiz (including grading, so scores stay predictable), progress, sources, glossary, recommendations and goodbye.
+**What stays rule-based:** input validation, name capture, menu numbers `0–8`, `67`, lesson and quiz steps and grading (so scores stay predictable), progress, sources, glossary, recommendations, leaving and goodbye.
 
-**Grounding:** Gemini gets only the facts the TF-IDF search already retrieved, plus matching glossary entries and their Harvard references. It is told to use nothing else, and a reply is thrown away (rule-based reply used instead) if it has no citation or cites anything that was not supplied.
+**Grounding:** Gemini receives the whole cited knowledge base (31 facts, 17 glossary entries and 6 Harvard references, about 2k tokens) plus the last few messages, and is told to use only those facts with their exact citations. A reply that cites a source or year not in the references is discarded. Inside a lesson or quiz, Gemini is told not to give away the current answer, and the learner is brought back to the question afterwards.
 
-**Automatic fallback:** no key, `GEMINI_ENABLED=0`, a 6-second timeout, network errors, 5xx errors, odd responses or an ungrounded reply all give the normal rule-based reply. A quota/rate-limit error (HTTP 429) or a rejected key (401/403) also pauses Gemini for 5 minutes, so the following replies are instant. The learner never sees an error.
+**Silent fallback:** no key, `GEMINI_ENABLED=0`, a 15-second timeout, network or server errors, odd responses or an invented citation all give the normal rule-based reply. A quota/rate-limit error (HTTP 429) or a rejected key (401/403) also pauses Gemini for 5 minutes. If the API rejects `thinkingConfig` (HTTP 400), the call is retried once without it.
+
+**Diagnosing on Vercel:** open `/api/meta` and look at `llm`: `enabled`, `available`, `cooldown_seconds`, `last_error` (the last reason Gemini was not used, with the key redacted) and `last_success`. This is never shown in the chat.
 
 ## Sasak Village Sandbox (`/sandbox`)
 
@@ -99,7 +101,7 @@ pip install -r requirements.txt
 python -m src.graph                       # terminal chat
 python server.py                          # standalone web page at http://localhost:8000
 streamlit run app.py                      # Streamlit web UI at http://localhost:8501
-python -m unittest discover tests         # 74 scripted tests (no API key or network needed)
+python -m unittest discover tests         # 81 scripted tests (no API key or network needed)
 python -m eval.run_eval                   # runs eval/questions.csv, saves eval/results.csv
 python -m eval.cuq collect                # one tester fills in the CUQ (also in the web UI)
 python -m eval.cuq report                 # CUQ score and item means from all responses
@@ -119,7 +121,7 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `src/knowledge.py` | loads and checks the knowledge base |
 | `src/semantic_net.py` | semantic network used to widen searches |
 | `src/persona.py` | name, time greetings, teacher phrases, menu, badges |
-| `src/llm.py` | optional Gemini Smart Mode: grounded rewording, citation check, timeout, quota cooldown, `.env` loading |
+| `src/llm.py` | optional Gemini: full cited knowledge base prompt, citation check, timeout, quota cooldown, diagnostics, `.env` loading |
 | `.env.example` | template for `GEMINI_API_KEY` / `GEMINI_MODEL` (copy to `.env`) |
 | `src/profiles.py` | saves learner progress by name |
 | `data/knowledge/topics.json` | cited facts, lessons, quiz questions, glossary, references |

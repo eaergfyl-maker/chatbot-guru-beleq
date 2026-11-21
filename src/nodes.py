@@ -46,19 +46,44 @@ _STRUGGLING = re.compile(r"(confus|don'?t understand|do not understand|too hard|
 _HAPPY = re.compile(r"\b(great|awesome|love|fun|cool|amazing|nice|interesting)\b", re.I)
 _SUBJECT_NAMES = re.compile(r"\b(gendang bel(ek|aq|eg)|big drums?( ensemble)?|giant drums?|drum ensemble)\b", re.I)
 _MORE = re.compile(r"\b(more|else|another|other|further)\b", re.I)
+_FUN_FACT = re.compile(r"\b(fun|interesting|random|cool|surprising) facts?\b|\bsurprise me\b|\btrivia\b|\bdid you know\b", re.I)
+_ANOTHER = re.compile(r"\b(another|more|again|one more|next)\b", re.I)
 _MENU_NUMBERS = {"1": "lesson_start", "2": "invite", "3": "quiz_start", "4": "recommend", "5": "progress", "6": "help",
                  "7": "sources", "8": "glossary", "0": "bye"}
 
 
 # ---------- helpers ----------
 def _msg(text: str, **fields) -> dict:
-    """A reply. `engine` says who wrote it: "python" (rule-based, the default) or "gemini" (Smart Mode)."""
+    """A reply. `engine` records who wrote it, for diagnostics only: "python" (rule-based, the default) or "gemini"."""
     return {"messages": [AIMessage(content=text)], "engine": "python", **fields}
 
 
-def _smart(text: str | None, draft: str, **fields) -> dict:
-    """Gemini's reply when it gave one, otherwise the rule-based draft."""
-    return _msg(text, engine="gemini", **fields) if text else _msg(draft, **fields)
+def _history(state: State) -> list[tuple[str, str]]:
+    """Earlier turns as (speaker, text), oldest first, without the message being answered now."""
+    msgs = state.get("messages", [])
+    if msgs and isinstance(msgs[-1], HumanMessage):
+        msgs = msgs[:-1]
+    return [("learner" if isinstance(m, HumanMessage) else "guru", m.content) for m in msgs]
+
+
+def _gemini(state: State) -> dict | None:
+    """Gemini-first handling of an open-ended turn: its reply (plus the way back into a lesson or quiz), or None
+    when Gemini is off or fails, in which case the caller gives its rule-based reply. The learner can't tell which."""
+    if not llm.available():
+        return None
+    back = _reprompt(state)
+    note = ""
+    if back:
+        note = ("The learner is in the middle of a lesson or quiz and will be asked this question again right after "
+                f"your reply, so do not give away its answer: {back.split(': ', 1)[1]}")
+    reply = llm.converse(_raw(state), _name(state), _history(state), note)
+    if not reply:
+        return None
+    progress = _progress(state)
+    hit = next(iter(search.search(state.get("search_query") or _text(state), k=1, question=_text(state))), None)
+    if hit and hit["topic"] != "glossary" and hit["topic"] not in progress["topics_seen"]:
+        progress["topics_seen"].append(hit["topic"])  # keeps "you asked about it earlier" in recommendations
+    return _msg(f"{reply}{back}", engine="gemini", progress=progress)
 
 
 def _raw(state: State) -> str:
@@ -193,9 +218,14 @@ def classify(state: State) -> dict:
 
     if low == SIX_SEVEN:
         return {"intent": "six_seven"}
+    # "give me a fun fact", or "another one" straight after a fun fact
+    wants_fact = _FUN_FACT.search(low) or (
+        state.get("intent") == "fun_fact" and _ANOTHER.search(low) and len(low.split()) <= 5)
     if stage in ("lesson", "quiz"):
         if _LEAVE.search(low):
             return {"intent": "leave"}
+        if wants_fact:
+            return {"intent": "fun_fact"}
         # a question only interrupts if it doesn't also answer what was asked ("is it a wedding?" is an answer)
         is_question = _QUESTION.match(low) or low.endswith("?")
         if is_question and not _SKIP.search(low) and not _HINT.match(low) and not _grade(text, _current_answer(state))[0]:
@@ -204,6 +234,8 @@ def classify(state: State) -> dict:
 
     if re.fullmatch(r"\d{1,2}", low):
         return {"intent": _MENU_NUMBERS.get(low, "menu")}  # menu node explains a number that isn't on the menu
+    if wants_fact:
+        return {"intent": "fun_fact"}
     if _GREETING.match(low) and len(low.split()) <= 4:
         return {"intent": "smalltalk"}
     if _CONTINUE.match(low) and len(low.split()) <= 4:
@@ -269,35 +301,51 @@ def help_node(state: State) -> dict:
     )
 
 
-def _smalltalk_draft(state: State) -> tuple[str, str]:
-    """The rule-based small-talk reply, and a phrase that a reworded version must keep."""
+def smalltalk(state: State) -> dict:
+    smart = _gemini(state)
+    if smart:
+        return smart
     name, low = _name(state), _raw(state).lower()
     if state.get("mood") == "struggling":
-        return (f"{persona.pick(persona.COMFORT)} We can go slowly, {name}. Say 'lesson' and I will explain one small "
-                "step at a time, with hints whenever you want them.", "lesson")
+        return _msg(f"{persona.pick(persona.COMFORT)} We can go slowly, {name}. Say 'lesson' and I will explain one small "
+                    "step at a time, with hints whenever you want them.")
     if _IDENTITY.search(low):
-        return (f"I'm {persona.BOT_NAME}, a teaching chatbot built to explain the Gendang Beleq. "
-                f"{persona.BOT_MEANING[0].upper()}{persona.BOT_MEANING[1:]}. What would you like to learn, {name}?",
-                persona.BOT_NAME)
+        return _msg(f"I'm {persona.BOT_NAME}, a teaching chatbot built to explain the Gendang Beleq. "
+                    f"{persona.BOT_MEANING[0].upper()}{persona.BOT_MEANING[1:]}. What would you like to learn, {name}?")
     if _DECLINE.match(low):
-        return f"That's fine, {name}. Ask me anything when you're ready, or say 'menu' to see the options.", ""
+        return _msg(f"That's fine, {name}. Ask me anything when you're ready, or say 'menu' to see the options.")
     if _THANKS.search(low):
-        return f"You're very welcome, {name}! What would you like to explore next?", ""
+        return _msg(f"You're very welcome, {name}! What would you like to explore next?")
     if _GREETING.match(low):
-        hello = persona.reply_greeting(low)
-        return f"{hello}, {name}! Good to see you. What would you like to learn about the Gendang Beleq today?", hello
-    return f"Glad you're enjoying it, {name}! What would you like to explore next?", ""
-
-
-def smalltalk(state: State) -> dict:
-    draft, keep = _smalltalk_draft(state)
-    return _smart(llm.in_character(_raw(state), _name(state), draft, must_include=keep), draft)
+        return _msg(f"{persona.reply_greeting(low)}, {name}! Good to see you. What would you like to learn about the Gendang Beleq today?")
+    return _msg(f"Glad you're enjoying it, {name}! What would you like to explore next?")
 
 
 def offtopic(state: State) -> dict:
-    draft = (f"That's outside what I teach, {_name(state)}. I'm here for the Gendang Beleq drum ensemble of Lombok. "
-             "What would you like to know about its history, instruments or ceremonies?")
-    return _smart(llm.in_character(_raw(state), _name(state), draft), draft)
+    # Gemini first: the keyword router can't tell "explain it simply" or a comparison from a truly off-topic question
+    return _gemini(state) or _msg(
+        f"That's outside what I teach, {_name(state)}. I'm here for the Gendang Beleq drum ensemble of Lombok. "
+        "What would you like to know about its history, instruments or ceremonies?"
+    )
+
+
+def fun_fact(state: State) -> dict:
+    """'Give me a fun fact' / 'surprise me': Gemini first, otherwise a random cited fact not given yet."""
+    smart = _gemini(state)
+    if smart:
+        return smart
+    told = state.get("told") or []
+    facts = [(t, f) for t in topics() for f in t["facts"]]
+    fresh = [tf for tf in facts if tf[1]["text"] not in told] or facts
+    topic, fact = random.choice(fresh)
+    progress = _progress(state)
+    if topic["id"] not in progress["topics_seen"]:
+        progress["topics_seen"].append(topic["id"])
+    return _msg(
+        f"Here's a fun fact, {_name(state)}: {fact['text']} {cite(fact['sources'])}\n\n"
+        f"Want another one? Just ask!{_reprompt(state)}",
+        progress=progress, told=told + [fact["text"]],
+    )
 
 
 def bye(state: State) -> dict:
@@ -330,6 +378,9 @@ def six_seven(state: State) -> dict:
 
 
 def answer(state: State) -> dict:
+    smart = _gemini(state)  # Gemini first; the rule-based answer below is the silent fallback
+    if smart:
+        return smart
     progress = _progress(state)
     hits = search.search(state.get("search_query") or _text(state), question=_text(state))
     note = f"(I read that as: \"{state['heard']}\")\n" if state.get("heard") else ""
@@ -369,15 +420,8 @@ def answer(state: State) -> dict:
                and len(nlp.extract_keywords(canon_q)) >= 2
                and search.coverage(canon_q, " ".join(h["text"] for h in chosen)) <= 0.5)
     lead = "I don't have an exact answer to that, but this is the closest I can tell you: " if partial else ""
-    tail = f"\n\n{follow}{_reprompt(state)}"
-    # Smart Mode: Gemini rewords the same retrieved facts (plus up to two close runners-up), keeping their citations.
-    # The rule-based reply is built from the same facts and is used whenever Gemini gives nothing back.
-    extra = [h for h in ranked if h not in chosen and fits(h)][:2]
-    smart = llm.grounded_answer(_raw(state), _name(state), chosen + extra, partial=partial)
-    if smart:
-        return _msg(f"{note}{smart}{tail}", engine="gemini", progress=progress,
-                    told=told + [h["text"] for h in chosen + extra])
-    return _msg(f"{note}{lead}{answer_text}{tail}", progress=progress, told=told + [h["text"] for h in chosen])
+    return _msg(f"{note}{lead}{answer_text}\n\n{follow}{_reprompt(state)}", progress=progress,
+                told=told + [h["text"] for h in chosen])
 
 
 # ---------- teacher: lessons ----------

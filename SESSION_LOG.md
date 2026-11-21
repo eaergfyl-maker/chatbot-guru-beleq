@@ -2,7 +2,7 @@
 
 ## Latest Status
 - **Last Updated By:** Claude Code (2026-11-21)
-- **Current Task:** Added optional Gemini Smart Mode with automatic rule-based fallback
+- **Current Task:** Gemini-first conversation with silent fallback, fun facts, thinking indicator
 
 ## Recent Changes
 - Built Replika-inspired split-stage companion layout in `web/index.html` with a sunlit arch room backdrop, top floating navigation dock, `LVL X · <Title>` badge pill, and a 2.5D multi-layer rigged Guru Beleq SVG puppet (`#guru-puppet`) with 3D mouse-tilt parallax, eye tracking, and interactive Web Audio drum beat on click.
@@ -52,6 +52,17 @@
 - Tests set `GEMINI_ENABLED=0` at import so a developer's local `.env` never changes test results; `SmartMode` tests mock `urlopen`. 12 new tests, 74 total, no network.
 - Not tested against the live Gemini API (no key in this session). Try it with a real key before relying on it; if Google changes the response shape, the code falls back to Classic Mode rather than breaking.
 - The Streamlit app (`app.py`) also gets Smart Mode through the shared nodes but has no mode indicator yet.
+
+## Claude Code session: Gemini-first and Vercel fixes (2026-11-22)
+- Reported after deploying `5707578`: "give me a fun fact" got "That's outside what I teach", and `/api/chat` returned `engine: "python"` in ~1s with no cooldown. Most likely cause: the old `grounded()` read any "(2019)" as a citation and rejected "Saputra (2019)"-style replies, and it also required a citation. The real cause couldn't be confirmed without the live key; `/api/meta` now shows `llm.last_error` so it can be read on Vercel.
+- **Gemini-first:** `answer`, `smalltalk`, `offtopic` and the new `fun_fact` node call `nodes._gemini()` first when `llm.available()`; on `None` they give their old rule-based reply. Gemini gets the full cited KB (`llm.knowledge_text()`, cached) plus the last 6 messages, and, inside a lesson/quiz, the current question with an instruction not to reveal it; `_reprompt` is still appended. Deterministic flows unchanged.
+- `src/llm.py`: `systemInstruction` (camelCase), `TIMEOUT` 15 s, `maxOutputTokens` 1024. `thinkingConfig: {thinkingBudget: 0}` is still sent for gemini-2.5-flash (it is a supported field), but an HTTP 400 retries once without it and stops sending it. `grounded()` now only rejects (author, year) pairs that are not in the references, and accepts "(Saputra, 2019)", "Saputra (2019)", "et al." and "n.d." forms; no citation is fine. `status()` adds `last_error` (key redacted) and `last_success`.
+- New Classic-Mode `fun_fact` intent ("fun/interesting/random/cool fact", "surprise me", "trivia", "did you know", and "another one" right after a fun fact): a random cited fact not given yet, also inside lessons/quizzes (returns to the question).
+- UI: removed the Smart/Classic Mode pills; the `engine` and `smart` fields stay in the API for debugging only. Chat shows a "Guru Beleq is thinking" bubble with 3 bouncing dots and the avatar's `thinking` state while `/api/chat` runs; the sandbox dialogue shows the same dots; Streamlit wraps `ask()` in `st.spinner`.
+- **Bug fixed:** commit `5707578` shipped `web/sandbox.html` with an unescaped apostrophe in a JS string (`'...Guru Beleq's answers...'`), a syntax error that stopped the whole sandbox script. Removed with the pill; sandbox checked in Chrome with no console errors.
+- Tests: 81 pass, no key or network. Gemini-first fun fact / off-topic / follow-up / Q&A, full KB and history in the request, Classic fun facts, 401/403/429/timeout fallbacks, invented vs valid citation styles, the thinkingConfig 400 retry, key redaction in `last_error`, and pages without mode pills but with the thinking indicator.
+- Watch: Vercel's function time limit must be above 15 s or a slow Gemini call could be cut off by the platform before the fallback runs.
+- Note for local testing: stopping a background `python server.py` task can leave the Python process running on port 8000 (seen on Windows); check the port before starting another copy.
 
 ## Open items from this session
 - `eval/cuq_responses.csv` is not in `.gitignore`: real tester answers will appear as git changes and publish if pushed. Decide whether to ignore it.

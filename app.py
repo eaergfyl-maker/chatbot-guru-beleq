@@ -32,7 +32,9 @@ def render(text: str) -> str:
 
 def send_user_message(graph, tid: str, message: str):
     st.session_state.history.append(("user", message))
-    st.session_state.history.append(("assistant", ask(graph, message, tid)))
+    with st.spinner("Guru Beleq is thinking..."):
+        reply = ask(graph, message, tid)
+    st.session_state.history.append(("assistant", reply))
 
 
 def build_transcript(history: list[tuple[str, str]], progress: dict | None) -> str:

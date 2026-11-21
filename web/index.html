@@ -63,11 +63,6 @@
     height:6px; width:72px; background:rgba(255,255,255,0.35); border-radius:3px; overflow:hidden;
   }
   #bar div { height:100%; width:0; background:#fff; transition:width .35s ease; }
-  .mode-pill {
-    padding:4px 10px; border-radius:999px; font-size:.74rem; font-weight:700; white-space:nowrap; cursor:help;
-    background:rgba(255,250,242,0.72); color:var(--brown-dark); border:1px solid rgba(91,58,36,0.18);
-  }
-  .mode-pill.smart { background:linear-gradient(135deg, #fff6dc, #f3dca4); border-color:#d9a441; }
 
   .nav-pills {
     background: rgba(91, 58, 36, 0.78); backdrop-filter: blur(12px);
@@ -312,6 +307,16 @@
     color:#2b1d12; align-self:flex-start; border-bottom-left-radius:4px;
     border:1px solid rgba(215, 190, 150, 0.7);
   }
+  .msg.typing { display:flex; align-items:center; gap:8px; color:#6b5240; font-style:italic; font-size:.9rem; }
+  .typing-dots { display:inline-flex; gap:4px; }
+  .typing-dots i {
+    width:7px; height:7px; border-radius:50%; background:var(--brown); opacity:.35;
+    animation: typingDot 1.1s infinite ease-in-out;
+  }
+  .typing-dots i:nth-child(2) { animation-delay:.18s; }
+  .typing-dots i:nth-child(3) { animation-delay:.36s; }
+  @keyframes typingDot { 0%, 80%, 100% { transform:translateY(0); opacity:.35; } 40% { transform:translateY(-5px); opacity:1; } }
+  @media (prefers-reduced-motion: reduce) { .typing-dots i { animation:none; opacity:.7; } }
   .user {
     background: linear-gradient(135deg, var(--red), #911b21);
     color:#fff; align-self:flex-end; border-bottom-right-radius:4px;
@@ -416,7 +421,6 @@
       <span id="badge">LVL 1 · Curious Listener</span>
       <div id="bar"><div></div></div>
     </div>
-    <span id="mode-pill" class="mode-pill" hidden></span>
   </div>
 
   <nav class="nav-pills" aria-label="Companion navigation">
@@ -767,6 +771,20 @@ function add(role, text) {
   historyLog.push({role: role === 'bot' ? 'Guru Beleq' : 'You', text});
 }
 
+// "Guru Beleq is thinking..." bubble at the bottom of the chat while a reply is on its way
+function showThinking() {
+  hideThinking();
+  const d = document.createElement('div');
+  d.className = 'msg bot typing';
+  d.id = 'thinking';
+  d.setAttribute('role', 'status');
+  d.innerHTML = '<span>Guru Beleq is thinking</span><span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  setAvatarReaction('thinking', false);
+}
+function hideThinking() { document.getElementById('thinking')?.remove(); }
+
 function showProgress(p) {
   currentProgress = p;
   if (!p) {
@@ -839,19 +857,6 @@ function renderQuickbar(stage) {
   }
 }
 
-// Smart Mode (Gemini) or Classic Mode (rule-based). Falls back silently; this pill only reflects it.
-function showEngine(smart, engine) {
-  const pill = document.getElementById('mode-pill');
-  if (typeof smart !== 'boolean') return;
-  pill.hidden = false;
-  pill.classList.toggle('smart', smart);
-  pill.textContent = smart ? '✨ Smart Mode' : '⚡ Classic Mode';
-  pill.title = (smart
-    ? 'Gemini helps word the answers, using only the cited facts.'
-    : 'Built-in rule-based engine (no API key, or Gemini is resting).')
-    + (engine ? ` Last reply: ${engine === 'gemini' ? 'Gemini' : 'rule-based'}.` : '');
-}
-
 async function post(url, body) {
   const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body || {})});
   if (!r.ok) throw new Error(r.status);
@@ -873,7 +878,6 @@ async function begin() {
     add('bot', d.reply);
     renderQuickbar(d.stage || 'ask_name');
     setAvatarReaction(d.reaction || 'greeting', true);
-    showEngine(d.smart, null);
   } catch {
     add('bot', 'Sorry, I could not reach the server. Is server.py running?');
     setAvatarReaction('comfort', false);
@@ -884,14 +888,16 @@ async function sendMessage(text) {
   const clean = (text || '').trim();
   if (!clean || !tid || send.disabled) return;
   box.value = ''; add('user', clean); send.disabled = true;
+  showThinking();
   try {
     const d = await post('/api/chat', {thread_id: tid, message: clean});
+    hideThinking();
     add('bot', d.reply);
     showProgress(d.progress);
     renderQuickbar(d.stage || 'menu');
     setAvatarReaction(d.reaction || 'teaching', true);
-    showEngine(d.smart, d.engine);
   } catch {
+    hideThinking();
     add('bot', 'Sorry, something went wrong talking to the server.');
     setAvatarReaction('comfort', false);
   }

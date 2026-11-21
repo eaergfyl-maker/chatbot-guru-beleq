@@ -580,10 +580,19 @@ class SmartMode(Chat):
             self.assertEqual(self.state()["engine"], "python")
             self.assertGreater(llm.status()["cooldown_seconds"], 0)
 
-    def test_invalid_key_also_cools_down(self):
-        with mock.patch.dict(os.environ, SMART_ENV), mock.patch(URLOPEN, side_effect=http_error(403, "PERMISSION_DENIED")):
-            self.assertIsNone(llm.generate("system", "prompt"))
-            self.assertTrue(llm.cooling_down())
+    def test_rejected_key_falls_back_silently_and_cools_down(self):
+        expected = self.classic(self.QUESTION)
+        for code, status in ((401, "UNAUTHENTICATED"), (403, "PERMISSION_DENIED")):
+            llm.reset()
+            with self.subTest(code=code), mock.patch.dict(os.environ, SMART_ENV), \
+                    mock.patch(URLOPEN, side_effect=http_error(code, status)) as urlopen:
+                self.tid = f"{self.id()}:{code}"
+                self.begin()
+                self.assertEqual(self.say(self.QUESTION), expected)
+                self.assertTrue(llm.cooling_down())
+                self.say("thank you")
+                self.assertEqual(urlopen.call_count, 1)
+                self.assertIn(f"HTTP {code}", llm.status()["last_error"])
 
     def test_timeout_network_and_server_errors_fall_back(self):
         expected = self.classic(self.QUESTION)
@@ -622,20 +631,103 @@ class SmartMode(Chat):
         self.assertIn("models/gemini-2.5-flash:generateContent", req.full_url)
         self.assertNotIn("test-key", req.full_url)  # the key travels in a header, not the URL
         self.assertEqual(req.get_header("X-goog-api-key"), "test-key")
-        system = json.loads(req.data)["system_instruction"]["parts"][0]["text"]
-        self.assertIn("keeps the tempo", system)
-        self.assertIn("(Saputra, 2019)", system)
+        body = json.loads(req.data)
+        system = body["systemInstruction"]["parts"][0]["text"]
+        self.assertNotIn("system_instruction", body)
         self.assertIn("Budi", system)
+        # the whole cited knowledge base goes along: every fact, glossary entry and reference
+        for t in topics():
+            for f in t["facts"]:
+                self.assertIn(f["text"], system)
+        for term, entry in glossary().items():
+            self.assertIn(f"{term}: {entry['meaning']}", system)
+        for r in references().values():
+            self.assertIn(r["full"], system)
+        prompt = body["contents"][0]["parts"][0]["text"]
+        self.assertIn(question, prompt)  # told which lesson question not to give away
+        self.assertIn("Budi: lesson", prompt)  # recent conversation for follow-ups
 
-    def test_ungrounded_replies_are_rejected(self):
+    def test_gemini_answers_open_requests_the_router_calls_offtopic(self):
+        fact = "Here's one, Budi: the drums are carried on the players' shoulders in processions (Ministry of Tourism, n.d.)."
+        decline = "That's outside what I teach, Budi, but I'd love to tell you how the gong closes each phrase."
+        simple = "Simply put: two big drums lead, and gongs, cymbals and a flute join in (Saputra, 2019)."
+        with mock.patch.dict(os.environ, SMART_ENV), mock.patch(URLOPEN) as urlopen:
+            self.begin()
+            for message, reply, intent in (("give me a fun fact", fact, "fun_fact"),
+                                           ("What is the capital of France?", decline, "offtopic"),
+                                           ("explain it simply", simple, "offtopic"),
+                                           ("what are the instruments?", simple, "qa")):
+                with self.subTest(message=message):
+                    urlopen.return_value = gemini_reply(reply)
+                    self.assertEqual(self.say(message), reply)
+                    self.assertEqual(self.state()["intent"], intent)
+                    self.assertEqual(self.state()["engine"], "gemini")
+            prompt = json.loads(urlopen.call_args[0][0].data)["contents"][0]["parts"][0]["text"]
+            self.assertIn("Budi: explain it simply", prompt)
+            self.assertIn(simple, prompt)
+
+    def test_classic_mode_gives_cited_fun_facts(self):
+        self.begin()
+        first = self.say("give me a fun fact")
+        self.assertNotIn("outside what I teach", first)
+        self.assertRegex(first, r"\(.+, (\d{4}|n\.d\.)\)")
+        self.assertEqual(self.state()["intent"], "fun_fact")
+        second = self.say("another one")
+        self.assertEqual(self.state()["intent"], "fun_fact")
+        self.assertNotEqual(first, second)  # unused facts first
+        self.assertIn("(", self.say("surprise me"))
+
+    def test_classic_fun_fact_inside_a_lesson_returns_to_the_question(self):
+        self.begin()
+        self.say("lesson")
+        lesson = self.state()["lesson"]
+        reply = self.say("tell me an interesting fact")
+        self.assertIn("Here's a fun fact", reply)
+        self.assertIn("Now, back to our lesson:", reply)
+        self.assertEqual(self.state()["lesson"], lesson)
+
+    def test_fun_fact_falls_back_to_classic_when_gemini_fails(self):
+        with mock.patch.dict(os.environ, SMART_ENV), mock.patch(URLOPEN, side_effect=http_error(429, "RESOURCE_EXHAUSTED")):
+            self.begin()
+            reply = self.say("give me a fun fact")
+        self.assertTrue(reply.startswith("Here's a fun fact, Budi:"))
+        self.assertEqual(self.state()["engine"], "python")
+
+    def test_invented_citations_are_rejected_and_real_styles_accepted(self):
+        for text in ("The petuq keeps the tempo (Saputra, 2019).", "Saputra (2019) says the petuq keeps the tempo.",
+                     "Drummers play interlocking patterns (Saputra, 2019; Keen, 2015).",
+                     "Cohesion matters (Markarma et al., 2022). Visit Sade village (Ministry of Tourism, n.d.).",
+                     "Hello Budi! What would you like to learn today?"):  # no citation needed for small talk
+            self.assertTrue(llm.grounded(text), text)
+        for text in ("The petuq keeps the beat (Smith, 2020).", "Saputra (2023) says so.",
+                     "It keeps the tempo (Saputra, 2019; Wikipedia, 2023)."):
+            self.assertFalse(llm.grounded(text), text)
         expected = self.classic(self.QUESTION)
         self.begin()
-        for text in ("The petuq keeps the beat for everyone.",                          # no citation
-                     "The petuq keeps the beat (Smith, 2020).",                         # invented citation
-                     "The petuq keeps the beat (Saputra, 2019; Wikipedia, 2023)."):     # one invented part
-            with self.subTest(text=text), mock.patch.dict(os.environ, SMART_ENV), \
-                    mock.patch(URLOPEN, return_value=gemini_reply(text)):
-                self.assertEqual(self.say(self.QUESTION), expected)
+        with mock.patch.dict(os.environ, SMART_ENV), \
+                mock.patch(URLOPEN, return_value=gemini_reply("The petuq keeps the beat (Smith, 2020).")):
+            self.assertEqual(self.say(self.QUESTION), expected)
+        self.assertIn("not in the knowledge base", llm.status()["last_error"])
+
+    def test_http_400_on_thinking_config_retries_without_it(self):
+        with mock.patch.dict(os.environ, SMART_ENV), \
+                mock.patch(URLOPEN, side_effect=[http_error(400, "INVALID_ARGUMENT"), gemini_reply(self.GOOD)]) as urlopen:
+            self.begin()
+            self.assertEqual(self.say(self.QUESTION), self.GOOD)
+            first, second = (json.loads(c[0][0].data)["generationConfig"] for c in urlopen.call_args_list)
+            self.assertIn("thinkingConfig", first)
+            self.assertNotIn("thinkingConfig", second)
+            self.assertFalse(llm.cooling_down())
+
+    def test_last_error_is_reported_without_the_key(self):
+        body = io.BytesIO(json.dumps({"error": {"status": "INVALID_ARGUMENT", "message": "bad key test-key here"}}).encode())
+        err = urllib.error.HTTPError(llm.API_URL, 400, "error", {}, body)
+        with mock.patch.dict(os.environ, {**SMART_ENV, "GEMINI_MODEL": "gemini-2.0-flash"}), mock.patch(URLOPEN, side_effect=err):
+            self.assertIsNone(llm.generate("system", "prompt"))
+            status = llm.status()
+        self.assertIn("HTTP 400 INVALID_ARGUMENT", status["last_error"])
+        self.assertNotIn("test-key", json.dumps(status))
+        self.assertIn("***", status["last_error"])
 
     def test_smalltalk_is_reworded_and_rule_flows_stay_python(self):
         warm = "It's my pleasure, Budi! Shall we explore the drums or the gongs next?"
@@ -651,11 +743,23 @@ class SmartMode(Chat):
             self.assertEqual(urlopen.call_count, calls)
             self.assertEqual(self.state()["engine"], "python")
 
-    def test_smalltalk_reply_that_cites_facts_is_rejected(self):
+    def test_smalltalk_with_an_invented_citation_falls_back(self):
         with mock.patch.dict(os.environ, SMART_ENV), \
-                mock.patch(URLOPEN, return_value=gemini_reply("You're welcome! Gongs are bronze (Keen, 2015).")):
+                mock.patch(URLOPEN, return_value=gemini_reply("You're welcome! Gongs are bronze (Gamelan Society, 2001).")):
             self.begin()
             self.assertIn("You're very welcome, Budi!", self.say("thank you"))
+
+    def test_pages_hide_the_engine_and_show_a_thinking_indicator(self):
+        root = Path(__file__).resolve().parent.parent / "web"
+        for page in ("index.html", "sandbox.html"):
+            html = (root / page).read_text(encoding="utf-8")
+            with self.subTest(page=page):
+                self.assertNotIn("Smart Mode", html)
+                self.assertNotIn("Classic Mode", html)
+                self.assertIn("Guru Beleq is thinking", html)
+                self.assertIn("typing-dots", html)
+        self.assertIn("setAvatarReaction('thinking', false)", (root / "index.html").read_text(encoding="utf-8"))
+        self.assertIn('st.spinner("Guru Beleq is thinking...")', (root.parent / "app.py").read_text(encoding="utf-8"))
 
     def test_env_file_is_loaded_without_overriding_real_variables(self):
         path = os.path.join(_tmp, "test.env")
