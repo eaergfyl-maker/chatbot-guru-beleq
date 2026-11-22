@@ -47,6 +47,10 @@ Prefer Streamlit or the terminal instead?
   - **Export Learning Transcript (`Export chat`)**: Downloads the conversation transcript and learner progress summary as `guru-beleq-transcript.txt`.
   - **Built-in CUQ Usability Modal (`Rate this chatbot`)**: 16-item Chatbot Usability Questionnaire dialog saving anonymous scores to `eval/cuq_responses.csv`.
 
+## Time-of-day themes
+
+`/` and `/chat` change look with the visitor's own clock: **🌿 Morning** (05:00–11:59, tropical emerald and coastal teal), **🌅 Afternoon** (12:00–17:59, Lombok sunset coral and twilight plum) and **🏮 Evening** (18:00–04:59, twilight indigo with lantern-gold glass, a dark mode). The pill next to EN | BM cycles *Auto → Morning → Afternoon → Evening*; the choice is remembered in the browser and shared by both pages. `?theme=evening` forces a look for one visit without saving it. The sandbox keeps its own daylight art.
+
 ## Bahasa Malaysia
 
 Every page has an **EN | BM** switch (top right on the chat and sandbox, top corner on the landing page; a *Language / Bahasa* selector in the Streamlit sidebar). The choice is remembered in the browser, carried across `/`, `/chat` and `/sandbox`, and can be forced with `?lang=ms` (for example `http://localhost:8000/chat?lang=ms`).
@@ -140,10 +144,11 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `src/i18n.py`, `web/lang.js` | the bot's sentences in both languages, and the pages' language switch |
 | `data/knowledge/semantic_net.json` | semantic network edges, with citations |
 | `data/sources/` | notes on each source the knowledge base is written from |
-| `assets/` | GenAI avatar (`avatar.png`) and `AVATAR_LOG.md` (prompts and how it was made) |
+| `assets/` | GenAI avatar (`avatar.png`, favicon), 3D companion sprite (`guru_3d.png`) and `AVATAR_LOG.md` (prompts and how they were made) |
 | `server.py` | standard-library web server: pages `/`, `/chat`, `/sandbox`; API `/api/start`, `/api/chat`, `/api/meta`, `/api/cuq`, `/api/sandbox` |
 | `web/landing.html` | mode selection page (`/`) |
-| `web/index.html` | companion chat page (`/chat`) with interactive menu, knowledge explorer, transcript export, and CUQ modal |
+| `web/theme.css`, `web/theme.js` | time-of-day frosted-glass themes shared by `/` and `/chat` |
+| `web/index.html` | companion chat page (`/chat`): arched 3D companion stage, interactive menu, knowledge explorer, transcript export, and CUQ modal |
 | `web/sandbox.html`, `src/sandbox.py` | Sasak Village Sandbox game (`/sandbox`) and its cited station facts (`/api/sandbox`) |
 | `app.py`, `.streamlit/config.toml` | Streamlit UI with Sasak theme, quick-action bar, knowledge explorer, transcript export, and CUQ modal |
 | `docs/REPORT.md` | full technical and academic report (Chapters 1–4) |

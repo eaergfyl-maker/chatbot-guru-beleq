@@ -2,135 +2,187 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E0F2FE">
 <title>Guru Beleq - Choose how to learn</title>
 <meta name="description" content="Learn the Gendang Beleq, the big-drum ensemble of the Sasak people of Lombok, by chatting with Guru Beleq or exploring a playable Sasak village courtyard.">
 <link rel="icon" href="/avatar.png">
+<link rel="preload" as="image" href="/guru_3d.png">
+<link rel="stylesheet" href="/theme.css">
 <script src="/lang.js"></script>
+<script src="/theme.js"></script>
 <style>
-  :root {
-    --brown:#5b3a24; --brown-dark:#3e2515; --red:#b3262d; --red-dark:#8f1d23;
-    --cream:#fbf4e6; --tan:#ecdcc0; --tan-dark:#d7be96; --gold:#d9a441; --ink:#2b1d12;
-  }
   * { box-sizing:border-box; }
   html, body { margin:0; }
   body {
-    min-height:100vh; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink);
-    background-color:var(--cream);
-    /* songket-like woven diamonds */
-    background-image:
-      linear-gradient(180deg, rgba(251,244,230,0) 0%, var(--cream) 78%),
-      repeating-linear-gradient(45deg, rgba(179,38,45,0.06) 0 2px, transparent 2px 26px),
-      repeating-linear-gradient(-45deg, rgba(91,58,36,0.07) 0 2px, transparent 2px 26px);
+    min-height:100vh; min-height:100dvh; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     display:flex; flex-direction:column;
   }
-  .band {
-    height:14px; flex:none;
-    background:
-      repeating-linear-gradient(90deg, var(--red) 0 22px, var(--gold) 22px 26px, var(--brown) 26px 48px, var(--gold) 48px 52px);
-    box-shadow: 0 2px 0 rgba(62,37,21,0.25);
-  }
-  .topbar { position:absolute; top:24px; right:20px; z-index:5; }
-  main { flex:1; width:100%; max-width:1080px; margin:0 auto; padding:34px 20px 28px; display:flex; flex-direction:column; justify-content:center; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:3px; }
 
-  .hero { display:flex; align-items:center; gap:28px; margin-bottom:34px; }
-  .hero-avatar {
-    flex:none; width:168px; height:168px; border-radius:50%;
-    background:#fff url('/avatar.png') center/cover no-repeat;
-    border:6px solid #fff; box-shadow: 0 0 0 4px var(--tan-dark), 0 18px 40px rgba(62,37,21,0.28);
-    animation: bob 3.2s ease-in-out infinite; cursor:pointer;
+  /* top bar: brand dock on the left, EN | BM and the time-of-day switch on the right */
+  .topbar {
+    position:relative; z-index:5; width:100%; max-width:1120px; margin:0 auto; padding:16px 20px 0;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
   }
-  @keyframes bob { 0%,100% { transform:translateY(0) rotate(-2deg); } 50% { transform:translateY(-8px) rotate(2deg); } }
-  .eyebrow { margin:0 0 6px; font-size:.82rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--red); }
-  h1 { margin:0 0 10px; font-size:clamp(2rem, 5vw, 3.1rem); line-height:1.05; color:var(--brown-dark); letter-spacing:-.01em; }
-  .lede { margin:0; max-width:56ch; font-size:1.06rem; line-height:1.55; color:#4a3423; }
+  .brand { padding:5px 16px 5px 5px; gap:10px; font-weight:800; letter-spacing:.01em; }
+  .brand img {
+    width:34px; height:34px; border-radius:50%; object-fit:cover; object-position:50% 30%;
+    background:rgba(255,255,255,0.88); padding:2px;
+  }
+  .toggles { gap:6px; }
 
+  main {
+    position:relative; z-index:2; flex:1; width:100%; max-width:1120px; margin:0 auto; padding:26px 20px 24px;
+    display:flex; flex-direction:column; justify-content:center; gap:22px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero { background-color:var(--glass-strong); display:flex; align-items:center; gap:30px; padding:24px 30px 24px 24px; border-radius:30px; }
+  .hero-arch {
+    position:relative; flex:none; width:210px; height:270px; cursor:pointer;
+    border-radius:105px 105px 26px 26px; overflow:hidden;
+    background-color:var(--arch-tint); border:1px solid var(--arch-border);
+    box-shadow: 0 18px 44px var(--arch-shadow), inset 0 1px 0 rgba(255,255,255,0.45);
+    transition: background-color .6s ease, border-color .6s ease, box-shadow .6s ease;
+  }
+  .hero-arch .ground-shadow { left:24%; right:24%; bottom:12px; animation: gbShadowFloat 3.6s ease-in-out infinite; }
+  .hero-sprite {
+    position:absolute; left:10%; right:10%; top:13%; bottom:20px; width:80%; height:calc(87% - 20px);
+    object-fit:contain; object-position:50% 100%; transform-origin:50% 92%;
+    filter: drop-shadow(0 12px 14px var(--sprite-shadow)); pointer-events:none; -webkit-user-drag:none;
+    animation: gbFloat 3.6s ease-in-out infinite;
+  }
+  .hero-arch.hop .hero-sprite { animation: gbJump .78s cubic-bezier(.3,.7,.4,1) 2; }
+  .hero-arch.hop .ground-shadow { animation: gbShadowJump .78s cubic-bezier(.3,.7,.4,1) 2; }
+  .hero-arch .notes { position:absolute; inset:0; pointer-events:none; }
+  .eyebrow { margin:0 0 8px; font-size:.8rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--card-title); transition:color .6s ease; }
+  h1 { margin:0 0 10px; font-size:clamp(1.9rem, 4.6vw, 3rem); line-height:1.06; letter-spacing:-.015em; }
+  .lede { margin:0 0 14px; max-width:58ch; font-size:1.04rem; line-height:1.58; color:var(--glass-muted); transition:color .6s ease; }
+  .studio-pill {
+    display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:999px;
+    font-size:.84rem; font-weight:700; background-color:var(--chip-bg); color:var(--chip-ink); border:1px solid var(--chip-border);
+    transition: background-color .6s ease, color .6s ease, border-color .6s ease;
+  }
+
+  /* ---------- the two modes ---------- */
   .modes { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
   .mode {
-    position:relative; display:flex; flex-direction:column; text-decoration:none; color:inherit;
-    background:#fffaf1; border:2px solid var(--tan-dark); border-radius:22px; overflow:hidden;
-    box-shadow: 0 10px 28px rgba(62,37,21,0.12);
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    position:relative; display:flex; flex-direction:column; text-decoration:none; overflow:hidden; border-radius:26px;
+    background-color:var(--glass-strong);
+    transition: transform .18s ease, box-shadow .18s ease, background-color .6s ease, border-color .6s ease, color .6s ease;
   }
-  .mode:hover, .mode:focus-visible { transform:translateY(-4px); box-shadow:0 18px 40px rgba(62,37,21,0.2); border-color:var(--brown); outline:none; }
-  .mode:focus-visible { box-shadow:0 0 0 4px rgba(179,38,45,0.35), 0 18px 40px rgba(62,37,21,0.2); }
-  .scene { height:170px; position:relative; overflow:hidden; }
+  .mode:hover, .mode:focus-visible { transform:translateY(-4px); box-shadow:0 24px 56px var(--bubble-shadow); outline:none; }
+  .mode:focus-visible { box-shadow:0 0 0 4px var(--accent-ring), 0 24px 56px var(--bubble-shadow); }
+  .scene { height:172px; position:relative; overflow:hidden; border-bottom:1px solid var(--glass-border); }
   .scene svg { width:100%; height:100%; display:block; }
-  .mode-body { padding:18px 22px 22px; display:flex; flex-direction:column; flex:1; }
-  .tag { align-self:flex-start; font-size:.74rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-         padding:4px 10px; border-radius:999px; background:var(--tan); color:var(--brown-dark); margin-bottom:10px; }
-  .tag.new { background:var(--red); color:#fff; }
-  .mode h2 { margin:0 0 6px; font-size:1.42rem; color:var(--brown-dark); }
-  .mode p { margin:0 0 12px; line-height:1.5; color:#4a3423; }
-  .mode ul { margin:0 0 18px; padding:0; list-style:none; display:grid; gap:6px; font-size:.93rem; color:#3f2b1c; }
+
+  /* chat preview: a little arch with Guru Beleq and themed bubbles */
+  .scene-chat { display:flex; align-items:flex-end; gap:18px; padding:16px 22px 0; background-color:var(--arch-tint); transition:background-color .6s ease; }
+  .mini-arch {
+    position:relative; flex:none; width:108px; height:150px; border-radius:54px 54px 0 0; overflow:hidden;
+    background-color:var(--glass-bg); border:1px solid var(--arch-border); border-bottom:0;
+  }
+  .mini-arch img { position:absolute; left:8%; bottom:4px; width:84%; height:auto; filter:drop-shadow(0 6px 8px var(--sprite-shadow)); }
+  .mini-chat { flex:1; display:flex; flex-direction:column; gap:9px; padding-bottom:18px; min-width:0; }
+  .mb { display:block; height:26px; border-radius:14px; box-shadow:0 4px 14px var(--bubble-shadow); }
+  .mb.bot { align-self:flex-start; background-color:var(--bot-bg); border:1px solid var(--bot-border); border-bottom-left-radius:5px; }
+  .mb.user { align-self:flex-end; border-bottom-right-radius:5px; }
+  .mb.w1 { width:82%; } .mb.w2 { width:52%; } .mb.w3 { width:68%; }
+  .mini-chips { display:flex; gap:6px; }
+  .mini-chips i { display:block; width:38px; height:14px; border-radius:999px; background-color:var(--chip-bg); border:1px solid var(--chip-border); }
+  .mini-chips i:first-child { background-color:var(--primary-bg); border-color:transparent; }
+
+  .mode-body { padding:18px 22px 22px; display:flex; flex-direction:column; flex:1; color:var(--glass-ink); }
+  .tag {
+    align-self:flex-start; font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+    padding:4px 10px; border-radius:999px; margin-bottom:10px; background:var(--todo-bg); color:var(--todo-ink);
+  }
+  .tag.new { background:var(--primary-bg); color:var(--primary-ink); }
+  .mode h2 { margin:0 0 6px; font-size:1.4rem; }
+  .mode p { margin:0 0 12px; line-height:1.5; color:var(--glass-muted); }
+  .mode ul { margin:0 0 18px; padding:0; list-style:none; display:grid; gap:6px; font-size:.93rem; }
   .mode li { display:flex; gap:8px; align-items:flex-start; }
-  .mode li::before { content:"◆"; color:var(--red); font-size:.7rem; margin-top:4px; }
+  .mode li::before { content:"◆"; color:var(--accent); font-size:.7rem; margin-top:4px; }
   .cta {
     margin-top:auto; align-self:flex-start; display:inline-flex; align-items:center; gap:8px;
-    padding:11px 20px; border-radius:999px; font-weight:700; font-size:.98rem; color:#fff;
-    background:var(--brown); box-shadow:0 6px 16px rgba(62,37,21,0.25); transition: background .15s;
+    padding:11px 20px; border-radius:999px; font-weight:700; font-size:.98rem;
+    background-color:var(--primary-bg); color:var(--primary-ink); box-shadow:0 8px 20px var(--bubble-shadow);
+    transition: background-color .15s ease;
   }
-  .mode.sandbox .cta { background:var(--red); }
-  .mode:hover .cta { background:var(--brown-dark); }
-  .mode.sandbox:hover .cta { background:var(--red-dark); }
+  .mode:hover .cta { background-color:var(--primary-hover); }
   .cta .arrow { transition: transform .15s; }
   .mode:hover .cta .arrow { transform:translateX(4px); }
 
-  .facts { margin:30px 0 0; display:flex; flex-wrap:wrap; gap:10px 22px; justify-content:center; font-size:.88rem; color:#5d4532; }
-  .facts b { color:var(--brown-dark); }
-  footer { text-align:center; padding:0 20px 22px; font-size:.82rem; color:#7a5f48; }
-  footer a { color:var(--brown); }
+  .facts {
+    align-self:center; margin:0; display:flex; flex-wrap:wrap; gap:8px 22px; justify-content:center;
+    padding:10px 20px; border-radius:999px; font-size:.88rem; background-color:var(--glass-strong); color:var(--glass-muted);
+  }
+  .facts b { color:var(--glass-ink); }
+  footer { position:relative; z-index:2; display:flex; justify-content:center; padding:0 20px 20px; }
+  footer .glass {
+    margin:0; padding:8px 16px; border-radius:999px; text-align:center; font-size:.8rem;
+    background-color:var(--glass-strong); color:var(--glass-muted);
+  }
+  footer code { color:var(--glass-ink); }
 
   @media (max-width: 760px) {
-    main { padding:24px 16px 20px; }
-    .hero { flex-direction:column; text-align:center; gap:16px; margin-bottom:24px; }
-    .hero-avatar { width:128px; height:128px; }
-    .lede { margin:0 auto; }
+    .topbar { padding:10px 12px 0; }
+    main { padding:16px 12px 18px; gap:16px; }
+    .hero { flex-direction:column; text-align:center; gap:16px; padding:20px 18px; }
+    .hero-arch { width:160px; height:206px; border-radius:80px 80px 22px 22px; }
+    .lede { margin:0 auto 14px; }
     .modes { grid-template-columns:1fr; gap:16px; }
-    .scene { height:140px; }
+    .scene { height:150px; }
+    .facts, footer p { border-radius:20px; }
   }
-  @media (prefers-reduced-motion: reduce) { .hero-avatar { animation:none; } .mode, .cta .arrow { transition:none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-sprite, .hero-arch .ground-shadow { animation:none !important; }
+    .mode, .cta .arrow { transition:none; }
+  }
 </style>
 </head>
 <body>
-<div class="band" aria-hidden="true"></div>
-<div class="topbar" id="langSlot"></div>
+<div class="ambient" aria-hidden="true">
+  <div class="sky sky-morning"></div><div class="sky sky-afternoon"></div><div class="sky sky-evening"></div>
+  <span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="orb o4"></span><span class="orb o5"></span>
+  <div class="ridge"></div><div class="lagoon"></div>
+  <div class="lanterns"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div>
+
+<header class="topbar">
+  <div class="dock brand"><img src="/guru_3d.png" alt="" width="34" height="34"><span>Guru Beleq</span></div>
+  <div class="dock toggles" id="langSlot"></div>
+</header>
+
 <main>
-  <section class="hero">
-    <div class="hero-avatar" id="avatar" role="img" aria-label="Guru Beleq, a smiling drum wearing a Sasak head cloth" data-i18n-aria="avatar.aria" title="Tap me!" data-i18n-title="avatar.title"></div>
+  <section class="hero glass">
+    <div class="hero-arch" id="avatar" role="button" tabindex="0" aria-label="Guru Beleq, a smiling drum wearing a Sasak head cloth" data-i18n-aria="avatar.aria" title="Tap me!" data-i18n-title="avatar.title">
+      <div class="arch-scene" aria-hidden="true">
+        <span class="arch-sun"></span>
+        <span class="arch-lantern a1"></span><span class="arch-lantern a2"></span>
+        <span class="arch-ridge"></span><span class="arch-floor"></span>
+      </div>
+      <span class="ground-shadow" aria-hidden="true"></span>
+      <img class="hero-sprite" src="/guru_3d.png" alt="Guru Beleq" width="591" height="640" draggable="false">
+      <div class="notes" id="notes" aria-hidden="true"></div>
+    </div>
     <div>
       <p class="eyebrow">Gendang Beleq · Lombok, Indonesia</p>
       <h1 data-i18n="h1">Learn the big drums of the Sasak people</h1>
       <p class="lede" data-i18n="lede">I'm Guru Beleq, the Big Teacher. Chat with me about the Gendang Beleq ensemble, or walk around a Sasak courtyard and try the instruments yourself. Every fact I teach comes with a Harvard citation.</p>
+      <span class="studio-pill" id="studio"><span id="studioIcon" aria-hidden="true">🌿</span><span id="studioName">Tropical Emerald</span></span>
     </div>
   </section>
 
   <section class="modes" aria-label="Choose a mode" data-i18n-aria="modes.aria">
-    <a class="mode chat" href="/chat" data-lang-link>
-      <div class="scene" aria-hidden="true">
-        <svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <linearGradient id="room" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe4ff"/><stop offset=".42" stop-color="#e3f3ff"/><stop offset=".421" stop-color="#f5ead8"/><stop offset="1" stop-color="#e4cfb0"/></linearGradient>
-          </defs>
-          <rect width="400" height="170" fill="url(#room)"/>
-          <rect x="196" y="34" width="180" height="40" rx="18" fill="#fff" stroke="#d7be96" stroke-width="2"/>
-          <rect x="212" y="48" width="120" height="6" rx="3" fill="#d7be96"/><rect x="212" y="58" width="80" height="6" rx="3" fill="#ecdcc0"/>
-          <rect x="250" y="86" width="126" height="32" rx="16" fill="#5b3a24"/>
-          <rect x="266" y="98" width="90" height="6" rx="3" fill="#fbf4e6" opacity=".85"/>
-          <rect x="196" y="128" width="164" height="30" rx="15" fill="#fff" stroke="#d7be96" stroke-width="2"/>
-          <rect x="212" y="140" width="100" height="6" rx="3" fill="#d7be96"/>
-          <g transform="translate(36 22)">
-            <ellipse cx="66" cy="136" rx="56" ry="8" fill="#3e2515" opacity=".18"/>
-            <rect x="64" y="30" width="76" height="92" rx="16" fill="#8a4b22" stroke="#4a250d" stroke-width="3"/>
-            <path d="M74 38 L130 64 M74 64 L130 38 M74 74 L130 100 M74 100 L130 74" stroke="#e9cf9d" stroke-width="2.5"/>
-            <ellipse cx="66" cy="76" rx="40" ry="50" fill="#f5e1b9" stroke="#4a250d" stroke-width="3"/>
-            <circle cx="52" cy="72" r="9" fill="none" stroke="#3a1b08" stroke-width="2.5"/><circle cx="78" cy="72" r="9" fill="none" stroke="#3a1b08" stroke-width="2.5"/>
-            <circle cx="52" cy="72" r="3" fill="#3a1b08"/><circle cx="78" cy="72" r="3" fill="#3a1b08"/>
-            <path d="M54 94 Q66 104 78 94" fill="none" stroke="#3a1b08" stroke-width="3" stroke-linecap="round"/>
-            <path d="M28 40 Q66 4 108 36 L100 46 Q66 26 34 50 Z" fill="#b3262d" stroke="#5e1316" stroke-width="2.5"/>
-            <path d="M92 22 L112 6 L108 28 Z" fill="#b3262d" stroke="#5e1316" stroke-width="2"/>
-          </g>
-        </svg>
+    <a class="mode chat glass" href="/chat" data-lang-link>
+      <div class="scene scene-chat" aria-hidden="true">
+        <div class="mini-arch"><span class="arch-scene"><span class="arch-sun"></span><span class="arch-ridge"></span></span><img src="/guru_3d.png" alt="" width="591" height="640"></div>
+        <div class="mini-chat">
+          <span class="mb bot w1"></span><span class="mb user w2"></span><span class="mb bot w3"></span>
+          <span class="mini-chips"><i></i><i></i><i></i></span>
+        </div>
       </div>
       <div class="mode-body">
         <span class="tag" data-i18n="m1.tag">Mode 1 · Companion chat</span>
@@ -145,7 +197,7 @@
       </div>
     </a>
 
-    <a class="mode sandbox" href="/sandbox" data-lang-link>
+    <a class="mode sandbox glass" href="/sandbox" data-lang-link>
       <div class="scene" aria-hidden="true">
         <svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice">
           <defs>
@@ -207,10 +259,9 @@
     </a>
   </section>
 
-  <p class="facts" id="facts"><span><b>6</b> <span data-i18n="f.lessons">lessons</span></span><span><b>8</b> <span data-i18n="f.stations">sandbox stations</span></span><span><b>17</b> <span data-i18n="f.terms">Sasak terms</span></span><span><b>6</b> <span data-i18n="f.sources">cited sources</span></span></p>
+  <p class="facts glass" id="facts"><span><b>6</b> <span data-i18n="f.lessons">lessons</span></span><span><b>8</b> <span data-i18n="f.stations">sandbox stations</span></span><span><b>17</b> <span data-i18n="f.terms">Sasak terms</span></span><span><b>6</b> <span data-i18n="f.sources">cited sources</span></span></p>
 </main>
-<footer data-i18n-html="footer">Guru Beleq is a rule-based teaching chatbot. Works offline on your computer with <code>python server.py</code>.</footer>
-<div class="band" aria-hidden="true"></div>
+<footer><p class="glass" data-i18n-html="footer">Guru Beleq is a rule-based teaching chatbot. Works offline on your computer with <code>python server.py</code>.</p></footer>
 
 <script>
 GBLang.add({
@@ -219,6 +270,7 @@ GBLang.add({
     'avatar.aria': 'Guru Beleq, a smiling drum wearing a Sasak head cloth', 'avatar.title': 'Tap me!',
     'h1': 'Learn the big drums of the Sasak people',
     'lede': "I'm Guru Beleq, the Big Teacher. Chat with me about the Gendang Beleq ensemble, or walk around a Sasak courtyard and try the instruments yourself. Every fact I teach comes with a Harvard citation.",
+    'studio.auto': 'follows your clock',
     'modes.aria': 'Choose a mode',
     'm1.tag': 'Mode 1 · Companion chat', 'm1.h2': 'Talk with Guru Beleq',
     'm1.p': 'A friendly teacher who greets you, gives step-by-step lessons, quizzes you and answers your questions.',
@@ -236,6 +288,7 @@ GBLang.add({
     'avatar.aria': 'Guru Beleq, gendang yang tersenyum memakai kain ikat kepala Sasak', 'avatar.title': 'Ketik saya!',
     'h1': 'Pelajari gendang besar masyarakat Sasak',
     'lede': 'Saya Guru Beleq, si Guru Besar. Bersembang dengan saya tentang ensembel Gendang Beleq, atau berjalan di sekitar halaman kampung Sasak dan cuba alat-alat muziknya sendiri. Setiap fakta yang saya ajar disertakan dengan petikan Harvard.',
+    'studio.auto': 'ikut jam anda',
     'modes.aria': 'Pilih mod',
     'm1.tag': 'Mod 1 · Sembang bersama rakan', 'm1.h2': 'Bersembang dengan Guru Beleq',
     'm1.p': 'Guru yang mesra menyapa anda, memberi pelajaran langkah demi langkah, menguji anda dengan kuiz dan menjawab soalan anda.',
@@ -250,10 +303,24 @@ GBLang.add({
   },
 });
 GBLang.toggle(document.getElementById('langSlot'));
+GBTheme.toggle(document.getElementById('langSlot'));
 GBLang.apply();
 
-// A soft drum thump when Guru Beleq is tapped.
-document.getElementById('avatar').addEventListener('click', () => {
+// The hero pill names the current studio look (and says when it is following the clock).
+function showStudio() {
+  const th = GBTheme.theme;
+  document.getElementById('studioIcon').textContent = GBTheme.icon(th);
+  document.getElementById('studioName').textContent =
+    GBTheme.name(th) + (GBTheme.mode === 'auto' ? ' · ' + GBLang.t('studio.auto') : '');
+}
+showStudio();
+GBTheme.onChange(showStudio);
+GBLang.onChange(showStudio);
+document.querySelector('.theme-toggle').addEventListener('click', showStudio);
+
+// A soft drum thump, a happy hop and a few notes when Guru Beleq is tapped.
+const avatar = document.getElementById('avatar'), notes = document.getElementById('notes');
+function drum() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     [[160, 0], [95, 0.17]].forEach(([f, t]) => {
@@ -263,7 +330,23 @@ document.getElementById('avatar').addEventListener('click', () => {
       o.connect(g).connect(ctx.destination); o.start(now); o.stop(now + 0.32);
     });
   } catch {}
-});
+  avatar.classList.remove('hop');
+  void avatar.offsetWidth;  // restart the hop if tapped again mid-jump
+  avatar.classList.add('hop');
+  setTimeout(() => avatar.classList.remove('hop'), 1600);
+  ['🎵', '🎶', '✨'].forEach((icon, i) => setTimeout(() => {
+    const el = document.createElement('span');
+    el.className = 'particle';
+    el.textContent = icon;
+    el.style.left = (24 + Math.random() * 46) + '%';
+    el.style.top = (14 + Math.random() * 26) + '%';
+    notes.appendChild(el);
+    setTimeout(() => el.remove(), 1400);
+  }, i * 130));
+}
+avatar.addEventListener('click', drum);
+avatar.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drum(); } });
+
 // Live counts from the knowledge base (the static numbers stay if the server can't be reached).
 fetch('/api/meta').then(r => r.json()).then(m => {
   const el = document.getElementById('facts').querySelectorAll('b');

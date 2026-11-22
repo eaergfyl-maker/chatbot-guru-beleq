@@ -23,7 +23,10 @@ STATIC = {
     "/chat": ROOT / "web" / "index.html",
     "/sandbox": ROOT / "web" / "sandbox.html",
     "/lang.js": ROOT / "web" / "lang.js",
+    "/theme.js": ROOT / "web" / "theme.js",
+    "/theme.css": ROOT / "web" / "theme.css",
     "/avatar.png": ROOT / "assets" / "avatar.png",
+    "/guru_3d.png": ROOT / "assets" / "guru_3d.png",
 }
 graph = build_graph()
 PORT = 8000

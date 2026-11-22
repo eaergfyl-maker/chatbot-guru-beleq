@@ -1,0 +1,317 @@
+/* Guru Beleq time-of-day frosted-glass studio, shared by / (landing.html) and /chat (index.html).
+   /theme.js sets data-theme="morning" | "afternoon" | "evening" on <html> and <body>; every colour below is a
+   custom property so a page only says *what* a surface is (dock, bubble, chip...) and the theme says its colour.
+   Contrast: text tokens were checked against their surfaces for WCAG AA (4.5:1) in all three themes, including
+   both corners of the user-bubble gradients (see the --user-*-at stops). */
+
+/* Registered so gradients can fade between themes instead of jumping. */
+@property --user-a { syntax: '<color>'; inherits: true; initial-value: #0D9488; }
+@property --user-m { syntax: '<color>'; inherits: true; initial-value: #0E857B; }
+@property --user-b { syntax: '<color>'; inherits: true; initial-value: #0F766E; }
+@property --lvl-a { syntax: '<color>'; inherits: true; initial-value: #6EE7B7; }
+@property --lvl-b { syntax: '<color>'; inherits: true; initial-value: #34D399; }
+
+/* ---------- morning: Tropical Emerald & Coastal Teal (also the no-JavaScript default) ---------- */
+:root, [data-theme="morning"] {
+  color-scheme: light;
+  --page-bg: #E0F2FE;
+  --ink: #0F2E2C; --ink-soft: #2F5551;
+  --orb-1: rgba(224, 242, 254, 0.95); --orb-2: rgba(13, 148, 136, 0.42); --orb-3: rgba(13, 148, 136, 0.55);
+  --orb-4: rgba(167, 243, 208, 0.85); --orb-5: rgba(56, 189, 248, 0.32);
+  --ridge: rgba(15, 118, 110, 0.30); --lagoon: rgba(13, 148, 136, 0.38); --shimmer: 0.55;
+  --glow: rgba(255, 255, 255, 0.55);
+
+  --dock-bg: rgba(13, 74, 74, 0.78); --dock-border: rgba(255, 255, 255, 0.22); --dock-ink: #F0FDFA;
+  --dock-hover: rgba(255, 255, 255, 0.14); --dock-active: rgba(255, 255, 255, 0.24); --dock-pressed-ink: #0F3D3A;
+  --dock-shadow: rgba(4, 47, 46, 0.22);
+  --lvl-a: #6EE7B7; --lvl-b: #34D399; --lvl-ink: #022C22; --lvl-glow: rgba(52, 211, 153, 0.45);
+
+  --bot-bg: rgba(255, 255, 255, 0.78); --bot-border: rgba(255, 255, 255, 0.6); --bot-ink: #0F2E2C;
+  --user-a: #0D9488; --user-m: #0F766E; --user-b: #0F766E; --user-ink: #FFFFFF;
+  --user-a-at: -40%; --user-m-at: 30%; --user-b-at: 100%;  /* the lightest teal sits just outside the corner: white text >= 4.6:1 */ --user-shadow: 0 1px 1px rgba(4, 47, 46, 0.45);
+  --bubble-shadow: rgba(13, 74, 74, 0.12); --muted: #3F6461;
+
+  --chip-bg: rgba(255, 255, 255, 0.66); --chip-border: rgba(255, 255, 255, 0.75); --chip-ink: #134E4A;
+  --chip-hover: rgba(255, 255, 255, 0.9);
+  --primary-bg: #0F766E; --primary-ink: #FFFFFF; --primary-hover: #115E59;
+  --input-bg: rgba(255, 255, 255, 0.82); --input-border: rgba(255, 255, 255, 0.8); --input-ink: #0F2E2C; --placeholder: #4B6F6B;
+  --accent: #0D9488; --accent-ring: rgba(13, 148, 136, 0.32); --focus: #0F766E;
+
+  --glass-bg: rgba(255, 255, 255, 0.58); --glass-strong: rgba(255, 255, 255, 0.78); --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-ink: #0F2E2C; --glass-muted: #36605B;
+  --scrim: rgba(4, 47, 46, 0.35);
+  --modal-bg: rgba(255, 255, 255, 0.95); --modal-ink: #0F2E2C; --modal-muted: #3F6461;
+  --card-bg: rgba(240, 253, 250, 0.92); --card-border: #99F6E4; --card-title: #0F766E;
+  --field-bg: #FFFFFF; --field-border: #5EEAD4;
+  --done-bg: #D1FAE5; --done-ink: #065F46; --todo-bg: #E0F2FE; --todo-ink: #0C4A6E;
+  --success: #047857; --error: #B91C1C;
+
+  --arch-tint: rgba(255, 255, 255, 0.34); --arch-border: rgba(255, 255, 255, 0.75); --arch-shadow: rgba(13, 74, 74, 0.2);
+  --sun: rgba(254, 240, 138, 0.9); --sun-x: 26%; --sun-y: 12%; --sun-s: 38%;
+  --ridge-near: rgba(15, 118, 110, 0.32); --arch-floor: rgba(45, 212, 191, 0.38);
+  --shadow-ink: rgba(4, 47, 46, 0.38); --sprite-shadow: rgba(4, 47, 46, 0.25);
+  --status-bg: rgba(255, 255, 255, 0.84); --status-ink: #0F2E2C; --dot: #22C55E;
+  --lantern-on: 0;
+}
+
+/* ---------- afternoon: Lombok Sunset Coral & Twilight Plum ---------- */
+[data-theme="afternoon"] {
+  color-scheme: light;
+  --page-bg: #FB923C;
+  --ink: #FFF7ED; --ink-soft: #FFE4E6;
+  --orb-1: rgba(253, 186, 116, 0.75); --orb-2: rgba(225, 29, 72, 0.5); --orb-3: rgba(76, 29, 149, 0.72);
+  --orb-4: rgba(251, 146, 60, 0.6); --orb-5: rgba(190, 24, 93, 0.5);
+  --ridge: rgba(76, 29, 149, 0.48); --lagoon: rgba(91, 33, 182, 0.5); --shimmer: 0.4;
+  --glow: rgba(254, 215, 170, 0.45);
+
+  --dock-bg: rgba(59, 23, 86, 0.76); --dock-border: rgba(255, 255, 255, 0.2); --dock-ink: #FFF7ED;
+  --dock-hover: rgba(255, 255, 255, 0.14); --dock-active: rgba(255, 255, 255, 0.22); --dock-pressed-ink: #3B1756;
+  --dock-shadow: rgba(46, 16, 64, 0.32);
+  --lvl-a: #FBBF24; --lvl-b: #FB7185; --lvl-ink: #4A1022; --lvl-glow: rgba(251, 113, 133, 0.6);
+
+  --bot-bg: rgba(255, 250, 246, 0.80); --bot-border: rgba(255, 255, 255, 0.55); --bot-ink: #3B1530;
+  --user-a: #E11D48; --user-m: #B0208B; --user-b: #7E22CE; --user-ink: #FFFFFF;
+  --user-a-at: 0%; --user-m-at: 50%; --user-b-at: 100%; --user-shadow: 0 1px 1px rgba(59, 7, 40, 0.35);
+  --bubble-shadow: rgba(59, 23, 86, 0.2); --muted: #6B2F4F;
+
+  --chip-bg: rgba(255, 250, 246, 0.74); --chip-border: rgba(255, 255, 255, 0.7); --chip-ink: #4C1D3D;
+  --chip-hover: rgba(255, 250, 246, 0.94);
+  --primary-bg: #BE123C; --primary-ink: #FFFFFF; --primary-hover: #9F1239;
+  --input-bg: rgba(255, 250, 246, 0.86); --input-border: rgba(255, 255, 255, 0.75); --input-ink: #3B1530; --placeholder: #7A4565;
+  --accent: #E11D48; --accent-ring: rgba(225, 29, 72, 0.3); --focus: #BE123C;
+
+  --glass-bg: rgba(255, 250, 246, 0.62); --glass-strong: rgba(255, 250, 246, 0.82); --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-ink: #3B1530; --glass-muted: #6B2F4F;
+  --scrim: rgba(46, 16, 64, 0.45);
+  --modal-bg: rgba(255, 250, 246, 0.96); --modal-ink: #3B1530; --modal-muted: #6B2F4F;
+  --card-bg: rgba(255, 241, 242, 0.95); --card-border: #FECDD3; --card-title: #9F1239;
+  --field-bg: #FFFFFF; --field-border: #FDA4AF;
+  --done-bg: #DCFCE7; --done-ink: #166534; --todo-bg: #FFE4E6; --todo-ink: #881337;
+  --success: #15803D; --error: #B91C1C;
+
+  --arch-tint: rgba(255, 237, 213, 0.28); --arch-border: rgba(255, 255, 255, 0.6); --arch-shadow: rgba(59, 23, 86, 0.3);
+  --sun: rgba(254, 215, 170, 0.95); --sun-x: 50%; --sun-y: 40%; --sun-s: 56%;
+  --ridge-near: rgba(76, 29, 149, 0.5); --arch-floor: rgba(190, 24, 93, 0.32);
+  --shadow-ink: rgba(46, 16, 64, 0.45); --sprite-shadow: rgba(46, 16, 64, 0.3);
+  --status-bg: rgba(255, 250, 246, 0.88); --status-ink: #3B1530; --dot: #22C55E;
+  --lantern-on: 0;
+}
+
+/* ---------- evening: Twilight Indigo & Lantern Gold (dark glass) ---------- */
+[data-theme="evening"] {
+  color-scheme: dark;
+  --page-bg: #0F172A;
+  --ink: #E2E8F0; --ink-soft: #CBD5E1;
+  --orb-1: rgba(67, 56, 202, 0.30); --orb-2: rgba(245, 158, 11, 0.16); --orb-3: rgba(30, 58, 138, 0.45);
+  --orb-4: rgba(251, 191, 36, 0.12); --orb-5: rgba(225, 29, 72, 0.14);
+  --ridge: rgba(2, 6, 23, 0.6); --lagoon: rgba(2, 6, 23, 0.55); --shimmer: 0.18;
+  --glow: rgba(251, 191, 36, 0.10);
+
+  --dock-bg: rgba(15, 23, 42, 0.72); --dock-border: rgba(255, 255, 255, 0.16); --dock-ink: #F8FAFC;
+  --dock-hover: rgba(255, 255, 255, 0.1); --dock-active: rgba(255, 255, 255, 0.16); --dock-pressed-ink: #0F172A;
+  --dock-shadow: rgba(0, 0, 0, 0.45);
+  --lvl-a: #34D399; --lvl-b: #FBBF24; --lvl-ink: #022C22; --lvl-glow: rgba(251, 191, 36, 0.45);
+
+  --bot-bg: rgba(15, 23, 42, 0.62); --bot-border: rgba(255, 255, 255, 0.14); --bot-ink: #F8FAFC;
+  /* amber -> coral with dark ink: white on amber is only ~2:1, near-black stays at or above AA */
+  --user-a: #F59E0B; --user-m: #F97316; --user-b: #E11D48; --user-ink: #1C0A00; --user-shadow: none;
+  --user-a-at: 0%; --user-m-at: 50%; --user-b-at: 140%;  /* the deepest coral sits just outside the corner: dark text >= 4.9:1 */
+  --bubble-shadow: rgba(0, 0, 0, 0.35); --muted: #CBD5E1;
+
+  --chip-bg: rgba(30, 41, 59, 0.72); --chip-border: rgba(255, 255, 255, 0.16); --chip-ink: #F1F5F9;
+  --chip-hover: rgba(51, 65, 85, 0.88);
+  --primary-bg: #F59E0B; --primary-ink: #1C0A00; --primary-hover: #FBBF24;
+  --input-bg: rgba(15, 23, 42, 0.7); --input-border: rgba(255, 255, 255, 0.18); --input-ink: #F8FAFC; --placeholder: #94A3B8;
+  --accent: #FBBF24; --accent-ring: rgba(251, 191, 36, 0.3); --focus: #FBBF24;
+
+  --glass-bg: rgba(15, 23, 42, 0.56); --glass-strong: rgba(15, 23, 42, 0.74); --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-ink: #F8FAFC; --glass-muted: #CBD5E1;
+  --scrim: rgba(2, 6, 23, 0.6);
+  --modal-bg: rgba(15, 23, 42, 0.96); --modal-ink: #F1F5F9; --modal-muted: #CBD5E1;
+  --card-bg: rgba(30, 41, 59, 0.92); --card-border: rgba(255, 255, 255, 0.12); --card-title: #FCD34D;
+  --field-bg: #0F172A; --field-border: #475569;
+  --done-bg: rgba(16, 185, 129, 0.2); --done-ink: #6EE7B7; --todo-bg: rgba(148, 163, 184, 0.18); --todo-ink: #E2E8F0;
+  --success: #6EE7B7; --error: #FCA5A5;
+
+  --arch-tint: rgba(15, 23, 42, 0.36); --arch-border: rgba(255, 255, 255, 0.16); --arch-shadow: rgba(0, 0, 0, 0.5);
+  --sun: rgba(254, 243, 199, 0.7); --sun-x: 72%; --sun-y: 10%; --sun-s: 20%;
+  --ridge-near: rgba(2, 6, 23, 0.55); --arch-floor: rgba(245, 158, 11, 0.2);
+  --shadow-ink: rgba(0, 0, 0, 0.6); --sprite-shadow: rgba(0, 0, 0, 0.45);
+  --status-bg: rgba(15, 23, 42, 0.8); --status-ink: #F8FAFC; --dot: #4ADE80;
+  --lantern-on: 1;
+}
+
+/* the user bubble gradient, shared by the chat and the landing preview */
+.user {
+  background: linear-gradient(135deg, var(--user-a) var(--user-a-at), var(--user-m) var(--user-m-at), var(--user-b) var(--user-b-at));
+}
+
+body {
+  background-color: var(--page-bg);
+  color: var(--ink);
+  transition: background-color .6s ease, color .6s ease,
+              --user-a .6s ease, --user-m .6s ease, --user-b .6s ease, --lvl-a .6s ease, --lvl-b .6s ease;
+}
+
+/* ---------- ambient backdrop: blurred Lombok sky, Rinjani ridge, lagoon, light orbs, festival lanterns ---------- */
+.ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.ambient .sky { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; }
+.sky-morning {
+  background:
+    radial-gradient(70% 55% at 12% 0%, rgba(255, 255, 255, 0.85), transparent 70%),
+    linear-gradient(165deg, #E0F2FE 0%, #D1FAE5 34%, #A7F3D0 58%, #5EEAD4 82%, #0D9488 100%);
+}
+.sky-afternoon {
+  background:
+    radial-gradient(55% 38% at 32% 62%, rgba(254, 215, 170, 0.7), transparent 72%),
+    linear-gradient(180deg, #FED7AA 0%, #FB923C 20%, #F43F5E 44%, #E11D48 56%, #9D174D 72%, #6D28D9 88%, #4C1D95 100%);
+}
+.sky-evening {
+  background:
+    radial-gradient(80% 60% at 72% 0%, rgba(79, 70, 229, 0.26), transparent 70%),
+    linear-gradient(180deg, #0F172A 0%, #131C33 50%, #1E293B 100%);
+}
+:root:not([data-theme]) .sky-morning,
+[data-theme="morning"] .sky-morning,
+[data-theme="afternoon"] .sky-afternoon,
+[data-theme="evening"] .sky-evening { opacity: 1; }
+
+.ambient .orb {
+  position: absolute; border-radius: 50%; filter: blur(70px);
+  transition: background-color .6s ease; animation: gbDrift 24s ease-in-out infinite alternate;
+}
+.orb.o1 { width: 46vmax; height: 46vmax; top: -16vmax; left: -12vmax; background-color: var(--orb-1); }
+.orb.o2 { width: 38vmax; height: 38vmax; top: 22vh; right: -14vmax; background-color: var(--orb-2); animation-delay: -6s; }
+.orb.o3 { width: 52vmax; height: 52vmax; bottom: -28vmax; left: 18vw; background-color: var(--orb-3); animation-delay: -12s; }
+.orb.o4 { width: 22vmax; height: 22vmax; top: 6vh; right: 24vw; background-color: var(--orb-4); animation-delay: -3s; }
+.orb.o5 { width: 26vmax; height: 26vmax; bottom: 14vh; left: -8vmax; background-color: var(--orb-5); animation-delay: -9s; }
+@keyframes gbDrift { from { transform: translate(0, 0) scale(1); } to { transform: translate(3vw, -2vh) scale(1.08); } }
+
+.ambient .ridge {
+  position: absolute; left: -5vw; right: -5vw; bottom: 9vh; height: 36vh;
+  background-color: var(--ridge); filter: blur(9px); transition: background-color .6s ease;
+  /* Mount Rinjani: long shoulders, a steep summit cone and the Segara Anak crater notch */
+  clip-path: polygon(0 100%, 0 72%, 10% 62%, 20% 66%, 30% 48%, 38% 30%, 44% 14%, 48% 4%, 50% 0, 53% 6%, 55% 3%,
+                     60% 20%, 68% 40%, 78% 54%, 88% 50%, 100% 62%, 100% 100%);
+}
+.ambient .lagoon {
+  position: absolute; left: -5vw; right: -5vw; bottom: 0; height: 15vh;
+  background-color: var(--lagoon); filter: blur(5px); transition: background-color .6s ease;
+}
+.ambient .lagoon::after {
+  content: ""; position: absolute; inset: 20% 8% 30%; opacity: var(--shimmer); transition: opacity .6s ease;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0 2px, transparent 2px 14px);
+  filter: blur(1.5px);
+}
+
+/* soft bokeh festival lanterns, evening only */
+.ambient .lanterns { position: absolute; inset: 0; opacity: var(--lantern-on); transition: opacity .6s ease; }
+.lanterns i {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgba(254, 243, 199, 0.95), rgba(251, 191, 36, 0.75) 35%, rgba(245, 158, 11, 0.25) 65%, transparent 72%);
+  animation: gbLantern 7s ease-in-out infinite alternate;
+}
+.lanterns i:nth-child(1) { width: 70px; height: 70px; top: 12vh; left: 8vw; filter: blur(3px); }
+.lanterns i:nth-child(2) { width: 34px; height: 34px; top: 26vh; left: 22vw; filter: blur(1px); animation-delay: -2s; }
+.lanterns i:nth-child(3) { width: 110px; height: 110px; top: 6vh; right: 12vw; filter: blur(8px); opacity: .7; animation-delay: -4s; }
+.lanterns i:nth-child(4) { width: 46px; height: 46px; top: 38vh; right: 28vw; filter: blur(2px); animation-delay: -1s; }
+.lanterns i:nth-child(5) { width: 24px; height: 24px; top: 18vh; left: 46vw; animation-delay: -5s; }
+.lanterns i:nth-child(6) { width: 84px; height: 84px; bottom: 26vh; left: 34vw; filter: blur(10px); opacity: .55; animation-delay: -3s; }
+.lanterns i:nth-child(7) { width: 30px; height: 30px; bottom: 34vh; right: 8vw; filter: blur(1px); animation-delay: -6s; }
+.lanterns i:nth-child(8) { width: 56px; height: 56px; top: 52vh; left: 4vw; filter: blur(5px); opacity: .6; animation-delay: -2.5s; }
+@keyframes gbLantern { from { transform: translateY(0); } to { transform: translateY(-14px); } }
+
+/* ---------- glass primitives ---------- */
+.dock {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-width: 0;
+  padding: 5px; border-radius: 999px;
+  background-color: var(--dock-bg); color: var(--dock-ink); border: 1px solid var(--dock-border);
+  -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: 0 10px 30px var(--dock-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: background-color .6s ease, border-color .6s ease, color .6s ease, box-shadow .6s ease;
+}
+.glass {
+  background-color: var(--glass-bg); color: var(--glass-ink); border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%);
+  box-shadow: 0 18px 50px var(--bubble-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: background-color .6s ease, border-color .6s ease, color .6s ease, box-shadow .6s ease;
+}
+
+/* EN | BM switch from /lang.js, restyled to sit inside a dock (body raises specificity over its injected style) */
+body .lang-toggle { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); box-shadow: none; }
+body .lang-toggle button { color: var(--dock-ink); }
+body .lang-toggle button[aria-pressed="true"] { background: var(--dock-ink); color: var(--dock-pressed-ink); }
+body .lang-toggle button:focus-visible { outline-color: var(--dock-ink); }
+
+/* time-of-day switch from /theme.js */
+.theme-toggle {
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+  padding: 7px 12px 7px 9px; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.1); color: var(--dock-ink); border: 1px solid rgba(255, 255, 255, 0.2);
+  font: 700 .76rem/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .03em;
+  transition: background-color .15s ease, color .6s ease;
+}
+.theme-toggle .ico { font-size: 1rem; line-height: 1; }
+.theme-toggle:hover { background: rgba(255, 255, 255, 0.2); }
+.theme-toggle:focus-visible { outline: 2px solid var(--dock-ink); outline-offset: 1px; }
+.theme-toggle[data-mode="auto"] .lbl::before { content: "● "; color: var(--dot); font-size: .6rem; vertical-align: 1px; }
+
+/* ---------- arch window scene (inside the companion arch on /chat and the hero arch on /) ---------- */
+.arch-scene { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+.arch-sun {
+  position: absolute; left: var(--sun-x); top: var(--sun-y); width: var(--sun-s); aspect-ratio: 1;
+  translate: -50% 0; border-radius: 50%; background-color: var(--sun); filter: blur(18px);
+  transition: left .6s ease, top .6s ease, width .6s ease, background-color .6s ease;
+}
+.arch-ridge {
+  position: absolute; left: -6%; right: -6%; bottom: 22%; height: 30%;
+  background-color: var(--ridge-near); filter: blur(3px); transition: background-color .6s ease;
+  clip-path: polygon(0 100%, 0 70%, 14% 56%, 28% 60%, 40% 26%, 48% 4%, 52% 0, 56% 8%, 66% 34%, 80% 52%, 100% 44%, 100% 100%);
+}
+.arch-floor {
+  position: absolute; left: -10%; right: -10%; bottom: -8%; height: 34%; border-radius: 50%;
+  background-color: var(--arch-floor); filter: blur(14px); transition: background-color .6s ease;
+}
+.arch-lantern {
+  position: absolute; top: 0; width: 14px; height: 20px; border-radius: 6px;
+  background: radial-gradient(circle at 50% 42%, #FEF3C7, #F59E0B 60%, #B45309);
+  box-shadow: 0 0 16px 5px rgba(251, 191, 36, 0.5);
+  opacity: var(--lantern-on); transition: opacity .6s ease;
+  transform-origin: 50% -40px; animation: gbSwing 3.2s ease-in-out infinite alternate;
+}
+.arch-lantern::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 1px; height: 40px; background: rgba(254, 243, 199, 0.5); }
+.arch-lantern.a1 { left: 22%; top: 18%; }
+.arch-lantern.a2 { right: 22%; top: 24%; animation-delay: -1.6s; }
+@keyframes gbSwing { from { rotate: -5deg; } to { rotate: 5deg; } }
+
+.ground-shadow {
+  position: absolute; left: 26%; right: 26%; bottom: -8px; height: 20px; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--shadow-ink), transparent);
+  pointer-events: none;
+}
+
+/* ---------- shared motion ---------- */
+.particle {
+  position: absolute; font-size: 1.45rem; font-weight: 800; pointer-events: none;
+  animation: gbFloatUp 1.35s cubic-bezier(.2, .8, .3, 1) forwards;
+}
+@keyframes gbFloatUp {
+  0% { opacity: 0; transform: translateY(10px) scale(0.6); }
+  20% { opacity: 1; transform: translateY(-6px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-90px) scale(0.95) rotate(12deg); }
+}
+@keyframes gbFloat { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
+@keyframes gbShadowFloat { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(.84); opacity: .6; } }
+@keyframes gbJump {
+  0% { transform: translateY(0) scale(1.06, .92); }
+  30% { transform: translateY(-38px) scale(.96, 1.05) rotate(-4deg); }
+  55% { transform: translateY(-40px) scale(1, 1) rotate(4deg); }
+  82% { transform: translateY(0) scale(1.06, .93) rotate(0deg); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+@keyframes gbShadowJump { 0%, 82%, 100% { transform: scale(1.05); opacity: .95; } 30%, 55% { transform: scale(.6); opacity: .4; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient .orb, .lanterns i, .arch-lantern { animation: none; }
+  .ambient .sky, .arch-sun { transition: none; }
+}

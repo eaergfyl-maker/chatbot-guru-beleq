@@ -507,6 +507,43 @@ class WebRoutes(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(d["stage"], "menu")
 
+    def test_3d_avatar_is_served_as_a_transparent_png(self):
+        with urllib.request.urlopen(self.base + "/guru_3d.png", timeout=10) as r:
+            self.assertEqual(r.status, 200)
+            self.assertEqual(r.headers.get("Content-Type"), "image/png")
+            data = r.read()
+        self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(data[25], 6)  # IHDR colour type 6 = RGBA, so the sprite has an alpha channel
+        self.assertEqual(self.get("/avatar.png")[0], 200)  # the flat badge still works (favicon)
+
+    def test_both_pages_use_the_3d_avatar_and_time_of_day_themes(self):
+        status, ctype, js = self.get("/theme.js")
+        self.assertEqual(status, 200)
+        self.assertIn("javascript", ctype)
+        self.assertIn("window.GBTheme", js)
+        self.assertIn("getHours()", js)
+        for name in ("'morning'", "'afternoon'", "'evening'", "'auto'", "localStorage"):
+            self.assertIn(name, js)
+        status, ctype, css = self.get("/theme.css")
+        self.assertEqual(status, 200)
+        self.assertIn("text/css", ctype)
+        for theme in ("morning", "afternoon", "evening"):
+            self.assertIn(f'[data-theme="{theme}"]', css)
+        self.assertIn("backdrop-filter: blur(20px)", css)
+        for path in ("/", "/chat"):
+            page = self.get(path)[2]
+            self.assertIn('src="/guru_3d.png"', page)
+            self.assertIn('<link rel="stylesheet" href="/theme.css">', page)
+            self.assertIn('<script src="/theme.js"></script>', page)
+            self.assertIn("GBTheme.toggle(", page)
+        chat = self.get("/chat")[2]
+        self.assertIn('<img id="guru-puppet" class="guru-sprite" src="/guru_3d.png" alt="Guru Beleq"', chat)
+        self.assertNotIn("<svg id=\"guru-puppet\"", chat)
+        for state in ("idle", "listening", "greeting", "teaching", "celebrate", "thinking", "comfort", "six_seven"):
+            self.assertIn(f"#avatar-stage.state-{state} .guru-sprite", chat)  # every reaction has its own animation
+        self.assertIn("playDrumSound()", chat)
+        self.assertIn('class="status-pill"', chat)
+
     def test_chat_reports_engine_and_mode(self):
         _, d = self.post("/api/start", {})
         self.assertIs(d["smart"], False)
