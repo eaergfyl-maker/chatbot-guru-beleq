@@ -114,6 +114,16 @@
   }
   #puppet-wrap .ground-shadow { transform-origin:50% 50%; }
   #particles { position:absolute; inset:0; pointer-events:none; transform: translateZ(70px); }
+  /* real-time 3D Guru Beleq (/guru3d.js). The PNG above stays until the first 3D frame is drawn, and comes
+     back if Three.js cannot load or the GPU context is lost. The canvas reaches above the sprite box so he
+     has headroom to jump. */
+  #guru3d-canvas {
+    position:absolute; left:-14%; top:-16%; width:128%; height:120%; display:block;
+    cursor:grab; touch-action:none; -webkit-tap-highlight-color:transparent;
+  }
+  #guru3d-canvas.dragging { cursor:grabbing; }
+  #avatar-stage.has-3d .sprite-depth, #avatar-stage.has-3d #puppet-wrap > .ground-shadow { visibility:hidden; }
+  #avatar-stage.has-3d #puppet-wrap { transform:none; }
 
   .status-pill {
     position:absolute; left:50%; bottom:16px; translate:-50% 0; z-index:4; max-width:calc(100% - 28px);
@@ -534,6 +544,7 @@ GBLang.add({
 const T = GBLang.t;
 GBLang.toggle(document.getElementById('actions'));
 GBTheme.toggle(document.getElementById('actions'));
+GBTheme.onChange(theme => { if (window.Guru3D) window.Guru3D.setTheme(theme); });
 GBLang.apply();
 
 const chat = document.getElementById('chat'), box = document.getElementById('box'), send = document.getElementById('send');
@@ -581,14 +592,16 @@ function spawnParticles(icons) {
 function backToIdle() {
   if (document.getElementById('thinking')) { reactionTimer = setTimeout(backToIdle, 1500); return; }
   clearInterval(thinkTimer);
-  avatarStage.className = 'state-idle';
+  avatarStage.className = 'state-idle' + (avatarStage.classList.contains('has-3d') ? ' has-3d' : '');
   moodPill.textContent = moodLabel('idle');
+  if (window.Guru3D) window.Guru3D.setReaction('idle', false);
 }
 
 function setAvatarReaction(state, speaking = false) {
   const clean = REACTION_META[state] ? state : 'idle';
   if (clean !== 'listening') lastReaction = clean;
-  avatarStage.className = 'state-' + clean + (speaking ? ' speaking' : '');
+  avatarStage.className = 'state-' + clean + (speaking ? ' speaking' : '') + (avatarStage.classList.contains('has-3d') ? ' has-3d' : '');
+  if (window.Guru3D) window.Guru3D.setReaction(clean, speaking);  // the live 3D rig, when it is mounted
   const info = REACTION_META[clean] || REACTION_META.idle;
   moodPill.textContent = moodLabel(clean);
   if (info.bursts.length) spawnParticles(info.bursts);
@@ -631,6 +644,7 @@ function playDrumSound() {
 
 function drumAndCelebrate() {
   playDrumSound();
+  if (window.Guru3D) window.Guru3D.strike();
   setAvatarReaction('celebrate', false);
 }
 puppetWrap.addEventListener('click', drumAndCelebrate);
@@ -662,6 +676,7 @@ document.documentElement.addEventListener('mouseleave', () => {
 
 // React when user types in the input box
 box.addEventListener('input', () => {
+  if (window.Guru3D) window.Guru3D.setListening(box.value.trim().length > 0);
   if (box.value.trim().length > 0) {
     if (!avatarStage.classList.contains('state-listening')) setAvatarReaction('listening', false);
   } else {
@@ -793,6 +808,7 @@ async function sendMessage(text) {
   const clean = (text || '').trim();
   if (!clean || !tid || send.disabled) return;
   box.value = ''; add('user', clean); send.disabled = true;
+  if (window.Guru3D) window.Guru3D.setListening(false);
   showThinking();
   try {
     const d = await post('/api/chat', {thread_id: tid, message: clean, lang: GBLang.lang});
@@ -992,5 +1008,7 @@ document.getElementById('cuqform').addEventListener('submit', async e => {
 });
 begin();
 </script>
+<!-- Real-time 3D Guru Beleq (Three.js from a CDN). Optional: without it the PNG above is used. -->
+<script type="module" src="/guru3d.js"></script>
 </body>
 </html>

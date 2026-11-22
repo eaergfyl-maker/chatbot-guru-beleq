@@ -24,5 +24,6 @@ The assignment asks us to keep track of how the avatar was made.
 | Added | 22 November 2026 |
 | Used on | the arched companion stage on `/chat` (`web/index.html`), the hero arch and chat preview on `/` (`web/landing.html`), and the header brand mark; served at `/guru_3d.png` |
 | Still used | `assets/avatar.png` stays as the favicon and at `/avatar.png` (the flat badge reads better at 16 px) |
-| Animation | no rig: the reactions (idle float, listening lean, greeting bounce, teaching bob, celebrate jump, thinking tilt, comfort sway, 67 wiggle) are CSS keyframes on the whole sprite, plus a 3D perspective tilt that follows the pointer |
+| Live 3D version | `web/guru3d.js` rebuilds this design in Three.js on `/chat` (modelled and painted in code, no AI-generated model); this PNG is its fallback and the landing-page image |
+| Animation | the PNG has no rig (the live 3D version on `/chat` does, see above). As a sprite, the reactions (idle float, listening lean, greeting bounce, teaching bob, celebrate jump, thinking tilt, comfort sway, 67 wiggle) are CSS keyframes on the whole sprite, plus a 3D perspective tilt that follows the pointer |
 | Tool and prompt | not recorded in this repository; add the image tool, date and prompt here so the GenAI record is complete |

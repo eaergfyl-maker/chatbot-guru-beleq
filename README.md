@@ -51,6 +51,8 @@ Prefer Streamlit or the terminal instead?
 
 `/` and `/chat` change look with the visitor's own clock: **🌿 Morning** (05:00–11:59, tropical emerald and coastal teal), **🌅 Afternoon** (12:00–17:59, Lombok sunset coral and twilight plum) and **🏮 Evening** (18:00–04:59, twilight indigo with lantern-gold glass, a dark mode). The pill next to EN | BM cycles *Auto → Morning → Afternoon → Evening*; the choice is remembered in the browser and shared by both pages. `?theme=evening` forces a look for one visit without saving it. The sandbox keeps its own daylight art.
 
+On `/chat` Guru Beleq is a live 3D character (`web/guru3d.js`): his eyes follow the pointer (and the message box while you type), he blinks, talks, waves, drums, jumps and thinks with each reply, can be spun by dragging, and plays the drum when clicked. The scene lights follow the same morning / afternoon / evening themes, with a flickering lantern at night. It needs WebGL and loads Three.js from unpkg (jsDelivr as backup); without them the 2D sprite is used, so the page also works offline.
+
 ## Bahasa Malaysia
 
 Every page has an **EN | BM** switch (top right on the chat and sandbox, top corner on the landing page; a *Language / Bahasa* selector in the Streamlit sidebar). The choice is remembered in the browser, carried across `/`, `/chat` and `/sandbox`, and can be forced with `?lang=ms` (for example `http://localhost:8000/chat?lang=ms`).
@@ -148,6 +150,7 @@ python -m src.semantic_net                # prints the semantic network as a Mer
 | `server.py` | standard-library web server: pages `/`, `/chat`, `/sandbox`; API `/api/start`, `/api/chat`, `/api/meta`, `/api/cuq`, `/api/sandbox` |
 | `web/landing.html` | mode selection page (`/`) |
 | `web/theme.css`, `web/theme.js` | time-of-day frosted-glass themes shared by `/` and `/chat` |
+| `web/guru3d.js` | real-time 3D Guru Beleq for the chat arch (Three.js r170 from a CDN; falls back to `guru_3d.png` offline or without WebGL, or with `?guru3d=off`) |
 | `web/index.html` | companion chat page (`/chat`): arched 3D companion stage, interactive menu, knowledge explorer, transcript export, and CUQ modal |
 | `web/sandbox.html`, `src/sandbox.py` | Sasak Village Sandbox game (`/sandbox`) and its cited station facts (`/api/sandbox`) |
 | `app.py`, `.streamlit/config.toml` | Streamlit UI with Sasak theme, quick-action bar, knowledge explorer, transcript export, and CUQ modal |

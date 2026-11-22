@@ -544,6 +544,25 @@ class WebRoutes(unittest.TestCase):
         self.assertIn("playDrumSound()", chat)
         self.assertIn('class="status-pill"', chat)
 
+    def test_live_3d_avatar_script_is_served_with_png_fallback(self):
+        status, ctype, js = self.get("/guru3d.js")
+        self.assertEqual(status, 200)
+        self.assertEqual(ctype, "application/javascript; charset=utf-8")  # module scripts need a JS type
+        self.assertIn("three@0.170.0", js)
+        self.assertIn("window.Guru3D = api", js)
+        for method in ("setReaction(", "setTheme(", "setListening(", "strike("):
+            self.assertIn(method, js)
+        for state in ("idle", "listening", "greeting", "teaching", "celebrate", "thinking", "comfort", "six_seven"):
+            self.assertRegex(js, rf"\n  {state}\(t\) \{{")  # one 3D pose per reaction state
+        self.assertIn("ACESFilmicToneMapping", js)
+        self.assertIn("has-3d", js)            # the PNG is only hidden once the canvas has drawn
+        self.assertIn("webglcontextlost", js)  # ... and comes back if the GPU context is lost
+        chat = self.get("/chat")[2]
+        self.assertIn('<script type="module" src="/guru3d.js"></script>', chat)
+        self.assertIn('src="/guru_3d.png"', chat)  # fallback sprite still in the arch
+        self.assertIn("if (window.Guru3D) window.Guru3D.setReaction(clean, speaking);", chat)
+        self.assertNotIn("guru3d.js", self.get("/")[2])  # the landing page keeps the PNG
+
     def test_chat_reports_engine_and_mode(self):
         _, d = self.post("/api/start", {})
         self.assertIs(d["smart"], False)

@@ -25,9 +25,14 @@ STATIC = {
     "/lang.js": ROOT / "web" / "lang.js",
     "/theme.js": ROOT / "web" / "theme.js",
     "/theme.css": ROOT / "web" / "theme.css",
+    "/guru3d.js": ROOT / "web" / "guru3d.js",
     "/avatar.png": ROOT / "assets" / "avatar.png",
     "/guru_3d.png": ROOT / "assets" / "guru_3d.png",
 }
+# Fixed types for our own files: browsers refuse ES modules (guru3d.js) served as anything but JavaScript,
+# and on some Windows machines mimetypes reads ".js" from the registry as text/plain.
+CTYPES = {".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
+          ".html": "text/html; charset=utf-8"}
 graph = build_graph()
 PORT = 8000
 
@@ -110,8 +115,10 @@ class Handler(BaseHTTPRequestHandler):
         route = url.path.rstrip("/") or "/"  # /chat/ works like /chat
         path = STATIC.get(route)
         if path and path.exists():
-            ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-            return self._send(200, path.read_bytes(), f"{ctype}; charset=utf-8" if ctype.startswith("text") else ctype)
+            ctype = CTYPES.get(path.suffix) or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+            if ctype.startswith("text") and "charset" not in ctype:
+                ctype += "; charset=utf-8"
+            return self._send(200, path.read_bytes(), ctype)
         self._send(404, b"Not found", "text/plain")
 
     def do_POST(self):
